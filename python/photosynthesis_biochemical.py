@@ -12,7 +12,9 @@ AUTOMATICALLY DIFFERENTIABLE TRANSLATION
 
 Some paramaters should be tensors, others don't need to be.
 The parameter to optimize for is gsCO2.
-Physical constants:
+Physical constants: Pre0, Tf, Pre, Tref, R
+Seemingly Physical constants: Hd, Ha, DS, 
+Seemingly Arbitrary: s1, s3, Tup, Tlow, ...
 """
 
 def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_sto_00, CT,Vmax,DS,Ha,FI,Oa,Do,a1,go,gmes,rjv):
