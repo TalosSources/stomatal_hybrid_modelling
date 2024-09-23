@@ -28,5 +28,10 @@ gmes = torch.tensor([1])
 rjv = torch.tensor([1])
 
 result = photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds, Psi_L,Psi_sto_50,Psi_sto_00, CT,Vmax,DS,Ha,FI,Oa,Do,a1,go,gmes,rjv)
+CcF,An,rs,Rdark,F755nm,GAM,gsCO2 = result
+gsCO2 : torch.Tensor = gsCO2
 
 print(f"result = {result}")
+
+backwards = gsCO2.backward()
+print(f"backwards = {backwards}")

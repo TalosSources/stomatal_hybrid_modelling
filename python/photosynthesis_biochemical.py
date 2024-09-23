@@ -47,24 +47,24 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     ANS_TEMP=1 
     if  ANS_TEMP == 1: ## Kattge and Knorr 2007
         Hd =  200 # [kJ/mol]  Deactivation Energy -- constant
-        kT =np.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+np.exp((Ts_k*DS-Hd)/(Ts_k*R)))
+        kT =torch.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+torch.exp((Ts_k*DS-Hd)/(Ts_k*R)))
         Vm=Vmax*kT ### ## [umolCO2/ s m^2 ]
         Hd =  200#  [kJ/mol]  Deactivation Energy -- constant
         Ha = 50# [kJ/mol] Activation Energy
         DS = 0.646# [kJ / mol K]  entropy factor
-        kT =np.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+np.exp((Ts_k*DS-Hd)/(Ts_k*R)))
+        kT =torch.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+torch.exp((Ts_k*DS-Hd)/(Ts_k*R)))
         Jmax = Vmax*rjv  ## [umol electrons/ s m^2 ]
         Jm= Jmax*kT #### [umol electrons/ s m^2 ]
     else: ### Bernacchi et al., 2001 2003  Bonan et al., 2011
         Hd = 149 ##  [kJ/mol]  Deactivation Energy -- constant
         Ha = 65.33 ##  [kJ/mol] Activation Energy - Plant Dependent
         DS = 0.485 ## [kJ / mol K]  entropy factor - Plant Dependent
-        kT =np.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+np.exp((Ts_k*DS-Hd)/(Ts_k*R)))
+        kT =torch.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+torch.exp((Ts_k*DS-Hd)/(Ts_k*R)))
         Vm=Vmax*kT ### ## [umolCO2/ s m^2 ]
         Hd = 152 ## [kJ/mol]  Deactivation Energy -- constant
         Ha = 43.5 ## [kJ/mol] Activation Energy
         DS = 0.495 ## [kJ / mol K]  entropy factor
-        kT =np.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+np.exp((Ts_k*DS-Hd)/(Ts_k*R)))
+        kT =torch.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+torch.exp((Ts_k*DS-Hd)/(Ts_k*R)))
         Jmax = Vmax*rjv  ## [umol electrons/ s m^2 ]
         Jm= Jmax*kT #### [umol electrons/ s m^2 ]
 
@@ -73,7 +73,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     Hd = 150.65 ## [kJ/mol]  Deactivation Energy
 
     TPU25=0.1182*Vmax ## [umolCO2/ s m^2 ]
-    kT =np.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+np.exp((Ts_k*DS-Hd)/(Ts_k*R)))
+    kT =torch.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+torch.exp((Ts_k*DS-Hd)/(Ts_k*R)))
     TPU=TPU25*kT ##  [umolCO2/ s m^2 ]
 
     if CT==4: 
@@ -81,8 +81,8 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         s3=0.2 # [1/K] ## 0.3 Cox2001
         Tup = 40 #[�C]
         Tlow = 15 ##[�C]
-        f1T= 1/(1 +np.exp(s1*(Ts - Tup))) ### Temperaure Function 1 for Maximum Rubisco Capacity
-        f2T= 1/(1 +np.exp(s3*(Tlow - Ts)))### Temperaure Function 2 for Maximum Rubisco Capacity
+        f1T= 1/(1 +torch.exp(s1*(Ts - Tup))) ### Temperaure Function 1 for Maximum Rubisco Capacity
+        f2T= 1/(1 +torch.exp(s3*(Tlow - Ts)))### Temperaure Function 2 for Maximum Rubisco Capacity
         fT = 2.0**(0.1*(Ts-25)) 
         Vm = Vmax*fT*f1T*f2T ## [umolCO2/ s m^2 ]
         ke25 = 20000*Vmax 
@@ -101,7 +101,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         GAM = GAM*1e-6*Pre ## [Pa] - Partial Pressure [Pa*molCO2/molAIR]
     if ANSG == 2: 
         Ha = 37.83   ## [kJ/mol] Activation Energy 
-        kT= np.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))
+        kT= torch.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))
         GAM25 = 42.75 ## ##[umol / mol]
         GAM25 = GAM25*1e-6*Pre ##[Pa]
         GAM = GAM25*kT ## [Pa] Michaelis-Menten Constant for C0_2
@@ -111,13 +111,13 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         Ha =79.43  ## [kJ/mol] Activation Energy
         Kc25= 404.9 ##[umol / mol]
         Kc25= Kc25*1e-6*Pre ##[Pa]
-        kT= np.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))
+        kT= torch.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))
         Kc = Kc25*kT ## [Pa] Michaelis-Menten Constant for C0_2
         ###
         Ha = 36.38  ## [kJ/mol] Activation Energy
         Ko25 = 278.4  ##[mmol / mol]
         Ko25 = Ko25*1e-3*Pre ##[Pa]
-        kT= np.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))
+        kT= torch.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))
         Ko = Ko25*kT ## [Pa] Michaelis-Menten Constant for O_2
 
     if CT == 3:
@@ -125,11 +125,11 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         DS = 0.490 
         Hd = 150.65 
         Rdark25 = 0.015*Vmax 
-        kT =np.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+np.exp((Ts_k*DS-Hd)/(Ts_k*R)))
+        kT =torch.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+np.exp((Tref*DS - Hd)/(Tref*R)))/(1+torch.exp((Ts_k*DS-Hd)/(Ts_k*R)))
         Rdark = Rdark25*kT
     elif CT ==4:
         fT = 2.0**(0.1*(Ts-25))
-        fT3= 1/(1 +np.exp(1.3*(Ts-55)))### Temperaure Function 3 for Respiration
+        fT3= 1/(1 +torch.exp(1.3*(Ts-55)))### Temperaure Function 3 for Respiration
         Rdark25 = 0.025*Vmax 
         Rdark = Rdark25*fT*fT3 ###  ### [umolCO2/ s m^2 ] ## Leaf Maintenace Respiration / Dark Respiration
 
@@ -173,7 +173,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     Rgsws=0.02
     p2= log((1 -Rgsws)/Rgsws)/(Psi_sto_00 - Psi_sto_50)## [1/MPa]
     q2=-p2*Psi_sto_50 ##[-]
-    Rgsw = 1/(1+np.exp(p2*Psi_L+q2)) ## [fraction]
+    Rgsw = 1/(1+torch.exp(p2*Psi_L+q2)) ## [fraction]
     fO = (1-Rgsw) ######
     fO[fO>1]=1  
     fO[fO<0]=0 
