@@ -13,6 +13,12 @@ flag CT selects a technique
     simple Jm(Jmax, kT)
 and so on and so on
 
+## Parameters
+### Measurements
+### Physical constants
+### Empirical parameters (to tune)
+
+
 
 # gsCO2 dependancy
 (in the end, clamping with go)
