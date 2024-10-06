@@ -202,9 +202,23 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
 
     An = A - Rdark # ## Net Assimilation Rate # [umolCO2/ s m^2 ]
 
-    gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
-    gsCO2 = ... # Predict using a neural network taking as input An, Pre, Cc, GAM, Ds, Do, and predict as go + a1 * output. First, check the nn can estimate the above empirical formula correctly, then try to see with real data if it can be improved. TODO: ask for GSCO2 data, input data for this module, and evapotranspiration data from Akash. also try with gaussian data first
-    gsCO2[gsCO2<go]=go 
+    learned_gsco2 = False
+    if learned_gsco2:
+        gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
+    else:
+        """ Predict using a neural network taking as input An, Pre, Cc, GAM, Ds, Do, and predict as go + a1 * output. 
+            First, check the nn can estimate the above empirical formula correctly, 
+            then try to see with real data if it can be improved. 
+            TODO: ask for GSCO2 data, input data for this module, and evapotranspiration data from Akash. 
+            also try with gaussian data first
+        """
+        # NOTE: With torch.no_grad or something
+        gsCO2_model = ...
+        model_output = gsCO2_model.forward(An, Pre, Cc, GAM, Ds, Do)
+        gsCO2 = go + a1 * model_output
+    
+    
+    gsCO2[gsCO2<go]=go # QUESTION: Is gsCO2 an array? can it hold more than one value?
     # using the data in the paper, we may need to add parameters to the function
 
     rsCO2=1/gsCO2 ### [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
