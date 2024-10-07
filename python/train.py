@@ -44,17 +44,24 @@ def train_general(
     criterion,
     optimizer,
     epochs,
-    data_iterator
+    data_iterator,
+    batch_size=1
 ):
 
+    losses : list(float) = []
 
     for i in range(epochs):
         
         optimizer.zero_grad()
         
-        x, y = next(data_iterator)
-        x = torch.tensor(x, dtype=torch.float32)
-        y = torch.tensor(y, dtype=torch.float32)
+        x_batch = []
+        y_batch = []
+        for _ in range(batch_size):
+            x, y = next(data_iterator)
+            x_batch.append(x)
+            y_batch.append(y)
+        x = torch.tensor(x_batch, dtype=torch.float32)
+        y = torch.tensor(y_batch, dtype=torch.float32)
 
         output = model(x)
         
@@ -62,19 +69,28 @@ def train_general(
         loss.backward()
         optimizer.step()
 
+        losses.append(float(loss))
+
         print(f"Epoch {i}: x={x}, y={y}, output={output}, loss={loss}")
+
+    return np.array(losses)
 
 
 def train_gsco2():
     
     model = models.gsCO2_model()
     loss = torch.nn.MSELoss()
-    opt = torch.optim.Adam(model.parameters(), lr=5e-1)
-    epochs = 5000
+    #opt = torch.optim.Adam(model.parameters(), lr=1e-2)
+    opt = torch.optim.SGD(model.parameters(), lr=1e-2)
+    epochs = 1000
     #data_iterator = gsco2_dummy_data_generator
     data_iterator = simple_data_generator
 
-    train_general(model, loss, opt, epochs, data_iterator)
+    losses = train_general(model, loss, opt, epochs, data_iterator)
+
+    avg_window = 50
+    avg_loss = losses[-avg_window:].mean()
+    print(f"Average of the last {avg_window} losses: {avg_loss}")
 
     return model
 
@@ -102,8 +118,8 @@ gsco2_dummy_data_generator = function_sample_iterator(
 )
 
 simple_data_generator = function_sample_iterator(
-    f = lambda x : np.array([x[0] + x[1] + x[2] + x[3] + x[4] + x[5]]),
-    sampler = lambda: np.random.normal(10, 4, 6)
+    f = lambda x : np.array([x[0] + 2*x[1] + 3*x[2] + 4*x[3] + 5*x[4] + 6*x[5]]),
+    sampler = lambda: np.random.normal(0, 1, 6) # data centered around 0
 )
 
 
