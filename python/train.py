@@ -60,8 +60,8 @@ def train_general(
             x, y = next(data_iterator)
             x_batch.append(x)
             y_batch.append(y)
-        x = torch.tensor(x_batch, dtype=torch.float32)
-        y = torch.tensor(y_batch, dtype=torch.float32)
+        x = torch.tensor(np.array(x_batch), dtype=torch.float32)
+        y = torch.tensor(np.array(y_batch), dtype=torch.float32)
 
         output = model(x)
         
@@ -80,11 +80,11 @@ def train_gsco2():
     
     model = models.gsCO2_model()
     loss = torch.nn.MSELoss()
-    #opt = torch.optim.Adam(model.parameters(), lr=1e-2)
-    opt = torch.optim.SGD(model.parameters(), lr=1e-2)
+    opt = torch.optim.Adam(model.parameters(), lr=1e-2)
+    #opt = torch.optim.SGD(model.parameters(), lr=1e-2)
     epochs = 1000
-    #data_iterator = gsco2_dummy_data_generator
-    data_iterator = simple_data_generator
+    data_iterator = gsco2_dummy_data_generator
+    #data_iterator = simple_data_generator
 
     losses = train_general(model, loss, opt, epochs, data_iterator)
 
@@ -118,8 +118,8 @@ gsco2_dummy_data_generator = function_sample_iterator(
 )
 
 simple_data_generator = function_sample_iterator(
-    f = lambda x : np.array([x[0] + 2*x[1] + 3*x[2] + 4*x[3] + 5*x[4] + 6*x[5]]),
-    sampler = lambda: np.random.normal(0, 1, 6) # data centered around 0
+    f = lambda x : np.array([x[0] * x[1]]),# + x[2] + x[3] + x[4] + x[5]]),
+    sampler = lambda: np.random.normal(0, 2, 2) # data centered around 0
 )
 
 
