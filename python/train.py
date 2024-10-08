@@ -4,6 +4,8 @@ import models
 import torch
 import numpy as np
 
+import plot
+
 def train():
 
     # training parameters
@@ -45,10 +47,10 @@ def train_general(
     optimizer,
     epochs,
     data_iterator,
-    batch_size=1
+    batch_size=32
 ):
 
-    losses : list(float) = []
+    losses = []
 
     for i in range(epochs):
         
@@ -80,9 +82,9 @@ def train_gsco2():
     
     model = models.gsCO2_model()
     loss = torch.nn.MSELoss()
-    opt = torch.optim.Adam(model.parameters(), lr=1e-2)
+    opt = torch.optim.Adam(model.parameters(), lr=3e-4)
     #opt = torch.optim.SGD(model.parameters(), lr=1e-2)
-    epochs = 1000
+    epochs = 2000
     data_iterator = gsco2_dummy_data_generator
     #data_iterator = simple_data_generator
 
@@ -91,6 +93,11 @@ def train_gsco2():
     avg_window = 50
     avg_loss = losses[-avg_window:].mean()
     print(f"Average of the last {avg_window} losses: {avg_loss}")
+
+    plot.plot_losses(losses)
+    plot.plot_univariate_slice(model, gsco2_dummy_data_generator.f, torch.tensor([5, 5, 8, 2, 2, 4], dtype=torch.float32), 2, np.arange(5, 11, 0.1))
+    plot.plot_univariate_slice(model, gsco2_dummy_data_generator.f, torch.tensor([5, 5, 8, 2, 2, 4], dtype=torch.float32), 1, np.arange(2, 8, 0.1))
+    plot.plot_univariate_slice(model, gsco2_dummy_data_generator.f, torch.tensor([5, 5, 8, 2, 2, 4], dtype=torch.float32), 0, np.arange(2, 8, 0.1))
 
     return model
 
@@ -114,7 +121,7 @@ class function_sample_iterator:
 
 gsco2_dummy_data_generator = function_sample_iterator(
     f = lambda x : np.array([x[0]*x[1]/((x[2]-x[3])*(1+x[4]/x[5]))]),
-    sampler = lambda: np.random.normal(10, 2, 6) # NOTE: This could easily be changed
+    sampler = lambda: np.random.normal([5, 5, 8, 2, 2, 4], 1, 6) # NOTE: This could easily be changed
 )
 
 simple_data_generator = function_sample_iterator(

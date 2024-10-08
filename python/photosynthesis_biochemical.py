@@ -203,7 +203,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     An = A - Rdark # ## Net Assimilation Rate # [umolCO2/ s m^2 ]
 
     learned_gsco2 = False
-    if learned_gsco2:
+    if not learned_gsco2:
         gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
     else:
         """ Predict using a neural network taking as input An, Pre, Cc, GAM, Ds, Do, and predict as go + a1 * output. 
