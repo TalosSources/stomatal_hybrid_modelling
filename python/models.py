@@ -51,7 +51,7 @@ class FCRN(torch.nn.Module):
         self.activation = activation
         
     
-    def forward(self, x):
+    def forward(self, x): 
         to_print = f"calling forward, x={x}\n"
 
         # INPUT LAYER
@@ -70,8 +70,19 @@ class FCRN(torch.nn.Module):
         to_print += f"returning {x}\n"
         print(to_print)
         return x
+    
+
+class RandomForest:
+    ... # TODO: Perhaps use a library for this, seems more reasonnable
 
 def gsCO2_model():
+    """
+    Ideas for improvement:
+    * weight decay? normalisation? that kind of stuff
+    * random forest?
+    * proper recurrent network?
+    * read the ML course again
+    """
     input_dim = 6
     output_dim = 1
     return FCN([input_dim, 64, 64, 64, 64, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
