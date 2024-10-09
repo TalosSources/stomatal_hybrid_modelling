@@ -23,7 +23,7 @@ magic numbers: (4.57, 0.0224)
 misc: (FI, Oa)
 also: some formulas seem arbitrary / semi-empirical. I guess they may be replaced by simple parametrized models (small neural networks, adding some tunable parameters). for example: all the mess starting at ANS_TEMP
 
-
+---> NOTE where stuff is in the code
 
 # gsCO2 dependancy
 (in the end, clamping with go)

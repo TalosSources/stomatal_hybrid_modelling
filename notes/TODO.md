@@ -14,3 +14,16 @@
 * try to train a stochastic model? bayesian learning?
 
 can contact Akash until friday morning, and then not until 08.10
+
+
+# TODO Starting 08.10
+* make a fit plot function, smtg smtg coefficient of determination, smtg smtg R²
+* Setup MATLAB
+* check that I can learn the VCMax empirical function
+* find where ra is coming from in pb.m
+* write the logic in torch for going from gsco2 to Q_LE and Q_H
+* obtain Q_LE (and later Q_H) dataset [PENDING ON DATA]
+* train a hybrid model of GSCO2, and VCMax (large pipeline) using a loss function including Q_LE like in the evapotranspiration dataset  [PENDING ON DATA]
+* understand how they constrain the hybrid models, see if I can do it as well
+* write report (?)
+* Explore Bayesian Deep Learning (links saved in semester_project)
