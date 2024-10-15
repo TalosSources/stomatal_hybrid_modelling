@@ -29,5 +29,21 @@ also: some formulas seem arbitrary / semi-empirical. I guess they may be replace
 (in the end, clamping with go)
 * gsCO2(go, a1, An, Pre, Cc, GAM, Ds, Do)
 
+# ra
+found where ra is coming from:
+in pb, it's given as input (and modified/rescaled...)
+in Canopy_Resistance... it's also given.
+In SVAT_UNIT.m it's computed as:
+
+```ran = (1/((0.4^2)*Ws))*(log((zatm-disp_h)/zom))^2; %%% Neutral aerodynamic resistance  %%[s/m]```
+
+where Ws and zatm are given in the module (and hence perhaps in mainframe), while disp_h and zom are given by Roughness_New.
+
+Then in pb.m it's modified as follows:
+
+```ra = ra*(0.0224*(Ta+273.15)*Pre0/(Tf*Pre))*10^-6; %% [m^2 s/umolH20]  %%% -> ```
+
+and used to compute Ccf and An, which are both returned by pb.
+
 # Plan
 We assume we get ground truth for gsCO2 for given arguments/measurements of the function. We need to need to create a list of tunable parameters in the pipeline, feed it to an optimizer, then repeatedly call the function with the data, use a simple loss such as MSE, and 

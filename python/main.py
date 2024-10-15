@@ -39,4 +39,5 @@ import train
 # print(f"backwards = {backwards}")
 
 
-model = train.train_gsco2()
+#model = train.train_gsco2()
+model = train.train_vm()
