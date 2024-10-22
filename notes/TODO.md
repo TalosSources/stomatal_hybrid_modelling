@@ -32,5 +32,8 @@ can contact Akash until friday morning, and then not until 08.10
 * start the gsCO2 -> Q_LE pipeline, use the Sites in CH data to train an actual gsCO2 model, evaluate it.
 * find predictors for VCMax, check whether we have them already or we need external data, in which case ask Akash. Check if the paper (hourly...) has reference data. Maybe check other papers related to VCMax, come up with a set of predictors to include. [LOOK AT A FEW PAPERS; MAKE A LIST OF PREDICTORS WITH THEIR FULL NAMES; ASK AKASH]
 * Model VMax as a network directly dependant on the above predictors, replace it in pb.py module.
-* train the gsCO2 model for each site sequentially. Train all the data for the same site sequentially, then move to another site, instead of mixing data.
+* train the gsCO2 model for each site sequentially. Train all the data for the same site sequentially, then move to another site, instead of mixing data. [Compare methods? sequentially vs not-sequentially]. [important: some state variable depend on previous model steps, for example soil moisture today depends on soil moisture yesterday, so in practice the model is always run sequentially. Think about that, does it make sense to shuffle the data in this context? research markovian networks? maybe recurrent models [READ ABOUT THEM]? so also test including previous state data in the input and shuffle, compare results]
 * [If Time] train the VMax and gsCO2 at the same time, evaluate the whole pipeline
+
+# Later
+* learn for different sites (other biomes), different sequence in which sites are trained
