@@ -106,11 +106,11 @@ def train_vm():
     
     model = models.vm_model()
     loss = torch.nn.MSELoss()
-    opt = torch.optim.Adam(model.parameters(), lr=3e-4)
-    epochs = 200
+    opt = torch.optim.Adam(model.parameters(), lr=1e-3)
+    epochs = 500
     data_iterator = vm_dummy_data_generator
 
-    losses = train_general(model, loss, opt, epochs, data_iterator)
+    losses = train_general(model, loss, opt, epochs, data_iterator, batch_size=1)
 
     avg_window = 50
     avg_loss = losses[-avg_window:].mean()
@@ -166,6 +166,7 @@ def vm_empirical(x):
     Vm=Vmax*kT
 
     return Vm
+    #return Ts + Vmax
 
     # in some strange case
     #Vm = Vmax*fT*f1T*f2T
