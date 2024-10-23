@@ -17,7 +17,9 @@ Seemingly Physical constants: Hd, Ha, DS,
 Seemingly Arbitrary: s1, s3, Tup, Tlow, ...
 """
 
-def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_sto_00, CT,Vmax,DS,Ha,FI,Oa,Do,a1,go,gmes,rjv):
+def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_sto_00, 
+    CT,Vmax,DS,Ha,FI,Oa,Do,a1,go,gmes,rjv,
+    gsCO2_model = None, Vmax_model = None):
 
     # CT is a flag, must be 3 or 4
     assert CT == 3 or CT == 4
@@ -87,6 +89,10 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         Vm = Vmax*fT*f1T*f2T ## [umolCO2/ s m^2 ]
         ke25 = 20000*Vmax 
         ke = ke25*fT 
+
+    if Vmax_model is not None:
+        vm_predictors = ... # TODO
+        Vm = Vmax_model(**vm_predictors)
 
     ANSG = 2 
     if ANSG == 0: 
@@ -202,8 +208,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
 
     An = A - Rdark # ## Net Assimilation Rate # [umolCO2/ s m^2 ]
 
-    learned_gsco2 = False
-    if not learned_gsco2:
+    if gsCO2_model is None:
         gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
     else:
         """ Predict using a neural network taking as input An, Pre, Cc, GAM, Ds, Do, and predict as go + a1 * output. 
@@ -213,8 +218,9 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
             also try with gaussian data first
         """
         # NOTE: With torch.no_grad or something
-        gsCO2_model = ...
-        model_output = gsCO2_model.forward(An, Pre, Cc, GAM, Ds, Do)
+        #model_output = gsCO2_model.forward(An, Pre, Cc, GAM, Ds, Do)
+        predictors = ... # TODO, perhaps take the above predictors
+        model_output = gsCO2_model(**predictors)
         gsCO2 = go + a1 * model_output
     
     

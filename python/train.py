@@ -1,4 +1,5 @@
 from photosynthesis_biochemical import photosynthesis_biochemical
+import differentiable_relations
 
 import models
 import torch
@@ -123,6 +124,49 @@ def train_vm():
 
     return model
 
+def train_pipeline(data):
+    
+    gsCO2_model = models.gsCO2_model()
+    Vmax_model = models.vm_model()
+
+    """
+    Need some function that computes pb outputs given chosen predictors. 
+    It should store the constant inputs not considered predictors. 
+    Else we should create another train_general function 
+    """
+    model_wrapper = make_pipeline(gsCO2_model, Vmax_model)
+    data_iterator = iter(data)
+
+    loss = torch.nn.MSELoss()
+    opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
+
+    epochs = 2000
+
+    losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
+
+    # show info about loss NOTE: Consider using wandb or similar foss
+    avg_window = 50
+    avg_loss = losses[-avg_window:].mean()
+    print(f"Average of the last {avg_window} losses: {avg_loss}")
+    plot.plot_losses(losses)
+
+    return gsCO2_model, Vmax_model
+
+
+def make_pipeline(gsCO2_model, Vmax_model):
+
+    # define constants. Doing our function structure that way allows to store the constants cleanly
+    constants = ...
+
+    # the pipeline calls the pb module with the 2 models inserted, using the constants and predictors as inputs, and converts the outputs to Q_LE 
+    def pipeline(**predictors):
+        gsCO2 = photosynthesis_biochemical(**predictors, **constants, gsCO2_model=gsCO2_model, Vmax_model=Vmax_model)
+        Q_LE = differentiable_relations.Q_LE(gsCO2, **constants) # TODO: Clarify
+        return Q_LE
+
+    return pipeline
+
+
 
 """
 Represents an iterator objects that, for some function y = f(x),
@@ -140,6 +184,7 @@ class function_sample_iterator:
         x = self.sampler()
         y = self.f(x)
         return x, y
+
     
 def generate_points(sampler, count = 100):
     return [torch.tensor(sampler(), dtype=torch.float32) for _ in range(count)]
