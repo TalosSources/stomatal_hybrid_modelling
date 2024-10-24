@@ -19,7 +19,7 @@ def main():
     site_name = "CH-Dav"
 
     pipeline_data = data.load_pipeline_data(base_path, site_name)
-    #gsCO2_model, Vmax_model = train.train_pipeline(data)
+    gsCO2_model, Vmax_model = train.train_pipeline(pipeline_data)
 
 
 if __name__ == "__main__":

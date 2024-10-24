@@ -48,7 +48,7 @@ def train_general(
     optimizer,
     epochs,
     data_iterator,
-    batch_size=32
+    batch_size=1
 ):
 
     losses = []
@@ -57,17 +57,20 @@ def train_general(
         
         optimizer.zero_grad()
         
-        x_batch = []
-        y_batch = []
-        for _ in range(batch_size):
+
+        if batch_size > 1:
+            x_batch = []
+            y_batch = []
+            for _ in range(batch_size):
+                x, y = next(data_iterator)
+                x_batch.append(x)
+                y_batch.append(y)
+            x = torch.tensor(np.array(x_batch), dtype=torch.float32)
+            y = torch.tensor(np.array(y_batch), dtype=torch.float32)
+        else:
             x, y = next(data_iterator)
-            x_batch.append(x)
-            y_batch.append(y)
-        x = torch.tensor(np.array(x_batch), dtype=torch.float32)
-        y = torch.tensor(np.array(y_batch), dtype=torch.float32)
 
         output = model(x)
-        
         loss = criterion(output, y)
         loss.backward()
         optimizer.step()
@@ -124,10 +127,11 @@ def train_vm():
 
     return model
 
-def train_pipeline(data):
+def train_pipeline(train_data):
     
     gsCO2_model = models.gsCO2_model()
-    Vmax_model = models.vm_model()
+    #Vmax_model = models.vm_model()
+    Vmax_model = None # only train gsCO2 for now
 
     """
     Need some function that computes pb outputs given chosen predictors. 
@@ -135,10 +139,11 @@ def train_pipeline(data):
     Else we should create another train_general function 
     """
     model_wrapper = make_pipeline(gsCO2_model, Vmax_model)
-    data_iterator = iter(data)
+    data_iterator = iter(train_data)
 
     loss = torch.nn.MSELoss()
-    opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
+    #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
+    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=1e-1)
 
     epochs = 2000
 
@@ -156,12 +161,12 @@ def train_pipeline(data):
 def make_pipeline(gsCO2_model, Vmax_model):
 
     # define constants. Doing our function structure that way allows to store the constants cleanly
-    constants = ...
+    # constants = ... # NOTE: Might not be necessary
 
     # the pipeline calls the pb module with the 2 models inserted, using the constants and predictors as inputs, and converts the outputs to Q_LE 
-    def pipeline(**predictors):
-        gsCO2 = photosynthesis_biochemical(**predictors, **constants, gsCO2_model=gsCO2_model, Vmax_model=Vmax_model)
-        Q_LE = differentiable_relations.Q_LE(gsCO2, **constants) # TODO: Clarify
+    def pipeline(predictors):
+        _,_,_,_,_,_,gsCO2 = photosynthesis_biochemical(**predictors, gsCO2_model=gsCO2_model, Vmax_model=Vmax_model)
+        Q_LE = differentiable_relations.Q_LE(gsCO2) # TODO: Clarify
         return Q_LE
 
     return pipeline

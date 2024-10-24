@@ -17,7 +17,7 @@ Seemingly Physical constants: Hd, Ha, DS,
 Seemingly Arbitrary: s1, s3, Tup, Tlow, ...
 """
 
-def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_sto_00, 
+def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_sto_00, # [REPLACE WITH PARAMETERS OF THE Vmax() function]
     CT,Vmax,DS,Ha,FI,Oa,Do,a1,go,gmes,rjv,
     gsCO2_model = None, Vmax_model = None):
 
@@ -219,8 +219,8 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         """
         # NOTE: With torch.no_grad or something
         #model_output = gsCO2_model.forward(An, Pre, Cc, GAM, Ds, Do)
-        predictors = ... # TODO, perhaps take the above predictors
-        model_output = gsCO2_model(**predictors)
+        predictors = torch.tensor([An,Pre,Cc,GAM,Ds,Do]) # TODO, perhaps take the above predictors
+        model_output = gsCO2_model(predictors) # We are unfortunately always truncated. NOTE: Does this impact the gradient?
         gsCO2 = go + a1 * model_output
     
     
