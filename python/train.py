@@ -72,12 +72,16 @@ def train_general(
 
         output = model(x)
         loss = criterion(output, y)
+        if torch.isnan(loss) or torch.isinf(loss):
+            print(f"Found nan or inf loss: don't compute gradient")
+            continue
         loss.backward()
         optimizer.step()
 
         losses.append(float(loss))
 
         print(f"Epoch {i}: x={x}, y={y}, output={output}, loss={loss}")
+        
 
     return np.array(losses)
 
@@ -140,13 +144,13 @@ def train_pipeline(train_data):
     """
     model_wrapper = make_pipeline(gsCO2_model, Vmax_model)
     #data_iterator = iter(train_data)
-    data_iterator = batch_dict_iterator(train_data, batch_size=2)
+    data_iterator = batch_dict_iterator(train_data, batch_size=8)
 
     loss = torch.nn.MSELoss()
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
-    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=1e-2)
+    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=1e-3)
 
-    epochs = 30000
+    epochs = 20000
 
     # TODO: Use batches
     losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
@@ -255,16 +259,15 @@ Of course, the elements must be in the same order in the tensor for each paramet
 import random
 def dict_batch(dict_array, batch_size):
     batch = random.sample(dict_array, batch_size)
-    print(f"batch={batch}")
     predictors, outputs = zip(*batch)
-    print(f"predictors={predictors}")
-    print(f"outputs={outputs}")
     predictors_batch = {key: torch.tensor([entry[key] for entry in predictors]) 
                   for key in predictors[0].keys()}
+
+    # ugly fix TODO
+    predictors_batch['CT'] = 3
+
     outputs_batch = torch.tensor(outputs) 
                   
-    print(f"sampled predictors: {predictors}")
-    print(f"sampled outputs: {outputs}")
     return (predictors_batch, outputs_batch)
 
 

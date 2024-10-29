@@ -144,7 +144,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     d1= 0.7 
     d2= -(Q + Jm/4) 
     d3= Q*Jm/4   ## d1 = 0.95 Leuning 1995 d1 = 0.7 Bonan et al., 2011  
-    J=min((-d2+sqrt(d2**2-4*d1*d3))/(2*d1),(-d2-sqrt(d2**2-4*d1*d3))/(2*d1)) # 
+    J=torch.min((-d2+torch.sqrt(d2**2-4*d1*d3))/(2*d1),(-d2-torch.sqrt(d2**2-4*d1*d3))/(2*d1)) # 
     if CT == 3:
         JC = Vm*(Cc -GAM)/(Cc + Kc*(1+Oa/Ko)) ### Gross Assimilation Rate Limited by Rubisco# [umolCO2/ s m^2 ]
         JL = (J)*(Cc -GAM)/(Cc + 2*GAM) ### Gross Assimilation Rate Limited by Light # [umolCO2/ s m^2 ]
@@ -163,7 +163,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         b2= -(JC+JL) 
         b3= JC*JL   ##  b1 = 0.8 Bonan et al 2011  for C4  0.83 Cox 2001
 
-    JP=min((-b2+sqrt(b2**2-4*b1*b3))/(2*b1),(-b2-sqrt(b2**2-4*b1*b3))/(2*b1))
+    JP=torch.min((-b2+torch.sqrt(b2**2-4*b1*b3))/(2*b1),(-b2-torch.sqrt(b2**2-4*b1*b3))/(2*b1))
 
     if CT == 3:
         c1 = 0.95 
@@ -174,8 +174,8 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         c2 = -(JP +JE) 
         c3= JP*JE  ### c1=0.95 Bonan et al 2011 for C4  0.93 Cox 2001
 
-    A=min((-c2+sqrt(c2**2-4*c1*c3))/(2*c1),(-c2-sqrt(c2**2-4*c1*c3))/(2*c1))
-
+    A=torch.min((-c2+torch.sqrt(c2**2-4*c1*c3))/(2*c1),(-c2-torch.sqrt(c2**2-4*c1*c3))/(2*c1))
+    
     Rgsws=0.02
     p2= log((1 -Rgsws)/Rgsws)/(Psi_sto_00 - Psi_sto_50)## [1/MPa]
     q2=-p2*Psi_sto_50 ##[-]
@@ -195,7 +195,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     dls=1-fiP/fiP0 ## degree of light saturation 
 
     kf =0.05 
-    kd = max(0.03*Ts+0.0773,0.087) 
+    kd = torch.max(0.03*Ts+0.0773,torch.tensor(0.087)) 
     kn = (6.2473*dls-0.5944)*dls 
 
     fiF = kf/(kf+kd+kn)*(1-fiP)  # [umol Electrons/ umolPhotons]
@@ -219,7 +219,8 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         """
         # NOTE: With torch.no_grad or something
         #model_output = gsCO2_model.forward(An, Pre, Cc, GAM, Ds, Do)
-        predictors = torch.tensor([An,Pre,Cc,GAM,Ds,Do]) # TODO, perhaps take the above predictors
+        predictors = torch.stack([An,Pre,Cc,GAM,Ds,Do], dim=1) # TODO, perhaps take the above predictors
+        print(f"Obtain predictors shape = {predictors.shape}")
         model_output = gsCO2_model(predictors) # We are unfortunately always truncated. NOTE: Does this impact the gradient?
         gsCO2 = go + a1 * model_output
     
