@@ -3,7 +3,11 @@ import numpy as np
 import torch
 import os
 
-def load_pipeline_data(basepath, site_name): # NOTE: no real need to take 2 files into input, as the 2 files could be reconstructed from the site name
+"""
+The data is a dict from param_names to large arrays of values.
+We transform it into a large array of dicts (and perform some translation and constant handling)
+"""
+def load_pipeline_data_dict(basepath, site_name): # NOTE: no real need to take 2 files into input, as the 2 files could be reconstructed from the site name
     
     # prepare paths
     predictor_path = os.path.join(basepath, f"Results_{site_name}.mat")
@@ -30,7 +34,51 @@ def load_pipeline_data(basepath, site_name): # NOTE: no real need to take 2 file
     # merge the dictionaries into an array of (input, output) tuples
     n = predictor_arrays[predictor_keys[0]].shape[0]
     data = [
-        ({ k : predictor_arrays[k][i] for k in predictor_arrays } | constants |{"DS" : 0.5},
+        ({ k : predictor_arrays[k][i] for k in predictor_arrays } | constants | {"DS" : 0.5},
+        output_arrays[output_keys[0]][i]) # For now, we assume a single output
+        for i in range(n)
+    ]
+
+    return data
+
+
+"""
+The data is a dict from param_names to large arrays of values.
+We transform it into a large tensor, with parameters in the order they appear in pb
+We could return a large tensor with copies of constants, but that would take space.
+"""
+def load_pipeline_data_tensor(basepath, site_name): # NOTE: no real need to take 2 files into input, as the 2 files could be reconstructed from the site name
+    
+    # prepare paths
+    predictor_path = os.path.join(basepath, f"Results_{site_name}.mat")
+    observation_path = os.path.join(basepath, f"Res_{site_name}.mat")
+    
+    # load dat from both mat files
+    predictor_data = scipy.io.loadmat(predictor_path)
+    observation_data = scipy.io.loadmat(observation_path)
+
+    # build a dictionary with the desired values and the correct names
+    ctx = "sun_H" # NOTE: Change here for different contexts (sunny/shaded, low/high vegetation)
+    predictor_keys = ["Cc", "IPAR", "Csl", "ra", "rb", "Ts", "Pre", "Ds", "Psi_L"]
+    constant_keys = ["Psi_sto_50", "Psi_sto_00", "CT", "Vmax", 
+     "Ha", "FI", "Oa", "Do", "a1", "go", "gmes", "rjv"] # NOTE: missing DS. also why do we have integers for some constants?
+    output_keys = ["LE"]
+
+    mapped_predictor_keys = key_mapping(predictor_keys, ctx)
+    #predictor_arrays = {k : torch.tensor(predictor_data[k_m].astype(np.float32)).flatten() for k,k_m in zip(predictor_keys, mapped_predictor_keys)}
+    predictor_arrays = torch.tensor([predictor_data[k_m].astype(np.float32).flatten() for k_m in mapped_predictor_keys]).T
+    mapped_constant_keys = key_mapping(constant_keys, ctx)
+    #constants = {k : torch.tensor(predictor_data[k_m].astype(np.float32)).flatten() for k,k_m in zip(constant_keys, mapped_constant_keys)}
+    constants = torch.tensor([predictor_data[k_m].astype(np.float32).flatten() for k_m in mapped_constant_keys]).T
+    output_arrays = torch.tensor([observation_data[k].astype(np.float32).flatten() for k in output_keys]).T
+    print(f"Shapes: predictor->{predictor_arrays.size()}, constants->{constants.size()}, output->{output_arrays.size()}")
+    print(f"output_arrays={output_arrays}")
+
+    # merge the dictionaries into an array of (input, output  tuples
+    n = predictor_arrays[predictor_keys[0]].shape[0]
+    batch_size = 16
+    data = [
+        ({ k : predictor_arrays[k][i] for k in predictor_arrays } | constants | {"DS" : 0.5},
         output_arrays[output_keys[0]][i]) # For now, we assume a single output
         for i in range(n)
     ]

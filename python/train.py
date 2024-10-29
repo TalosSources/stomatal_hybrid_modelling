@@ -139,21 +139,23 @@ def train_pipeline(train_data):
     Else we should create another train_general function 
     """
     model_wrapper = make_pipeline(gsCO2_model, Vmax_model)
-    data_iterator = iter(train_data)
+    #data_iterator = iter(train_data)
+    data_iterator = batch_dict_iterator(train_data, batch_size=2)
 
     loss = torch.nn.MSELoss()
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
-    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=1e-1)
+    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=1e-2)
 
-    epochs = 2000
+    epochs = 30000
 
+    # TODO: Use batches
     losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
 
     # show info about loss NOTE: Consider using wandb or similar foss
     avg_window = 50
     avg_loss = losses[-avg_window:].mean()
     print(f"Average of the last {avg_window} losses: {avg_loss}")
-    plot.plot_losses(losses)
+    plot.plot_losses(losses[100:])
 
     return gsCO2_model, Vmax_model
 
@@ -189,6 +191,18 @@ class function_sample_iterator:
         x = self.sampler()
         y = self.f(x)
         return x, y
+    
+class batch_dict_iterator:
+    def __init__(self, data, batch_size=16):
+        # data is an array of dicts of params-values pairs
+        self.data = data
+        self.batch_size = batch_size
+
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        return dict_batch(self.data, self.batch_size)
 
     
 def generate_points(sampler, count = 100):
@@ -230,6 +244,28 @@ simple_data_generator = function_sample_iterator(
     f = lambda x : np.array([x[0] * x[1]]),# + x[2] + x[3] + x[4] + x[5]]),
     sampler = lambda: np.random.normal(0, 2, 2) # data centered around 0
 )
+
+
+"""
+This function takes a large array where each line is a dict with values for parameter names, 
+and return a random batch of batch_size, in the form of a dict where the value for a 
+parameter name is a tensor of size batch_size.
+Of course, the elements must be in the same order in the tensor for each parameter.
+"""
+import random
+def dict_batch(dict_array, batch_size):
+    batch = random.sample(dict_array, batch_size)
+    print(f"batch={batch}")
+    predictors, outputs = zip(*batch)
+    print(f"predictors={predictors}")
+    print(f"outputs={outputs}")
+    predictors_batch = {key: torch.tensor([entry[key] for entry in predictors]) 
+                  for key in predictors[0].keys()}
+    outputs_batch = torch.tensor(outputs) 
+                  
+    print(f"sampled predictors: {predictors}")
+    print(f"sampled outputs: {outputs}")
+    return (predictors_batch, outputs_batch)
 
 
 

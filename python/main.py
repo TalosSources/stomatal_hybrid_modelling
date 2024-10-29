@@ -18,7 +18,8 @@ def main():
     base_path = os.path.expanduser(base_path)
     site_name = "CH-Dav"
 
-    pipeline_data = data.load_pipeline_data(base_path, site_name)
+    pipeline_data = data.load_pipeline_data_dict(base_path, site_name)
+#    pipeline_data = data.load_pipeline_data_tensor(base_path, site_name)
     gsCO2_model, Vmax_model = train.train_pipeline(pipeline_data)
 
 

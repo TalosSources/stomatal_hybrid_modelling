@@ -224,7 +224,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         gsCO2 = go + a1 * model_output
     
     
-    gsCO2[gsCO2<go]=go # QUESTION: Is gsCO2 an array? can it hold more than one value?
+    #gsCO2[gsCO2<go]=go # QUESTION: Is gsCO2 an array? can it hold more than one value? NOTE: Disable for training? Can it pass gradients?
     # using the data in the paper, we may need to add parameters to the function
 
     rsCO2=1/gsCO2 ### [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
@@ -236,6 +236,6 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     An = (Csl - CcF)/(Pre*(rsCO2 + rmes + 1.37*rb + ra)) ### Net Assimilation Rate  # [umolCO2/ s m^2 ]
 
     CcF = CcF/(Pre*1e-6) ## [umolCO2 /molAIR ]
-    rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0) ## [s/m]  Stomatal resistence or Canopy 
+    rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0) ## [s/m]  Stomatal resistence or Canopy [convert stomatal resistence in terms of water volumes into another unit]
 
     return CcF,An,rs,Rdark,F755nm,GAM,gsCO2
