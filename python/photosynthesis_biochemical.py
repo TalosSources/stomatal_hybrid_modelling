@@ -220,7 +220,6 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         # NOTE: With torch.no_grad or something
         #model_output = gsCO2_model.forward(An, Pre, Cc, GAM, Ds, Do)
         predictors = torch.stack([An,Pre,Cc,GAM,Ds,Do], dim=1) # TODO, perhaps take the above predictors
-        print(f"Obtain predictors shape = {predictors.shape}")
         model_output = gsCO2_model(predictors) # We are unfortunately always truncated. NOTE: Does this impact the gradient?
         gsCO2 = go + a1 * model_output
     
