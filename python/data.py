@@ -4,6 +4,12 @@ import torch
 import os
 
 """
+POTENTIAL VALUES TO FILTER OUT:
+Cc is sometimes 0.0000
+IPAR is sometimes 0.0000
+"""
+
+"""
 The data is a dict from param_names to large arrays of values.
 We transform it into a large array of dicts (and perform some translation and constant handling)
 """
@@ -19,7 +25,7 @@ def load_pipeline_data_dict(basepath, site_name): # NOTE: no real need to take 2
 
     # build a dictionary with the desired values and the correct names
     ctx = "sun_H" # NOTE: Change here for different contexts (sunny/shaded, low/high vegetation)
-    predictor_keys = ["Cc", "IPAR", "Csl", "ra", "rb", "Ts", "Pre", "Ds", "Psi_L"]
+    predictor_keys = ["Cc", "IPAR", "Csl", "ra", "rb", "Ts", "Pre", "Ds", "Psi_L", "Rn", "QG"]
     constant_keys = ["Psi_sto_50", "Psi_sto_00", "CT", "Vmax", 
      "Ha", "FI", "Oa", "Do", "a1", "go", "gmes", "rjv"] # NOTE: missing DS. also why do we have integers for some constants?
     output_keys = ["LE"]
@@ -37,6 +43,7 @@ def load_pipeline_data_dict(basepath, site_name): # NOTE: no real need to take 2
         ({ k : predictor_arrays[k][i] for k in predictor_arrays } | constants | {"DS" : 0.5},
         output_arrays[output_keys[0]][i]) # For now, we assume a single output
         for i in range(n)
+        if not torch.isnan(output_arrays[output_keys[0]][i]) # Filter out nan output values! 
     ]
 
     return data
@@ -116,6 +123,8 @@ sun_h_map = {
     "gmes":"gmes_H",
     "rjv":"rjv_H",
     "DS":"DSE_H", # NOTE: Hand-added
+    "QG":"G", # NOTE: Hand-added
+    "Rn":"Rn", # NOTE: Hand-added
 }
 
 sun_l_map = {
@@ -141,4 +150,6 @@ sun_l_map = {
     "gmes":"gmes_L",
     "rjv":"rjv_L",
     "DS":"DSE_L", # NOTE: Hand-added
+    "QG":"G", # NOTE: Hand-added
+    "Rn":"Rn", # NOTE: Hand-added
 }

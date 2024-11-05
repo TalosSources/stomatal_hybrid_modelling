@@ -24,6 +24,9 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     # CT is a flag, must be 3 or 4
     assert CT == 3 or CT == 4
 
+    # TODO: Bad fix. Actually figure out what is happening with gmes
+    gmes = torch.tensor(1.)
+
     
     Ta=Ts 
     Pre0 = 101325 ## [Pa] 

@@ -73,7 +73,7 @@ class FCRN(torch.nn.Module):
     
 
 class RandomForest:
-    ... # TODO: Perhaps use a library for this, seems more reasonnable
+    ... # NOTE: Perhaps use a library for this, seems more reasonnable
 
 def gsCO2_model():
     """
@@ -85,10 +85,11 @@ def gsCO2_model():
     """
     input_dim = 6
     output_dim = 1
-    return FCN([input_dim, 32, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
+    return FCN([input_dim, 128, 64, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
     #return FCRN(input_dim, output_dim, 3, 64, torch.nn.Tanh())
 
 def vm_model():
     input_dim = 2
     output_dim = 1
     return FCN([input_dim, 64, 64, 64, output_dim], torch.nn.ReLU())
+

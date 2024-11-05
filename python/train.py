@@ -6,6 +6,7 @@ import torch
 import numpy as np
 
 import plot
+import inspect
 
 def train():
 
@@ -72,15 +73,17 @@ def train_general(
 
         output = model(x)
         loss = criterion(output, y)
-        if torch.isnan(loss) or torch.isinf(loss):
+        print(f"Epoch {i}: x={x}, y={y}, output={output}, loss={loss}")
+        #print(f"Epoch {i}: loss={loss}")
+        if torch.isnan(loss) or torch.isinf(loss) or (output==0.).any(): # TODO: very crude fix. Actually understand why having output=0 breaks the whole pipeline. Also filter out and sanitize data properly
             print(f"Found nan or inf loss: don't compute gradient")
             continue
+            #return
         loss.backward()
         optimizer.step()
 
         losses.append(float(loss))
 
-        print(f"Epoch {i}: x={x}, y={y}, output={output}, loss={loss}")
         
 
     return np.array(losses)
@@ -144,13 +147,13 @@ def train_pipeline(train_data):
     """
     model_wrapper = make_pipeline(gsCO2_model, Vmax_model)
     #data_iterator = iter(train_data)
-    data_iterator = batch_dict_iterator(train_data, batch_size=8)
+    data_iterator = batch_dict_iterator(train_data, batch_size=4)
 
     loss = torch.nn.MSELoss()
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
     opt = torch.optim.Adam(gsCO2_model.parameters(), lr=1e-3)
 
-    epochs = 20000
+    epochs = 30000
 
     # TODO: Use batches
     losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
@@ -171,8 +174,12 @@ def make_pipeline(gsCO2_model, Vmax_model):
 
     # the pipeline calls the pb module with the 2 models inserted, using the constants and predictors as inputs, and converts the outputs to Q_LE 
     def pipeline(predictors):
-        _,_,_,_,_,_,gsCO2 = photosynthesis_biochemical(**predictors, gsCO2_model=gsCO2_model, Vmax_model=Vmax_model)
-        Q_LE = differentiable_relations.Q_LE(gsCO2) # TODO: Clarify
+        pb_params = set(inspect.signature(photosynthesis_biochemical).parameters)
+        pb_predictors = {k: v for k, v in predictors.items() if k in pb_params}
+        _,_,rs,_,_,_,_ = photosynthesis_biochemical(**pb_predictors, gsCO2_model=gsCO2_model, Vmax_model=Vmax_model)
+        qle_params = set(inspect.signature(differentiable_relations.Q_LE).parameters)
+        qle_predictors = {k: v for k, v in predictors.items() if k in qle_params}
+        Q_LE = differentiable_relations.Q_LE(rs=rs, **qle_predictors)
         return Q_LE
 
     return pipeline
@@ -266,9 +273,26 @@ def dict_batch(dict_array, batch_size):
     # ugly fix TODO
     predictors_batch['CT'] = 3
 
+    # TODO: Sort out the reason that output and y don't have the same dimension
+
     outputs_batch = torch.tensor(outputs) 
                   
     return (predictors_batch, outputs_batch)
+
+
+def check_gradients(module : torch.nn.Module):
+    for name, param in module.named_parameters():
+        if param.grad is not None:
+            if torch.isnan(param.grad).any():
+                print(f"NaN detected in gradients of {name}")
+            elif torch.isinf(param.grad).any():
+                print(f"Inf detected in gradients of {name}")
+    for param in module.parameters():
+        if param.grad is not None:
+            if torch.isnan(param.grad).any():
+                print(f"NaN detected in gradients of {param}")
+            elif torch.isinf(param.grad).any():
+                print(f"Inf detected in gradients of {param}")
 
 
 
