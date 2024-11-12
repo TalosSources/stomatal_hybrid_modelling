@@ -24,10 +24,6 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     # CT is a flag, must be 3 or 4
     assert CT == 3 or CT == 4
 
-    # TODO: Bad fix. Actually figure out what is happening with gmes
-    gmes = torch.tensor(1.)
-
-    
     Ta=Ts 
     Pre0 = 101325 ## [Pa] 
     Tf = 273.15 ## [K] 
@@ -41,7 +37,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     Oa = Oa*1e-6*Pre ## [Pa]
     Csl = Csl*1e-6*Pre ## [Pa] -- Leaf surface CO2 concentration 
 
-    rmes = 1/(1e+6*gmes)  ## [ s m^2 /umolCO2 ] Mesophyl Conductance 
+    rmes = 1/(1e+6*gmes)  ## [ s m^2 /umolCO2 ] Mesophyl Conductance # TODO: check if it's infinite, in which case 0? or maybe it's okay
     go = go*1e6 ###  [umolCO2 / s m^2] 
 
     Ts_k = Ts + 273.15 ##[K]
@@ -223,8 +219,11 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         # NOTE: With torch.no_grad or something
         #model_output = gsCO2_model.forward(An, Pre, Cc, GAM, Ds, Do)
         predictors = torch.stack([An,Pre,Cc,GAM,Ds,Do], dim=1) # TODO, perhaps take the above predictors
+        print(f"predictors before gsco2 = {predictors}")
         model_output = gsCO2_model(predictors) # We are unfortunately always truncated. NOTE: Does this impact the gradient?
+        print(f"gsco2 model output = {model_output}")
         gsCO2 = go + a1 * model_output
+        print(f"gsco2 after linear op = {gsCO2}")
     
     
     #gsCO2[gsCO2<go]=go # QUESTION: Is gsCO2 an array? can it hold more than one value? NOTE: Disable for training? Can it pass gradients?

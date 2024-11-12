@@ -7,6 +7,8 @@ import os
 POTENTIAL VALUES TO FILTER OUT:
 Cc is sometimes 0.0000
 IPAR is sometimes 0.0000
+
+TODO: interpolate gap, gap-fills
 """
 
 """

@@ -151,9 +151,9 @@ def train_pipeline(train_data):
 
     loss = torch.nn.MSELoss()
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
-    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=1e-3)
+    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=1e-2)
 
-    epochs = 30000
+    epochs = 10000
 
     # TODO: Use batches
     losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
@@ -276,6 +276,7 @@ def dict_batch(dict_array, batch_size):
     # TODO: Sort out the reason that output and y don't have the same dimension
 
     outputs_batch = torch.tensor(outputs) 
+    #outputs_batch[:] = 7.58 # dummy output, just to see if the training system can learn this TODO: remove
                   
     return (predictors_batch, outputs_batch)
 

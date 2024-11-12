@@ -37,11 +37,11 @@ Parameters:
 Notes:
 * For now, we assume Tmean is 15 but it is to be replaced by a predictor
 """
-def Q_LE(rs, ra, Rn, QG, Ds, Ts, Tmean=15):
+def Q_LE(rs, ra, Rn, QG, Ds, Ts):
     lambda_ = b0 * np.power(Ts / (Ts + b1), 2)
     gamma = specific_heat_air * air_pressure_at_sea_level / (specific_gravity_water_vapor * lambda_)
     roa = air_pressure_at_sea_level / (287.05 * (Ts + zero_celsius_in_kelvin))
-    sc = compute_sc(Tmean)
+    sc = compute_sc(Ts)
     return (sc * (Rn - QG) + roa*cp*Ds / ra ) / (sc + gamma*(1 + rs/ra))
 
 def compute_rs(Q_LE, ra, sc, Rn, QG, roa, cp, es, ea, gamma):
@@ -53,8 +53,10 @@ def compute_rs_2(gsCO2, Tf, Ts, Pre, Pre0):
     return rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0)
 
 # Taken from https://edis.ifas.ufl.edu/publication/AE459
-def compute_sc(Tmean):
-    return 4098 * (0.6108 * np.exp(17.27*Tmean / (Tmean + 237.3))) / np.power(Tmean + 273.3, 2) # NOTE: remplace np by torch?
+def compute_sc(Ts):
+    b0, b1, b2 = 0.6108, 17.27, 237.3  # empirical coefficients
+    saturated_vapour_pressure = 1e3 * b0 * np.exp(b1 * Ts / (b2 + Ts))  # Pa
+    return b1 * b2 * saturated_vapour_pressure / np.power(b2 + Ts, 2) # NOTE: remplace np by torch?
 
 
 #def Q_LE(gsCO2, Tf, Ts, Pre, Pre0, ra, sc, Rn, QG, roa, cp, es, ea, gamma):

@@ -35,5 +35,9 @@ can contact Akash until friday morning, and then not until 08.10
 * train the gsCO2 model for each site sequentially. Train all the data for the same site sequentially, then move to another site, instead of mixing data. [Compare methods? sequentially vs not-sequentially]. [important: some state variable depend on previous model steps, for example soil moisture today depends on soil moisture yesterday, so in practice the model is always run sequentially. Think about that, does it make sense to shuffle the data in this context? research markovian networks? maybe recurrent models [READ ABOUT THEM]? so also test including previous state data in the input and shuffle, compare results]
 * [If Time] train the VMax and gsCO2 at the same time, evaluate the whole pipeline
 
+# TODO Starting 06.11
+* some stuff in the data file
+* use gsco2 in the model files to check the pipeline has correct magnitude
+
 # Later
 * learn for different sites (other biomes), different sequence in which sites are trained
