@@ -3,28 +3,28 @@
 addpath('../matlab_code/t-and-c/T&C_file_model/T&C_CODE/');
 
 % Define input values (example values provided)
-Cc = 200; % µmol mol⁻¹
-IPAR = 1500; % µmol m⁻² s⁻¹
-Csl = 350; % µmol mol⁻¹
-ra = 100; % s m⁻¹
-rb = 50; % s m⁻¹
-Ts = 25; % °C
-Pre = 100; % Pa
-Ds = 1.5; % kPa
-Psi_L = -1; % MPa
-Psi_sto_50 = -1.5; % MPa
-Psi_sto_00 = -3; % MPa
+Cc = 277.0525; % µmol mol⁻¹
+IPAR = 282.8877; % µmol m⁻² s⁻¹
+Csl = 384.4200; % µmol mol⁻¹
+ra = 10.4263; % s m⁻¹
+rb = 10.1525; % s m⁻¹
+Ts = 18.5000; % °C
+Pre = 843.3400; % Pa
+Ds = 1360.6628; % kPa
+Psi_L = -0.0255; % MPa
+Psi_sto_50 = -2.5000; % MPa
+Psi_sto_00 = -0.5000; % MPa
 CT = 3; % Unitless
-Vmax = 100; % µmol m⁻² s⁻¹
-DS = 650; % kJ mol⁻¹
-Ha = 60; % kJ mol⁻¹
-FI = 0.15; % Unitless
-Oa = 210; % µmol mol⁻¹
-Do = 2.5; % kPa
-a1 = 0.7; % Unitless
-go = 0.05; % mol m⁻² s⁻¹
-gmes = 1; % Unitless
-rjv = 0.3; % Unitless
+Vmax = 42; % µmol m⁻² s⁻¹
+DS = 0.5; % kJ mol⁻¹
+Ha = 72; % kJ mol⁻¹
+FI = 0.0810; % Unitless
+Oa = 210000; % µmol mol⁻¹
+Do = 800; % kPa
+a1 = 5; % Unitless
+go = 0.01; % mol m⁻² s⁻¹
+gmes = inf; % Unitless
+rjv = 2.1; % Unitless
 
 % Call the function
 [CcF, An, rs, Rdark, F755nm, GAM, gsCO2] = photosynthesis_biochemical(...
