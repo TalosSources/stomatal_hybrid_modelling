@@ -8,41 +8,6 @@ import numpy as np
 import plot
 import inspect
 
-def train():
-
-    # training parameters
-    epochs = ...
-
-    # tensor containing the tunable parameters of the semi-empirical model
-    parameters = ...
-
-    # the loss used to compare ground-truth and predictions
-    criterion = ...
-
-    # gradient descent optimizer that adjusts the parameters
-    optimizer = ...
-
-    for i in range(epochs):
-
-        # load the arrays corresponding to function parameters and ground-truth output values
-        # (for example, some of the parameters of photosynthesis_biochemical, and gsCO2 values)
-        x = ...
-        y = ...
-
-
-        Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds, Psi_L,Psi_sto_50,Psi_sto_00, CT,Vmax,DS,Ha,FI,Oa,Do,a1,go,gmes,rjv = x
-
-        result = photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds, Psi_L,Psi_sto_50,Psi_sto_00, CT,Vmax,DS,Ha,FI,Oa,Do,a1,go,gmes,rjv)
-        CcF,An,rs,Rdark,F755nm,GAM,gsCO2 = result
-
-        loss = criterion(gsCO2, y)
-        loss.backward()
-        optimizer.step()
-        optimizer.zerograd()
-
-        ... # and so on, use some sensible gradient descent optimizer with some sensible loss
-
-
 def train_general(
     model,
     criterion,
@@ -74,13 +39,14 @@ def train_general(
         output = model(x)
         loss = criterion(output, y)
         print(f"Epoch {i}: x={x}, y={y}, output={output}, loss={loss}")
+        #print(f"Epoch {i}: y={y}, output={output}, loss={loss}")
         #print(f"Epoch {i}: loss={loss}")
         if torch.isnan(loss) or torch.isinf(loss) or (output==0.).any(): # TODO: very crude fix. Actually understand why having output=0 breaks the whole pipeline. Also filter out and sanitize data properly
             print(f"Found nan or inf loss: don't compute gradient")
             continue
             #return
-        loss.backward()
-        optimizer.step()
+        #loss.backward()
+        #optimizer.step()
 
         losses.append(float(loss))
 
@@ -95,7 +61,7 @@ def train_gsco2():
     loss = torch.nn.MSELoss()
     opt = torch.optim.Adam(model.parameters(), lr=3e-4)
     #opt = torch.optim.SGD(model.parameters(), lr=1e-2)
-    epochs = 2000
+    epochs = 10000
     data_iterator = gsco2_dummy_data_generator
     #data_iterator = simple_data_generator
 
@@ -138,7 +104,7 @@ def train_pipeline(train_data):
     
     gsCO2_model = models.gsCO2_model()
     #Vmax_model = models.vm_model()
-    Vmax_model = None # only train gsCO2 for now
+    Vmax_model = None # NOTE: only train gsCO2 for now
 
     """
     Need some function that computes pb outputs given chosen predictors. 
@@ -146,8 +112,7 @@ def train_pipeline(train_data):
     Else we should create another train_general function 
     """
     model_wrapper = make_pipeline(gsCO2_model, Vmax_model)
-    #data_iterator = iter(train_data)
-    data_iterator = batch_dict_iterator(train_data, batch_size=4)
+    data_iterator = batch_dict_iterator(train_data, batch_size=1)
 
     loss = torch.nn.MSELoss()
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
@@ -155,7 +120,6 @@ def train_pipeline(train_data):
 
     epochs = 10000
 
-    # TODO: Use batches
     losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
 
     # show info about loss NOTE: Consider using wandb or similar foss
@@ -173,12 +137,15 @@ def make_pipeline(gsCO2_model, Vmax_model):
     # constants = ... # NOTE: Might not be necessary
 
     # the pipeline calls the pb module with the 2 models inserted, using the constants and predictors as inputs, and converts the outputs to Q_LE 
+    pb_params = set(inspect.signature(photosynthesis_biochemical).parameters)
+    qle_params = set(inspect.signature(differentiable_relations.Q_LE).parameters)
     def pipeline(predictors):
-        pb_params = set(inspect.signature(photosynthesis_biochemical).parameters)
         pb_predictors = {k: v for k, v in predictors.items() if k in pb_params}
         _,_,rs,_,_,_,_ = photosynthesis_biochemical(**pb_predictors, gsCO2_model=gsCO2_model, Vmax_model=Vmax_model)
-        qle_params = set(inspect.signature(differentiable_relations.Q_LE).parameters)
+        input_rs = predictors["rs"]
+        print(f"input_rs={input_rs} while output_rs = {rs}")
         qle_predictors = {k: v for k, v in predictors.items() if k in qle_params}
+        qle_predictors.__delitem__("rs") # TODO: temporary debug fix
         Q_LE = differentiable_relations.Q_LE(rs=rs, **qle_predictors)
         return Q_LE
 

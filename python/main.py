@@ -7,15 +7,10 @@ import train
 import data
 
 
-
-
-
-#model = train.train_gsco2()
-#model = train.train_vm()
-
 def main():
-    base_path = "~/epfl/semester_project/databases/T_C_Input_and_Output_Pure_Physics/"
-    base_path = os.path.expanduser(base_path)
+    base_path = os.path.expanduser(
+        "~/epfl/semester_project/databases/T_C_Input_and_Output_Pure_Physics/"
+    )
     site_name = "CH-Dav"
 
     pipeline_data = data.load_pipeline_data_dict(base_path, site_name)

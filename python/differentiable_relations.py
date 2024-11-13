@@ -14,6 +14,7 @@ def Vmax():
 cp = 1004.834
 specific_heat_air = 1.013e3  # J/kg/°C
 air_pressure_at_sea_level = 1.013e5  # Pa
+air_pressure_at_sea_level_kPa = air_pressure_at_sea_level / 1000 # kPa
 specific_gravity_water_vapor = 0.622  # unitless
 b0 = 1.91846e6
 b1 = -33.91
@@ -36,23 +37,43 @@ Parameters:
 
 Notes:
 * For now, we assume Tmean is 15 but it is to be replaced by a predictor
+* I think the given Ds is in Pa, while it should be in kPa here
+* this formula computes LE in W/m², which seems to be the ground truth values from T&C
+* ra and rs are probably of the right unit (except if stuff is passed by reference and modified)
+--> actually tensors seem to be partly passed by reference. check ra, rs and stuff keep their values
+* Rn and QG are probably okay
+* Ts is the important part:
+    * sc should be kPa/C (is C for celsius??)
+    * roa should be kg/m³
 """
 def Q_LE(rs, ra, Rn, QG, Ds, Ts):
-    lambda_ = b0 * np.power(Ts / (Ts + b1), 2)
-    gamma = specific_heat_air * air_pressure_at_sea_level / (specific_gravity_water_vapor * lambda_)
-    roa = air_pressure_at_sea_level / (287.05 * (Ts + zero_celsius_in_kelvin))
-    sc = compute_sc(Ts)
-    return (sc * (Rn - QG) + roa*cp*Ds / ra ) / (sc + gamma*(1 + rs/ra))
+
+    Ts_kelvin = Ts + zero_celsius_in_kelvin
+
+    # convert units
+    Ds_kPa = Ds / 1000
+
+    #print(f"computing Q_LE(rs={rs}, ra={ra}, Rn={Rn}, QG={QG}, Ds={Ds}, Ts={Ts})")
+    lambda_ = b0 * np.power(Ts_kelvin / (Ts_kelvin + b1), 2) # J/kg correct
+    gamma = specific_heat_air * air_pressure_at_sea_level_kPa / (specific_gravity_water_vapor * lambda_) # correct
+
+    # [Pa] / (constant [J / kg * K] * [K]) = [kg/m³]
+    roa = air_pressure_at_sea_level / (287.05 * Ts_kelvin) # kg / m³ probably correct
+
+
+    sc = compute_sc(Ts) # Pa / C
+    sc_kPa = sc / 1000 # kPa / C
+
+    q_le = (sc_kPa * (Rn - QG) + roa*cp*Ds_kPa / ra ) / (sc_kPa + gamma*(1 + rs/ra)) # flux, W/m²
+    #print(f"obtaining Q_LE={q_le}")
+    return q_le
 
 def compute_rs(Q_LE, ra, sc, Rn, QG, roa, cp, es, ea, gamma):
     return (ra*sc*(Rn - QG) + roa*cp*(es -ea) - ra*Q_LE*(sc + gamma) ) / ( gamma * Q_LE )
 
-def compute_rs_2(gsCO2, Tf, Ts, Pre, Pre0):
-    rsCO2=1/gsCO2
-    rsH20 = (rsCO2/1.64)*(1e6)
-    return rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0)
-
 # Taken from https://edis.ifas.ufl.edu/publication/AE459
+# Ts is in Celsius °C
+# Outputs sc in Pa/°C
 def compute_sc(Ts):
     b0, b1, b2 = 0.6108, 17.27, 237.3  # empirical coefficients
     saturated_vapour_pressure = 1e3 * b0 * np.exp(b1 * Ts / (b2 + Ts))  # Pa

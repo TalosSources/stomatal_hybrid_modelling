@@ -27,7 +27,7 @@ def load_pipeline_data_dict(basepath, site_name): # NOTE: no real need to take 2
 
     # build a dictionary with the desired values and the correct names
     ctx = "sun_H" # NOTE: Change here for different contexts (sunny/shaded, low/high vegetation)
-    predictor_keys = ["Cc", "IPAR", "Csl", "ra", "rb", "Ts", "Pre", "Ds", "Psi_L", "Rn", "QG"]
+    predictor_keys = ["Cc", "IPAR", "Csl", "ra", "rb", "Ts", "Pre", "Ds", "Psi_L", "Rn", "QG", "rs"] # NOTE: added rs for debugging 
     constant_keys = ["Psi_sto_50", "Psi_sto_00", "CT", "Vmax", 
      "Ha", "FI", "Oa", "Do", "a1", "go", "gmes", "rjv"] # NOTE: missing DS. also why do we have integers for some constants?
     output_keys = ["LE"]
@@ -37,16 +37,28 @@ def load_pipeline_data_dict(basepath, site_name): # NOTE: no real need to take 2
     mapped_constant_keys = key_mapping(constant_keys, ctx)
     constants = {k : torch.tensor(predictor_data[k_m].astype(np.float32)).flatten() for k,k_m in zip(constant_keys, mapped_constant_keys)}
     output_arrays = {k : torch.tensor(observation_data[k].astype(np.float32)) for k in output_keys}
-    print(f"output_arrays={output_arrays}")
+    #print(f"output_arrays={output_arrays}")
+
+    print(f"n_points before filter: {len(predictor_arrays["Cc"])}")
+    
+    def valid(i):
+        return (
+            not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan output values! 
+            and not predictor_arrays["Cc"][i] == 0
+            and not predictor_arrays["IPAR"][i] == 0
+        )
 
     # merge the dictionaries into an array of (input, output) tuples
     n = predictor_arrays[predictor_keys[0]].shape[0]
     data = [
         ({ k : predictor_arrays[k][i] for k in predictor_arrays } | constants | {"DS" : 0.5},
         output_arrays[output_keys[0]][i]) # For now, we assume a single output
-        for i in range(n)
-        if not torch.isnan(output_arrays[output_keys[0]][i]) # Filter out nan output values! 
+        for i in range(n) if valid(i) # Filter out nan output values! 
     ]
+
+    print(f"n_points after filter: {len(data)}")
+    k=10
+    print(f"first {k} data points:\n{data[:k]}")
 
     return data
 
@@ -87,7 +99,7 @@ def load_pipeline_data_tensor(basepath, site_name): # NOTE: no real need to take
     n = predictor_arrays[predictor_keys[0]].shape[0]
     batch_size = 16
     data = [
-        ({ k : predictor_arrays[k][i] for k in predictor_arrays } | constants | {"DS" : 0.5},
+        ({ k : predictor_arrays[k][i] for k in predictor_arrays } | constants | {"DS" : 0.5}, # NOTE: DS is arbitrary, because its use is cryptic in pb.m
         output_arrays[output_keys[0]][i]) # For now, we assume a single output
         for i in range(n)
     ]
@@ -127,6 +139,7 @@ sun_h_map = {
     "DS":"DSE_H", # NOTE: Hand-added
     "QG":"G", # NOTE: Hand-added
     "Rn":"Rn", # NOTE: Hand-added
+    "rs" : "rs_sunH", # NOTE: Hand-added
 }
 
 sun_l_map = {
@@ -154,4 +167,5 @@ sun_l_map = {
     "DS":"DSE_L", # NOTE: Hand-added
     "QG":"G", # NOTE: Hand-added
     "Rn":"Rn", # NOTE: Hand-added
+    "rs" : "rs_sunL", # NOTE: Hand-added
 }
