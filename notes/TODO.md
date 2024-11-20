@@ -41,3 +41,10 @@ can contact Akash until friday morning, and then not until 08.10
 
 # Later
 * learn for different sites (other biomes), different sequence in which sites are trained
+
+# 13.11 Notes
+* idea: average over one day (48 time-steps in the data array) to reduce the noise
+* give 2 time series plots: predicted vs observed LE
+* ask akash to inspect my code (give him indications)
+* see if LE_CORR improves things
+* ask akash for dry sites (US, ...)
