@@ -229,7 +229,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         #print(f"while the empirical version would have been: {emp_gsCO2}")
     
     
-    #gsCO2[gsCO2<go]=go # QUESTION: Is gsCO2 an array? can it hold more than one value? NOTE: Disable for training? Can it pass gradients? TODO: Why can't we have this? we get : {RuntimeError: shape mismatch: value tensor of shape [8] cannot be broadcast to indexing result of shape [0]}
+    gsCO2[gsCO2<go]=go # QUESTION: Is gsCO2 an array? can it hold more than one value? NOTE: Disable for training? Can it pass gradients? TODO: Why can't we have this? we get : {RuntimeError: shape mismatch: value tensor of shape [8] cannot be broadcast to indexing result of shape [0]}
     # using the data in the paper, we may need to add parameters to the function
 
     rsCO2=1/gsCO2 ### [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 

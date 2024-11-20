@@ -21,15 +21,17 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
     predictor_path = os.path.join(basepath, f"Results_{site_name}.mat")
     observation_path = os.path.join(basepath, f"Res_{site_name}.mat")
 
-    trunc = 1000
+    trunc = 50000
+    print_k_points=10
     
     # load dat from both mat files
     predictor_data = scipy.io.loadmat(predictor_path)
     observation_data = scipy.io.loadmat(observation_path)
 
     #print(f"predictor_data={predictor_data}")
-    print(f"predictor_data[Ts]={predictor_data["Ta"]}")
-    print(f"predictor_data[\"Ts\"][:{trunc}]{predictor_data['Ta'][:trunc]}")
+    #print(f"observation_data={observation_data}")
+    #print(f"predictor_data[Ts]={predictor_data["Ta"]}")
+    #print(f"predictor_data[\"Ts\"][:{trunc}]{predictor_data['Ta'][:trunc]}")
 
     # build a dictionary with the desired values and the correct names
     ctx = "sun_H" # NOTE: Change here for different contexts (sunny/shaded, low/high vegetation)
@@ -38,7 +40,7 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
         predictor_keys = ["Cc", "IPAR", "Csl", "ra", "rb", "Ts", "Pre", "Ds", "Psi_L", "Rn", "QG", "rs"] # NOTE: added rs for debugging 
     if constant_keys is None:
         constant_keys = ["Psi_sto_50", "Psi_sto_00", "CT", "Vmax", 
-     "Ha", "FI", "Oa", "Do", "a1", "go", "gmes", "rjv"] # NOTE: missing DS. also why do we have integers for some constants?
+     "Ha", "FI", "Oa", "Do", "a1", "go", "gmes", "rjv", "DS"] # NOTE: missing DS. also why do we have integers for some constants?
     if output_keys is None:
         output_keys = ["LE_CORR"]
 
@@ -55,22 +57,21 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
             .astype(np.float32))
             .flatten()[:trunc] 
             for k,k_m in zip(predictor_keys, mapped_predictor_keys)}
-    for k,v in predictor_arrays.items():
-        print(f"predictor array [{k}] shape = {v.shape}")
+    #for k,v in predictor_arrays.items():
+    #    print(f"predictor array [{k}] shape = {v.shape}")
     mapped_constant_keys = key_mapping(constant_keys, ctx)
     constants = {k : torch.tensor(predictor_data[k_m][0].astype(np.float32)).flatten()[:trunc] for k,k_m in zip(constant_keys, mapped_constant_keys)}
     output_arrays = {k : torch.tensor(observation_data[k].astype(np.float32)).flatten()[:trunc] for k in output_keys}
-    for k,v in output_arrays.items():
-        print(f"output array [{k}] shape = {v.shape}")
+    #for k,v in output_arrays.items():
+    #    print(f"output array [{k}] shape = {v.shape}")
     #print(f"output_arrays={output_arrays}")
 
-    print(f"n_points before filter: {len(predictor_arrays["Cc"])}")
-    k_points=1
-    print(f"{k_points} first predictors Cc BEFORE: {predictor_arrays["Cc"][:k_points]}")
-    print(f"{k_points} first output LE BEFORE: {output_arrays[output_keys[0]][:k_points]}")
+    print(f"n_points before filter: {len(predictor_arrays['Cc'])}")
+    #print(f"{print_k_points} first predictors Cc BEFORE: {predictor_arrays["Cc"][:print_k_points]}")
+    #print(f"{print_k_points} first output LE BEFORE: {output_arrays[output_keys[0]][:print_k_points]}")
     
     def valid(i):
-        return True or ( # NOTE: this enables/disables the filtering
+        return (#True or ( # NOTE: this enables/disables the filtering
             not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan output values! 
             and not predictor_arrays["Cc"][i] == 0
             and not predictor_arrays["IPAR"][i] == 0
@@ -80,14 +81,13 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
     n = predictor_arrays[predictor_keys[0]].shape[0]
     n = trunc
     data = [
-        ({ k : predictor_arrays[k][i] for k in predictor_arrays } | constants | {"DS" : 0.5},
+        ({ k : predictor_arrays[k][i] for k in predictor_arrays } | constants | {"DS_" : 0.5},
         output_arrays[output_keys[0]][i]) # For now, we assume a single output
         for i in range(n) if valid(i) # Filter out nan output values! 
     ]
 
     print(f"n_points after filter: {len(data)}")
-    k_points=1
-    print(f"first {k_points} data points:\n{data[:k_points]}")
+    print(f"first {print_k_points} data points:\n{data[:print_k_points]}")
 
     return data
 

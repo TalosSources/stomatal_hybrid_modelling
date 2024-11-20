@@ -119,7 +119,7 @@ def train_pipeline(train_data):
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
     opt = torch.optim.Adam(gsCO2_model.parameters(), lr=1e-2)
 
-    epochs = 10000
+    epochs = 4000
 
     losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
 
@@ -132,7 +132,7 @@ def train_pipeline(train_data):
     return gsCO2_model, Vmax_model
 
 
-def make_pipeline(gsCO2_model, Vmax_model):
+def make_pipeline(gsCO2_model, Vmax_model, output_rs=False):
 
     # define constants. Doing our function structure that way allows to store the constants cleanly
     # constants = ... # NOTE: Might not be necessary
@@ -148,7 +148,7 @@ def make_pipeline(gsCO2_model, Vmax_model):
         qle_predictors = {k: v for k, v in predictors.items() if k in qle_params}
         qle_predictors.__delitem__("rs") # TODO: temporary debug fix
         Q_LE = differentiable_relations.Q_LE(rs=rs, **qle_predictors)
-        return Q_LE
+        return Q_LE, predictors["rs"] if output_rs else Q_LE
 
     return pipeline
 

@@ -1,0 +1,1 @@
+~/local_programs/matlab/bin/matlab -batch "addpath('../matlab_code/t-and-c/T&C_file_model/T&C_CODE/'); test_photosynthesis_biochemical"

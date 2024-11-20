@@ -69,8 +69,8 @@ def time_series_plot(timeseries, name="timeseries", show=False):
     n = len(timeseries[0][0])
     r = range(n)
     for timeserie, subname in timeseries:
-        print(f"plotting {subname}... (shape={len(timeserie)})")
-        print(f"timeserie: {timeserie}")
+        #print(f"plotting {subname}... (shape={len(timeserie)})")
+        #print(f"timeserie: {timeserie}")
         plt.plot(r, timeserie, label=subname)
 
     plt.legend()
