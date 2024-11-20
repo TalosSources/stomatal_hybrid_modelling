@@ -218,9 +218,9 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         """
         # NOTE: With torch.no_grad or something
         #model_output = gsCO2_model.forward(An, Pre, Cc, GAM, Ds, Do)
-        predictors = torch.stack([An,Pre,Cc,GAM,Ds,Do], dim=1) # TODO, perhaps take the above predictors
+        #predictors = torch.stack([An,Pre,Cc,GAM,Ds,Do], dim=1) # TODO, perhaps take the above predictors
         #print(f"predictors before gsco2 = {predictors}")
-        model_output = gsCO2_model(predictors).squeeze() # We are unfortunately always truncated. NOTE: Does this impact the gradient?
+        #model_output = gsCO2_model(predictors).squeeze() # We are unfortunately always truncated. NOTE: Does this impact the gradient?
         #print(f"gsco2 model output = {model_output}")
         #gsCO2 = go + a1 * model_output
         #print(f"gsco2 after linear op = {gsCO2}")
@@ -229,7 +229,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         #print(f"while the empirical version would have been: {emp_gsCO2}")
     
     
-    # gsCO2[gsCO2<go]=go # QUESTION: Is gsCO2 an array? can it hold more than one value? NOTE: Disable for training? Can it pass gradients? TODO: Why can't we have this? we get : {RuntimeError: shape mismatch: value tensor of shape [8] cannot be broadcast to indexing result of shape [0]}
+    #gsCO2[gsCO2<go]=go # QUESTION: Is gsCO2 an array? can it hold more than one value? NOTE: Disable for training? Can it pass gradients? TODO: Why can't we have this? we get : {RuntimeError: shape mismatch: value tensor of shape [8] cannot be broadcast to indexing result of shape [0]}
     # using the data in the paper, we may need to add parameters to the function
 
     rsCO2=1/gsCO2 ### [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 

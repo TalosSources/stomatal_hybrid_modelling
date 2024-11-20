@@ -64,4 +64,19 @@ def fit_plot(model, f, points, model_name, show=False):
     plt.savefig(f"results/figures/fit_plots/{model_name}_{len(points)}_points")
     if show:
         plt.show()
+
+def time_series_plot(timeseries, name="timeseries", show=False):
+    n = len(timeseries[0][0])
+    r = range(n)
+    for timeserie, subname in timeseries:
+        print(f"plotting {subname}... (shape={len(timeserie)})")
+        print(f"timeserie: {timeserie}")
+        plt.plot(r, timeserie, label=subname)
+
+    plt.legend()
+
+    plt.savefig(f"results/figures/time_serie_plots/{name}")
+    if show:
+        plt.show()
+        
     

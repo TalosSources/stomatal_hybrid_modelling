@@ -38,8 +38,8 @@ def train_general(
 
         output = model(x)
         loss = criterion(output, y)
-        print(f"Epoch {i}: x={x}, y={y}, output={output}, loss={loss}")
-        #print(f"Epoch {i}: y={y}, output={output}, loss={loss}")
+        #print(f"Epoch {i}: x={x}, y={y}, output={output}, loss={loss}")
+        print(f"Epoch {i}: y={y}, output={output}, loss={loss}")
         #print(f"Epoch {i}: loss={loss}")
         if torch.isnan(loss) or torch.isinf(loss) or (output==0.).any(): # TODO: very crude fix. Actually understand why having output=0 breaks the whole pipeline. Also filter out and sanitize data properly
             print(f"Found nan or inf loss: don't compute gradient")
@@ -112,7 +112,8 @@ def train_pipeline(train_data):
     Else we should create another train_general function 
     """
     model_wrapper = make_pipeline(gsCO2_model, Vmax_model)
-    data_iterator = batch_dict_iterator(train_data, batch_size=1)
+    #data_iterator = batch_dict_iterator(train_data, batch_size=1)
+    data_iterator = iter(train_data)
 
     loss = torch.nn.MSELoss()
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
@@ -142,8 +143,8 @@ def make_pipeline(gsCO2_model, Vmax_model):
     def pipeline(predictors):
         pb_predictors = {k: v for k, v in predictors.items() if k in pb_params}
         _,_,rs,_,_,_,_ = photosynthesis_biochemical(**pb_predictors, gsCO2_model=gsCO2_model, Vmax_model=Vmax_model)
-        input_rs = predictors["rs"]
-        print(f"input_rs={input_rs} while output_rs = {rs}")
+        #input_rs = predictors["rs"]
+        #print(f"input_rs={input_rs} while output_rs = {rs}")
         qle_predictors = {k: v for k, v in predictors.items() if k in qle_params}
         qle_predictors.__delitem__("rs") # TODO: temporary debug fix
         Q_LE = differentiable_relations.Q_LE(rs=rs, **qle_predictors)
