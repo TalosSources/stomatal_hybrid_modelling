@@ -61,8 +61,8 @@ def main():
     base_path = os.path.expanduser(
         "~/epfl/semester_project/databases/T_C_Input_and_Output_Pure_Physics/"
     )
-    #site_name = "CH-Dav"
-    site_name = "DE-Tha"
+    site_name = "CH-Dav"
+    #site_name = "DE-Tha"
 
     debug_pipeline(base_path, site_name)
 

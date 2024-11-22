@@ -48,3 +48,9 @@ can contact Akash until friday morning, and then not until 08.10
 * ask akash to inspect my code (give him indications)
 * see if LE_CORR improves things
 * ask akash for dry sites (US, ...)
+
+
+# 22.11 Notes
+* test the inverted PM equation rs(Q_LE, ra, ...), to see if the obtained values match the given rs.
+* come up with smart ways to pinpoint where the mistake in the pipeline is
+* test that the PM function and the inverted PM are reciprocal (f^-1 (f(x)))

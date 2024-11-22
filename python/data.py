@@ -59,6 +59,7 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
             for k,k_m in zip(predictor_keys, mapped_predictor_keys)}
     #for k,v in predictor_arrays.items():
     #    print(f"predictor array [{k}] shape = {v.shape}")
+    #    print(f"predictor array [{k}] = {v}")
     mapped_constant_keys = key_mapping(constant_keys, ctx)
     constants = {k : torch.tensor(predictor_data[k_m][0].astype(np.float32)).flatten()[:trunc] for k,k_m in zip(constant_keys, mapped_constant_keys)}
     output_arrays = {k : torch.tensor(observation_data[k].astype(np.float32)).flatten()[:trunc] for k in output_keys}
