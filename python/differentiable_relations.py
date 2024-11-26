@@ -48,6 +48,18 @@ Notes:
 """
 def Q_LE(rs, ra, Rn, QG, Ds, Ts):
 
+    sc_kPa, roa, Ds_kPa, gamma = compute_missing_variables(Ts, Ds)
+    
+    q_le = (sc_kPa * (Rn - QG) + roa*cp*Ds_kPa / ra ) / (sc_kPa + gamma*(1 + rs/ra)) # flux, W/m²
+    #print(f"obtaining Q_LE={q_le}")
+    return q_le
+
+def compute_rs(Q_LE, ra, Ts, Ds, Rn, QG):
+    sc_kPa, roa, Ds_kPa, gamma = compute_missing_variables(Ts, Ds)
+
+    return (ra*sc_kPa*(Rn - QG) + roa*cp*Ds_kPa - ra*Q_LE*(sc_kPa + gamma) ) / ( gamma * Q_LE )
+
+def compute_missing_variables(Ts, Ds):
     Ts_kelvin = Ts + zero_celsius_in_kelvin
 
     # convert units
@@ -63,13 +75,7 @@ def Q_LE(rs, ra, Rn, QG, Ds, Ts):
 
     sc = compute_sc(Ts) # Pa / C
     sc_kPa = sc / 1000 # kPa / C
-
-    q_le = (sc_kPa * (Rn - QG) + roa*cp*Ds_kPa / ra ) / (sc_kPa + gamma*(1 + rs/ra)) # flux, W/m²
-    #print(f"obtaining Q_LE={q_le}")
-    return q_le
-
-def compute_rs(Q_LE, ra, sc, Rn, QG, roa, cp, es, ea, gamma):
-    return (ra*sc*(Rn - QG) + roa*cp*(es -ea) - ra*Q_LE*(sc + gamma) ) / ( gamma * Q_LE )
+    return sc_kPa, roa, Ds_kPa, gamma
 
 # Taken from https://edis.ifas.ufl.edu/publication/AE459
 # Ts is in Celsius °C

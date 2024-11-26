@@ -6,6 +6,8 @@ from photosynthesis_biochemical import photosynthesis_biochemical
 import train
 import data
 
+import test_differentiable_relations
+
 import plot
 
 
@@ -18,18 +20,21 @@ def debug_pipeline(base_path, site_name):
     pred_rs = []
     pred_LE = []
     for x, y in LE_data[:10]:
-        x['CT'] = 3
-        Q_LE, rs = pipeline(x)
-        pred_rs.append(rs)
-        pred_LE.append(Q_LE)
-        groundtruth_rs.append(x['rs'])
-        groundtruth_LE.append(y)
+        #x['CT'] = 3
+        #Q_LE, rs = pipeline(x)
+        #pred_rs.append(rs)
+        #pred_LE.append(Q_LE)
+        #groundtruth_rs.append(x['rs'])
+        #groundtruth_LE.append(y)
+#
+        #print(f"x = {x}")
+        #print(f"pred rs={rs}")
+        #print(f"pred Q_LE={Q_LE}")
+        #print(f"obs rs = {x['rs']}")
+        #print(f"obs Q_LE = {y}")
 
-        print(f"x = {x}")
-        print(f"pred rs={rs}")
-        print(f"pred Q_LE={Q_LE}")
-        print(f"obs rs = {x['rs']}")
-        print(f"obs Q_LE = {y}")
+        test_differentiable_relations.test_Q_LE_invertible([x])
+        test_differentiable_relations.test_Q_LE_using_inverted_PM([(x, y)])
 
 
 def plot_timeseries(base_path, site_name):
@@ -61,8 +66,8 @@ def main():
     base_path = os.path.expanduser(
         "~/epfl/semester_project/databases/T_C_Input_and_Output_Pure_Physics/"
     )
-    site_name = "CH-Dav"
-    #site_name = "DE-Tha"
+    #site_name = "CH-Dav"
+    site_name = "DE-Tha"
 
     debug_pipeline(base_path, site_name)
 
