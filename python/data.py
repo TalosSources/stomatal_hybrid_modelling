@@ -15,7 +15,7 @@ TODO: interpolate gap, gap-fills
 The data is a dict from param_names to large arrays of values.
 We transform it into a large array of dicts (and perform some translation and constant handling)
 """
-def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_keys=None, output_keys=None): # NOTE: no real need to take 2 files into input, as the 2 files could be reconstructed from the site name
+def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_keys=None, output_keys=None, verbose=False): # NOTE: no real need to take 2 files into input, as the 2 files could be reconstructed from the site name
     
     # prepare paths
     predictor_path = os.path.join(basepath, f"Results_{site_name}.mat")
@@ -27,11 +27,6 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
     # load dat from both mat files
     predictor_data = scipy.io.loadmat(predictor_path)
     observation_data = scipy.io.loadmat(observation_path)
-
-    #print(f"predictor_data={predictor_data}")
-    #print(f"observation_data={observation_data}")
-    #print(f"predictor_data[Ts]={predictor_data["Ta"]}")
-    #print(f"predictor_data[\"Ts\"][:{trunc}]{predictor_data['Ta'][:trunc]}")
 
     # build a dictionary with the desired values and the correct names
     ctx = "sun_H" # NOTE: Change here for different contexts (sunny/shaded, low/high vegetation)
@@ -47,29 +42,16 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
 
     # TODO: Very weird, understand why data points come by 2 all the time
     mapped_predictor_keys = key_mapping(predictor_keys, ctx)
-    for key in mapped_predictor_keys:
-        print(f"Shape for predictor {key}: {predictor_data[key].shape}")
-    for key in output_keys:
-        print(f"Shape for output {key}: {observation_data[key].shape}")
     predictor_arrays = {
         k : torch.tensor(
             (predictor_data[k_m][:, 0] if predictor_data[k_m].shape[1]==2 else predictor_data[k_m])
             .astype(np.float32))
             .flatten()[:trunc] 
             for k,k_m in zip(predictor_keys, mapped_predictor_keys)}
-    #for k,v in predictor_arrays.items():
-    #    print(f"predictor array [{k}] shape = {v.shape}")
-    #    print(f"predictor array [{k}] = {v}")
+
     mapped_constant_keys = key_mapping(constant_keys, ctx)
     constants = {k : torch.tensor(predictor_data[k_m][0].astype(np.float32)).flatten()[:trunc] for k,k_m in zip(constant_keys, mapped_constant_keys)}
     output_arrays = {k : torch.tensor(observation_data[k].astype(np.float32)).flatten()[:trunc] for k in output_keys}
-    #for k,v in output_arrays.items():
-    #    print(f"output array [{k}] shape = {v.shape}")
-    #print(f"output_arrays={output_arrays}")
-
-    print(f"n_points before filter: {len(predictor_arrays['Cc'])}")
-    #print(f"{print_k_points} first predictors Cc BEFORE: {predictor_arrays["Cc"][:print_k_points]}")
-    #print(f"{print_k_points} first output LE BEFORE: {output_arrays[output_keys[0]][:print_k_points]}")
     
     def valid(i):
         return (#True or ( # NOTE: this enables/disables the filtering
@@ -87,8 +69,33 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
         for i in range(n) if valid(i) # Filter out nan output values! 
     ]
 
-    print(f"n_points after filter: {len(data)}")
-    print(f"first {print_k_points} data points:\n{data[:print_k_points]}")
+    if verbose:
+        #print(f"predictor_data={predictor_data}")
+        #print(f"observation_data={observation_data}")
+        #print(f"predictor_data[Ts]={predictor_data['Ta']}")
+        #print(f"predictor_data[\"Ts\"][:{trunc}]{predictor_data['Ta'][:trunc]}")
+
+        print(f" --------BASE SHAPES-------- ")
+        for key in mapped_predictor_keys:
+            print(f"Initial Shape for predictor {key}: {predictor_data[key].shape}")
+        for key in output_keys:
+            print(f"Initial Shape for output {key}: {observation_data[key].shape}")
+
+        for k,v in predictor_arrays.items():
+            print(f"predictor array [{k}] shape = {v.shape}")
+            print(f"predictor array [{k}] = {v}")
+        for k,v in output_arrays.items():
+            print(f"output array [{k}] shape = {v.shape}")
+        print(f"output_arrays={output_arrays}")
+
+        print(f"n_points before filter: {len(predictor_arrays['Cc'])}")
+        print(f"{print_k_points} first predictors Cc BEFORE: {predictor_arrays['Cc'][:print_k_points]}")
+        print(f"{print_k_points} first output LE BEFORE: {output_arrays[output_keys[0]][:print_k_points]}")
+
+        print(f"n_points after filter: {len(data)}")
+        print(f"first {print_k_points} data points:\n{data[:print_k_points]}")
+
+
 
     return data
 

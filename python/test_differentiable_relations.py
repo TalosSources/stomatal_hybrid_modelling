@@ -25,7 +25,7 @@ def test_Q_LE_invertible(predictors):
         output_rs = differentiable_relations.compute_rs(Q_LE=LE, **compute_rs_predictors)
 
         # compare that the initial rs and the obtained rs are the same
-        print(f"initial rs: {qle_predictors["rs"]}, output_rs: {output_rs}")
+        print(f"initial rs: {qle_predictors['rs']}, output_rs: {output_rs}")
 
 """
 Takes as input an array of predictors, each line containing a tuple with named parameters:
@@ -47,6 +47,6 @@ def test_Q_LE_using_inverted_PM(predictors):
         output_rs = differentiable_relations.compute_rs(Q_LE=input_LE, **compute_rs_predictors)
 
         # compare the obtained rs with the initial rs
-        print(f"initial rs: {x["rs"]}, output_rs: {output_rs}")
+        print(f"initial rs: {x['rs']}, output_rs: {output_rs}")
 
     
