@@ -21,8 +21,8 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
     predictor_path = os.path.join(basepath, f"Results_{site_name}.mat")
     observation_path = os.path.join(basepath, f"Res_{site_name}.mat")
 
-    trunc = 50000
-    print_k_points=10
+    trunc = 100
+    print_k_points=20
     
     # load dat from both mat files
     predictor_data = scipy.io.loadmat(predictor_path)
@@ -30,6 +30,7 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
 
     # build a dictionary with the desired values and the correct names
     ctx = "sun_H" # NOTE: Change here for different contexts (sunny/shaded, low/high vegetation)
+    # sun_condition = if (LAI_L(i) > 0) && (Csno == 0) && (Cice == 0) TODO
 
     if predictor_keys is None:
         predictor_keys = ["Cc", "IPAR", "Csl", "ra", "rb", "Ts", "Pre", "Ds", "Psi_L", "Rn", "QG", "rs"] # NOTE: added rs for debugging 
@@ -50,11 +51,13 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
             for k,k_m in zip(predictor_keys, mapped_predictor_keys)}
 
     mapped_constant_keys = key_mapping(constant_keys, ctx)
-    constants = {k : torch.tensor(predictor_data[k_m][0].astype(np.float32)).flatten()[:trunc] for k,k_m in zip(constant_keys, mapped_constant_keys)}
-    output_arrays = {k : torch.tensor(observation_data[k].astype(np.float32)).flatten()[:trunc] for k in output_keys}
+    constants = {k : torch.tensor(predictor_data[k_m][0].astype(np.float32)).flatten()[:trunc] 
+                for k,k_m in zip(constant_keys, mapped_constant_keys)}
+    output_arrays = {k : torch.tensor(observation_data[k].astype(np.float32)).flatten()[:trunc] 
+                    for k in output_keys}
     
     def valid(i):
-        return (#True or ( # NOTE: this enables/disables the filtering
+        return (# True or ( # NOTE: this enables/disables the filtering
             not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan output values! 
             and not predictor_arrays["Cc"][i] == 0
             and not predictor_arrays["IPAR"][i] == 0
@@ -81,16 +84,22 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
         for key in output_keys:
             print(f"Initial Shape for output {key}: {observation_data[key].shape}")
 
+        print(f"\n --------ARRAYS SHAPES-------- ")
+
         for k,v in predictor_arrays.items():
             print(f"predictor array [{k}] shape = {v.shape}")
-            print(f"predictor array [{k}] = {v}")
+            #print(f"predictor array [{k}] = {v}")
         for k,v in output_arrays.items():
             print(f"output array [{k}] shape = {v.shape}")
-        print(f"output_arrays={output_arrays}")
+        #print(f"output_arrays={output_arrays}")
 
         print(f"n_points before filter: {len(predictor_arrays['Cc'])}")
         print(f"{print_k_points} first predictors Cc BEFORE: {predictor_arrays['Cc'][:print_k_points]}")
         print(f"{print_k_points} first output LE BEFORE: {output_arrays[output_keys[0]][:print_k_points]}")
+        #print(f"first {print_k_points} predictors before filter: \n{predictor_arrays[:print_k_points]}")
+        #print(f"first {print_k_points} outputs before filter: \n{output_arrays[:print_k_points]}")
+
+        print("--------------FINAL FILTERED SHAPES-------------")
 
         print(f"n_points after filter: {len(data)}")
         print(f"first {print_k_points} data points:\n{data[:print_k_points]}")
@@ -99,50 +108,6 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
 
     return data
 
-
-"""
-The data is a dict from param_names to large arrays of values.
-We transform it into a large tensor, with parameters in the order they appear in pb
-We could return a large tensor with copies of constants, but that would take space.
-"""
-def load_pipeline_data_tensor(basepath, site_name): # NOTE: no real need to take 2 files into input, as the 2 files could be reconstructed from the site name
-    
-    # prepare paths
-    predictor_path = os.path.join(basepath, f"Results_{site_name}.mat")
-    observation_path = os.path.join(basepath, f"Res_{site_name}.mat")
-    
-    # load dat from both mat files
-    predictor_data = scipy.io.loadmat(predictor_path)
-    observation_data = scipy.io.loadmat(observation_path)
-
-    # build a dictionary with the desired values and the correct names
-    ctx = "sun_H" # NOTE: Change here for different contexts (sunny/shaded, low/high vegetation)
-    predictor_keys = ["Cc", "IPAR", "Csl", "ra", "rb", "Ts", "Pre", "Ds", "Psi_L"]
-    constant_keys = ["Psi_sto_50", "Psi_sto_00", "CT", "Vmax", 
-     "Ha", "FI", "Oa", "Do", "a1", "go", "gmes", "rjv"] # NOTE: missing DS. also why do we have integers for some constants?
-    #output_keys = ["LE"]
-    output_keys = ["LE_CORR"]
-
-    mapped_predictor_keys = key_mapping(predictor_keys, ctx)
-    #predictor_arrays = {k : torch.tensor(predictor_data[k_m].astype(np.float32)).flatten() for k,k_m in zip(predictor_keys, mapped_predictor_keys)}
-    predictor_arrays = torch.tensor([predictor_data[k_m].astype(np.float32).flatten() for k_m in mapped_predictor_keys]).T
-    mapped_constant_keys = key_mapping(constant_keys, ctx)
-    #constants = {k : torch.tensor(predictor_data[k_m].astype(np.float32)).flatten() for k,k_m in zip(constant_keys, mapped_constant_keys)}
-    constants = torch.tensor([predictor_data[k_m].astype(np.float32).flatten() for k_m in mapped_constant_keys]).T
-    output_arrays = torch.tensor([observation_data[k].astype(np.float32).flatten() for k in output_keys]).T
-    print(f"Shapes: predictor->{predictor_arrays.size()}, constants->{constants.size()}, output->{output_arrays.size()}")
-    print(f"output_arrays={output_arrays}")
-
-    # merge the dictionaries into an array of (input, output  tuples
-    n = predictor_arrays[predictor_keys[0]].shape[0]
-    batch_size = 16
-    data = [
-        ({ k : predictor_arrays[k][i] for k in predictor_arrays } | constants | {"DS" : 0.5}, # NOTE: DS is arbitrary, because its use is cryptic in pb.m
-        output_arrays[output_keys[0]][i]) # For now, we assume a single output
-        for i in range(n)
-    ]
-
-    return data
 
 
 def key_mapping(keys, ctx="sun_H"):

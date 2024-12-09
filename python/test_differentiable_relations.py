@@ -47,6 +47,6 @@ def test_Q_LE_using_inverted_PM(predictors):
         output_rs = differentiable_relations.compute_rs(Q_LE=input_LE, **compute_rs_predictors)
 
         # compare the obtained rs with the initial rs
-        print(f"initial rs: {x['rs']}, output_rs: {output_rs}")
+        print(f"given_rs: {x['rs']}, output_rs: {output_rs}")
 
     

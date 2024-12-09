@@ -156,7 +156,7 @@ def make_pipeline(gsCO2_model, Vmax_model, output_rs=False):
         # COMPUTE Q_LE USING THE ESTIMATED RS
         Q_LE = differentiable_relations.Q_LE(rs=rs, **qle_predictors)
 
-        return Q_LE, pred_rs if output_rs else Q_LE
+        return Q_LE, rs if output_rs else Q_LE
 
     return pipeline
 

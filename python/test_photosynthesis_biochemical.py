@@ -40,8 +40,10 @@ def compare_rs(predictors):
         pb_predictors = {k: v for k, v in x.items() if k in pb_params}
         CcF,An,rs,Rdark,F755nm,GAM,gsCO2 = photosynthesis_biochemical(**pb_predictors)
 
-        print(f"using pb_predictors:")
-        print(pb_predictors)
+        #print(f"using pb_predictors:")
+        #print(pb_predictors)
+
+        pred_rs = x['rs']
 
          # compare that the input rs and the obtained rs are the same
-        print(f"initial rs: {x['rs']}, output_rs: {rs}")
+        print(f"initial rs: {pred_rs}, output_rs: {rs} (ratio={pred_rs / rs})")

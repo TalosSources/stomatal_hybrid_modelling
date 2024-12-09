@@ -20,19 +20,26 @@ def debug_pipeline(base_path, site_name):
     groundtruth_LE = []
     pred_rs = []
     pred_LE = []
-    for x, y in LE_data[:1000]:
+    for i, (x, y) in enumerate(LE_data[:1000]):
+        #print(f"---------------DATA POINT {i}----------------")
         x['CT'] = 3
+
+        # test fix (to remove)
+        #x['IPAR'] = 3.6639
+        x['Vmax'] = 40.7293
+        #x['Psi_L'] = -0.0229
+
         Q_LE, rs = pipeline(x)
         pred_rs.append(rs)
         pred_LE.append(Q_LE)
         groundtruth_rs.append(x['rs'])
         groundtruth_LE.append(y)
 #
-        print(f"x = {x}")
-        print(f"pred rs={rs}")
-        print(f"pred Q_LE={Q_LE}")
-        print(f"obs rs = {x['rs']}")
-        print(f"obs Q_LE = {y}")
+        #print(f"x = {x}")
+        #print(f"pred rs={rs}")
+        #print(f"pred Q_LE={Q_LE}")
+        #print(f"obs rs = {x['rs']}")
+        #print(f"obs Q_LE = {y}")
 
         #test_differentiable_relations.test_Q_LE_invertible([x])
         #test_differentiable_relations.test_Q_LE_using_inverted_PM([(x, y)])
@@ -77,8 +84,8 @@ def main():
     site_name = "CH-Dav"
     #site_name = "DE-Tha"
 
-    #debug_pipeline(base_path, site_name)
-    debug_data_loading(base_path, site_name)
+    debug_pipeline(base_path, site_name)
+    #debug_data_loading(base_path, site_name)
     #plot_timeseries(base_path, site_name)
 
 

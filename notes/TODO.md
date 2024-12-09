@@ -54,3 +54,16 @@ can contact Akash until friday morning, and then not until 08.10
 * test the inverted PM equation rs(Q_LE, ra, ...), to see if the obtained values match the given rs.
 * come up with smart ways to pinpoint where the mistake in the pipeline is
 * test that the PM function and the inverted PM are reciprocal (f^-1 (f(x)))
+
+# 06.12 Notes
+* For Matching Q_LE: it's a sum of sunH, sunL, shdH, shdL values, and also other things we don't compute, so we need to take all that into account
+* We are calculating T_sunH and we're comparing with the sum of above values.
+* We need to run our pipeline for shdH, we get T_shdH, T_H = T_sunH + T_shdH. (would be the Q_LE but converted from W/m² to mm/H (mm of water, look online?))
+* Next, we compute ET =  sum(T_H+EIn_H,2) + sum(T_L+EIn_L,2) +  EG +  ELitter + ESN + ESN_In + EWAT +  EICE+ EIn_urb + EIn_rock ;  %% [mm/h]
+* all the ones we need (all execpt T_H) should be in the predictors
+* I could also use the pipeline to obtain T_L (that would amount to running it 4 times)
+
+## Divergences
+IPAR: "IPAR":"PAR_sun_H_final" is wrong
+Psi_L: suspect -> corresponds to the previous one
+Vmax is slightly off
