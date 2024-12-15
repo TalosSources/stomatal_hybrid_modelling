@@ -66,4 +66,14 @@ can contact Akash until friday morning, and then not until 08.10
 ## Divergences
 IPAR: "IPAR":"PAR_sun_H_final" is wrong
 Psi_L: suspect -> corresponds to the previous one
-Vmax is slightly off
+Vmax is slightly 
+
+
+# 11.12 Notes
+* Aggregate values of one day to compute the loss function (to smooth out the noise)
+* Use the correct Vmax (not a constant) ASK AKASH
+* then fix psi_l etc.
+
+* make sure there's some sensitivity in training: changing the predicted gsco2 does change the final pipeline output?
+* perhaps plot it (the above)
+* think about what to show in the report: what figures. (scatter plot, violin plot, compare pure T&C with hybrid, loss plot (loss goes down), hyperparameter tuning (different learning rates, different models), ablation study (test to remove some of the choices we made, e.g. to train with daily averages))
