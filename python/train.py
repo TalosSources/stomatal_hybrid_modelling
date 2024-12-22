@@ -151,7 +151,7 @@ def make_pipeline(gsCO2_model, Vmax_model, output_rs=False):
         pred_rs = predictors["rs"]
         print(f"given_rs: {pred_rs}, computed_rs: {rs}")
         if not torch.isnan(pred_rs) and not torch.isinf(pred_rs) and not torch.isnan(rs) and not torch.isinf(rs):
-            if torch.abs(rs - pred_rs) > 0.5:
+            if torch.abs(rs - pred_rs) > 0.5 and rs*pred_rs > 0.001:
                 print(f"DIFFERENT!")
                 print(f"and pb_predictors are: {pb_predictors}")
 

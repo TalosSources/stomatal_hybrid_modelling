@@ -21,7 +21,7 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
     predictor_path = os.path.join(basepath, f"Results_{site_name}.mat")
     observation_path = os.path.join(basepath, f"Res_{site_name}.mat")
 
-    trunc = 1000
+    trunc = 150000
     
     # load dat from both mat files
     predictor_data = scipy.io.loadmat(predictor_path)
@@ -67,8 +67,8 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
     }
     
     # Correct Psi_L that's shifted 
-    for ctx in predictor_arrays.keys():
-        predictor_arrays[ctx]["Psi_L"][:-1] = predictor_arrays[ctx]["Psi_L"][1:].clone() # roll to the left
+    #for ctx in predictor_arrays.keys():
+    #    predictor_arrays[ctx]["Psi_L"][:-1] = predictor_arrays[ctx]["Psi_L"][1:].clone() # roll to the left
 
     global_arrays = {
         k : torch.tensor(predictor_data[k].astype(np.float32)).flatten()[:trunc]
@@ -173,7 +173,7 @@ sun_h_map = {
     "Ts":"Ta",
     "Pre":"Pre",
     "Ds":"Ds",
-    "Psi_L":"Psi_l_H",
+    "Psi_L":"Psi_sun_H_final",
     "Psi_sto_50":"Psi_sto_50_H",
     "Psi_sto_00":"Psi_sto_00_H",
     "CT":"CT_H",
@@ -201,7 +201,7 @@ sun_l_map = {
     "Ts":"Ta",
     "Pre":"Pre",
     "Ds":"Ds",
-    "Psi_L":"Psi_l_L",
+    "Psi_L":"Psi_sun_L_final",
     "Psi_sto_50":"Psi_sto_50_L",
     "Psi_sto_00":"Psi_sto_00_L",
     "CT":"CT_L",
@@ -229,7 +229,7 @@ shd_h_map = {
     "Ts":"Ta",
     "Pre":"Pre",
     "Ds":"Ds",
-    "Psi_L":"Psi_l_H",
+    "Psi_L":"Psi_sun_H_final",
     "Psi_sto_50":"Psi_sto_50_H",
     "Psi_sto_00":"Psi_sto_00_H",
     "CT":"CT_H",
@@ -257,7 +257,7 @@ shd_l_map = {
     "Ts":"Ta",
     "Pre":"Pre",
     "Ds":"Ds",
-    "Psi_L":"Psi_l_L",
+    "Psi_L":"Psi_sun_L_final",
     "Psi_sto_50":"Psi_sto_50_L",
     "Psi_sto_00":"Psi_sto_00_L",
     "CT":"CT_L",

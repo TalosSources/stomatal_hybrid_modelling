@@ -21,7 +21,7 @@ def debug_pipeline(base_path, site_name):
     groundtruth_LE = []
     pred_rs = []
     pred_LE = []
-    for i, data_point in enumerate(LE_data[:1000]):
+    for i, data_point in enumerate(LE_data[:100]):
         print(f"---------------DATA POINT {i}----------------")
 
         # fix some ill values TODO: Do that elsewhere
@@ -90,21 +90,23 @@ def plot_timeseries(base_path, site_name):
     #####
 
 def train_pipeline(base_path, site_name):
-    pipeline_data = data.load_pipeline_data_dict(base_path, site_name, output_keys=["LE_CORR"])
+    pipeline_data = data.load_pipeline_data_dict(base_path, site_name, output_keys=["LE"])
     gsCO2_model, Vmax_model = train.train_pipeline(pipeline_data)
 
 
 def main():
     base_path = os.path.expanduser(
-        "~/epfl/semester_project/databases/T_C_Input_and_Output_Pure_Physics/"
+        "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
     )
     site_name = "CH-Dav"
     #site_name = "DE-Tha"
+    #site_name = "DE-Hai"
+    #site_name = "US-Me2"
 
-    debug_pipeline(base_path, site_name)
+    #debug_pipeline(base_path, site_name)
     #debug_data_loading(base_path, site_name)
     #plot_timeseries(base_path, site_name)
-
+    train_pipeline(base_path, site_name)
 
 
 
