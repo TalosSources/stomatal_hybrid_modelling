@@ -90,13 +90,16 @@ def gsCO2_model():
     """
     input_dim = 6
     output_dim = 1
+
+    # Different possible architectures
     #return FCN([input_dim, 128, 64, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
     #return FCN([input_dim, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
     #return FCN([input_dim, 32, output_dim], torch.nn.ReLU(), positive_output=True) # NOTE: relatively simple network, subject to change (activation?)
+    return FCN([input_dim, 32, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
     #return FCRN(input_dim, output_dim, 3, 64, torch.nn.Tanh())
 
     # Minimal test: Linear model
-    return FCN([input_dim, output_dim], torch.nn.ReLU())
+    #return FCN([input_dim, output_dim], torch.nn.ReLU())
 
 def vm_model():
     input_dim = 2

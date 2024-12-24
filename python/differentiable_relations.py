@@ -51,7 +51,7 @@ def Q_LE(rs, ra, Rn, QG, Ds, Ts):
     sc_kPa, roa, Ds_kPa, gamma = compute_missing_variables(Ts, Ds)
     
     q_le = (sc_kPa * (Rn - QG) + roa*cp*Ds_kPa / ra ) / (sc_kPa + gamma*(1 + rs/ra)) # flux, W/m²
-    print(f"computation is {(sc_kPa * (Rn - QG) + roa*cp*Ds_kPa / ra )} / ({sc_kPa} + {gamma} * (1 + rs / {ra}))")
+    #print(f"computation is {(sc_kPa * (Rn - QG) + roa*cp*Ds_kPa / ra )} / ({sc_kPa} + {gamma} * (1 + rs / {ra}))")
     #print(f"obtaining Q_LE={q_le}")
     return q_le
 

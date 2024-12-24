@@ -1,16 +1,13 @@
-import photosynthesis_biochemical
-from photosynthesis_biochemical import photosynthesis_biochemical as pb
-import differentiable_relations
-
-import models
 import torch
 import numpy as np
 
-import plot
-import inspect
-import utils
+import photosynthesis_biochemical
+import pipelines
 
-parameters = None
+import models
+import plot
+import utils
+import eval
 
 def train_general(
     model,
@@ -24,6 +21,8 @@ def train_general(
     losses = []
 
     for i in range(epochs):
+
+        printIter = (i%50) == 0
         
         optimizer.zero_grad()
         
@@ -41,18 +40,22 @@ def train_general(
             x, y = next(data_iterator)
 
         # TODO: Decision. In the paper, they ignore points where Q_LE < 0. Here, I clamp them to 0.
-        if y < 0:
-            continue
-        y = y.clamp(min=0)
+        #if (y < 0).any():
+        #    print(f"y == 0: skipping")
+        #    continue
+        #y = y.clamp(min=0)
 
         output, rs_values = model(x)
-        output = output[0]
+        #print(f"in train: output = {output}")
+        #output = output[0]
         loss = criterion(output, y)
         #print(f"Epoch {i}: x={x}, y={y}, output={output}, loss={loss}")
-        print(f"Epoch {i}: y={y}, output={output}, loss={loss}")
+        if printIter:
+            print(f"Epoch {i}: y={y}, output={output}, loss={loss}")
         #print(f"Epoch {i}: loss={loss}")
         if torch.isnan(loss) or torch.isinf(loss) or (output==0.).any(): # TODO: very crude fix. Actually understand why having output=0 breaks the whole pipeline. Also filter out and sanitize data properly
-            print(f"Found nan or inf loss: don't compute gradient")
+            if printIter:
+                print(f"Found nan or inf loss: don't compute gradient")
             continue
             #return
 
@@ -70,22 +73,22 @@ def train_general(
         loss.backward()
 
         # print infos
-        utils.printGradInfo(output, "outputAfterBackward")
-        for rs in rs_values:
-            utils.printGradInfo(rs, "rsInTrainGeneral")
-        utils.printGradInfo(loss, "loss")
+        #utils.printGradInfo(output, "outputAfterBackward")
+        #for rs in rs_values:
+        #    utils.printGradInfo(rs, "rsInTrainGeneral")
+        #utils.printGradInfo(loss, "loss")
         #utils.printGradInfo(photosynthesis_biochemical.gsCO2, "gsco2")
         #utils.printGradInfo(photosynthesis_biochemical.model_output, "gsco2ModelOutput")
-        for p in optimizer.param_groups:
-            for param in p['params']:
-                utils.printGradInfo(param, "paramDataX")
+        #for p in optimizer.param_groups:
+        #    for param in p['params']:
+        #        utils.printGradInfo(param, "paramDataX")
 
         # step
         optimizer.step()
 
         losses.append(float(loss))
 
-        print(f"----------------------------------------------------")
+        #print(f"----------------------------------------------------")
 
         
 
@@ -151,10 +154,10 @@ def train_pipeline(train_data):
     lr = 1e-2
     epochs = 10000
 
-    model_wrapper = make_pipeline(gsCO2_model, Vmax_model, output_rs=True)
-    #data_iterator = batch_dict_iterator(train_data, batch_size=1) # TODO: Make a batch iterator for the new pipeline
+    model_wrapper = pipelines.make_pipeline(gsCO2_model, Vmax_model, output_rs=True)
+    data_iterator = batch_ctx_dict_iterator(train_data, batch_size=32) # TODO: Make a batch iterator for the new pipeline
     # data_iterator = iter(train_data)
-    data_iterator = random_sample_iterator(train_data)
+    #data_iterator = random_sample_iterator(train_data)
 
     # choose a loss
     #loss = torch.nn.MSELoss()
@@ -172,7 +175,20 @@ def train_pipeline(train_data):
         print(f"param p : {p}")
         print(f"requires_grad? = {p.requires_grad}")
 
+    # eval the model before training
+    eval_before_training = eval.eval_general(model_wrapper, train_data, loss)
+    print(f"Eval before training: {eval_before_training}")
+
     losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
+
+    # eval the model after training
+    eval_after_training = eval.eval_general(model_wrapper, train_data, loss)
+    print(f"Eval after training: {eval_after_training}")
+
+    # eval the empirical model
+    empirical_model_wrapper = pipelines.make_pipeline(None, None, output_rs=True)
+    eval_empirical_model = eval.eval_general(empirical_model_wrapper, train_data, loss)
+    print(f"Eval empirical model: {eval_empirical_model}")
 
     # show info about loss NOTE: Consider using wandb or similar foss
     # TODO: Show info about gradient norm.
@@ -183,87 +199,6 @@ def train_pipeline(train_data):
 
     return gsCO2_model, Vmax_model
 
-# TODO: Move pure pipeline stuff (i.e. mostly agnostic to training) in a separate pipeline file
-def make_pipeline(gsCO2_model, Vmax_model, output_rs=False):
-
-    print(f"outputrs = {output_rs}")
-    # define constants. Doing our function structure that way allows to store the constants cleanly
-    # constants = ... # NOTE: Might not be necessary
-
-    # the pipeline calls the pb module with the 2 models inserted, using the constants and predictors as inputs, and converts the outputs to Q_LE 
-    pb_params = set(inspect.signature(pb).parameters)
-    qle_params = set(inspect.signature(differentiable_relations.Q_LE).parameters)
-
-    def subpipeline(predictors):
-        pb_predictors = {k: v for k, v in predictors.items() if k in pb_params}
-        _,_,rs,_,_,_,_ = pb(**pb_predictors, gsCO2_model=gsCO2_model, Vmax_model=Vmax_model)
-        #print(f"input_rs={input_rs} while output_rs = {rs}")
-        qle_predictors = {k: v for k, v in predictors.items() if k in qle_params}
-        qle_predictors.__delitem__("rs") # TODO: temporary debug fix
-
-        #pred_rs = predictors["rs"]
-        #print(f"given_rs: {pred_rs}, computed_rs: {rs}")
-        #if not torch.isnan(pred_rs) and not torch.isinf(pred_rs) and not torch.isnan(rs) and not torch.isinf(rs):
-        #    if torch.abs(rs - pred_rs) > 0.5 and rs*pred_rs > 0.001:
-        #        print(f"DIFFERENT!")
-        #        print(f"and pb_predictors are: {pb_predictors}")
-
-        # COMPUTE Q_LE USING THE PREDICTOR RS
-        #Q_LE = differentiable_relations.Q_LE(rs=pred_rs, **qle_predictors)
-
-        # COMPUTE Q_LE USING THE ESTIMATED RS
-        Q_LE = differentiable_relations.Q_LE(rs=rs, **qle_predictors)
-
-        return (Q_LE, rs) if output_rs else Q_LE
-        #print(f"\n\nsubpipeline got {predictors}\n\n and output {Q_LE} (shape={Q_LE.size()})\n\n")
-        #return Q_LE
-    
-    def W_on_m2_to_mm_on_H(Q):
-        # For now simply divide by 684 NOTE: Not 100% sure it's the way to go
-        return Q / 684
-    
-    def mm_on_H_to_W_on_m2(Q):
-        return Q * 684
-    
-    """
-    This is the differentiable pipeline, taking as input an object containing
-    values for the 4 different contexts, computing the Q_LE term for each of 
-    them, and aggregating them to obtain a Q_LE comparable with observations
-    Assumes it receives predictors p, on this format:
-    * single value tensors for general EG, ELitter, etc., and also EIn_H and EIn_L 
-    * For key ctx, a map of predictors for pb and Q_LE, with values for this ctx.
-    Args: 
-        x: A pair (single, global), where single is a map ctx -> predictor_dict, 
-            and global is a dict of context-independant values. 
-    """
-    def pipeline(x):
-        single_pipeline_values, g = x
-        # predictors contains a map between context and predictor maps for this context.
-        Q_LE_wm2 = torch.zeros(1)
-        rs_values = []
-        #print(f"the acc is {Q_LE_wm2}, size={Q_LE_wm2.size()}")
-        for ctx, preds in single_pipeline_values.items():
-            #print(f"[ctx={ctx}] ", end='')
-            ctx_res = subpipeline(preds)
-            if output_rs:
-                ctx_res, rs = ctx_res
-                rs_values.append(rs)
-            if not torch.isnan(ctx_res):
-                print(f"... adding it ...")
-                Q_LE_wm2 += ctx_res
-        Q_LE_mmH = W_on_m2_to_mm_on_H(Q_LE_wm2)
-        #print(f"predicted Q_LE_mmH: {Q_LE_mmH}")
-
-        HLTotal = Q_LE_mmH + g["EIn_H"] + g["EIn_L"]
-        ET = HLTotal + g["EG"] + g["ELitter"] + g["ESN"] + g["ESN_In"] + g["EWAT"] + g["EICE"] + g["EIn_urb"] + g["EIn_rock"]
-        print(f"and then q_le_mmh={Q_LE_mmH}, ET=q_le_mmh+{g['EIn_H'] + g['EIn_L']+g['EG'] + g['ELitter'] + g['ESN'] + g['ESN_In'] + g['EWAT'] + g['EICE'] + g['EIn_urb'] + g['EIn_rock']}")
-
-        final_Q_LE = mm_on_H_to_W_on_m2(ET)
-        print(f"yielding final_Q_LE = {final_Q_LE}")
-
-        return (final_Q_LE, rs_values) if output_rs else final_Q_LE
-
-    return pipeline
 
 
 
@@ -284,7 +219,7 @@ class function_sample_iterator:
         y = self.f(x)
         return x, y
     
-class batch_dict_iterator:
+class batch_ctx_dict_iterator:
     def __init__(self, data, batch_size=16):
         # data is an array of dicts of params-values pairs
         self.data = data
@@ -294,7 +229,7 @@ class batch_dict_iterator:
         return self
     
     def __next__(self):
-        return dict_batch(self.data, self.batch_size)
+        return ctx_dict_batch(self.data, self.batch_size)
       
 class random_sample_iterator:
     def __init__(self, data):
@@ -307,7 +242,7 @@ class random_sample_iterator:
     
     def __next__(self):
         idx = random.randint(0, self.n-1)
-        print(f"(just sampled {idx})")
+        #print(f"(just sampled {idx})")
         return self.data[idx]
 
     
@@ -375,6 +310,55 @@ def dict_batch(dict_array, batch_size):
                   
     return (predictors_batch, outputs_batch)
 
+"""
+This function takes a large array where each line is a tuple (x, y), 
+where x is a tuple (ctx_dict, global_dict) and y is a tensor with a single value,
+where ctx_dict is a dict ctx -> predictor_dict,
+and where predictor_dict and global_dict are dicts key -> tensor with a single value.
+and return a random batch of batch_size, in the form of a tuple (x, y) where 
+y is an tensor of size batch_size, and x has the same form, except
+predictor_dict and global_dict map keys to tensors of size batch_size
+Of course, the elements must be in the same order in the tensor for each key.
+"""
+def ctx_dict_batch(dict_array, batch_size):
+
+    # batch is an array of size batch_size containing (x,y) tuples
+    batch = random.sample(dict_array, batch_size)
+
+    # predictors is an array of size batch_size of (ctx_dict, global_dict) values
+    # y is an array of size batch_size of y values
+    predictors, outputs = zip(*batch)
+
+    # outputs_batch is already a y tensor in the form we want it
+    outputs_batch = torch.tensor(outputs) 
+
+    # ctx_dicts is an array of size batch_size of ctx_dict values, same for global_dicts
+    ctx_dicts, global_dicts = zip(*predictors)
+
+    # for each key present in global_dicts, we collect all the batch_size values for this key in a single tensor
+    # and map the key to that tensor
+    global_batch = {key: torch.tensor([global_dict[key] for global_dict in global_dicts]) 
+                  for key in global_dicts[0].keys()}
+    
+    # for each ctx present in ctx_dicts, and for each key present for this ctx,
+    # aggregate all these values into a tensor, and map the corresponding key to this tensor,
+    # and the corresponding ctx to this predictor_dict. 
+    ctx_batch = {
+        ctx: {
+            key: torch.tensor([ctx_dict[ctx][key] for ctx_dict in ctx_dicts]) 
+            for key in ctx_dicts[0][ctx].keys()
+        }
+        for ctx in ctx_dicts[0].keys()
+    }
+
+    # ugly fix TODO I'm not sure what the proper way of doing this would be 
+    for predictor_dict in ctx_batch.values():
+        predictor_dict['CT'] = 3
+
+    # TODO: Sort out the reason that output and y don't have the same dimension
+
+                  
+    return ((ctx_batch, global_batch), outputs_batch)
 
 def check_gradients(module : torch.nn.Module):
     for name, param in module.named_parameters():

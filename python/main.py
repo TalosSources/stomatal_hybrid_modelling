@@ -6,8 +6,9 @@ from photosynthesis_biochemical import photosynthesis_biochemical
 import train
 import data
 
-import test_differentiable_relations
-import test_photosynthesis_biochemical
+#import test.test_photosynthesis_biochemical
+#import test.test_differentiable_relations
+#import python.test.test_photosynthesis_biochemical
 
 import plot
 
@@ -90,7 +91,7 @@ def plot_timeseries(base_path, site_name):
     #####
 
 def train_pipeline(base_path, site_name):
-    pipeline_data = data.load_pipeline_data_dict(base_path, site_name, output_keys=["LE"], nPoints=500, verbose=False)
+    pipeline_data = data.load_pipeline_data_dict(base_path, site_name, output_keys=["LE"], nPoints=1000, verbose=False)
     #pipeline_data = pipeline_data[497:499]
     gsCO2_model, Vmax_model = train.train_pipeline(pipeline_data)
 
