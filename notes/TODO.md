@@ -77,3 +77,53 @@ Vmax is slightly
 * make sure there's some sensitivity in training: changing the predicted gsco2 does change the final pipeline output?
 * perhaps plot it (the above)
 * think about what to show in the report: what figures. (scatter plot, violin plot, compare pure T&C with hybrid, loss plot (loss goes down), hyperparameter tuning (different learning rates, different models), ablation study (test to remove some of the choices we made, e.g. to train with daily averages))
+
+# 22.12 Notes
+## Questions: 
+* Ask about the time-step precise info: when does it start in the day/year?
+## Notes
+* Think about invalid data: If some given rs are inf, or other values are inf or nan, consider removing them
+* Dates appear in results['Date'], a big array containing dates for each timestep. I need to understand and parse the encoding, can be useful to provide analysis about variations over the course of a day/year.
+* need to ping Akash by email for notification
+* consider accelerating with CUDA
+* IDEA TO TRY: first, train the model with the empirical function, as a baseline. Forces it to be somewhat coherent. Then, train from it with the pipeline.
+* weight decay
+* layer normalization?
+* write evaluation functions. It seem if I can learn anything, it will be hard to spot just by staring at outputs/lossPlots. I need to make evaluations before/after training, and against empirical models.
+
+## Matlab Code for Date:
+The invert of one of those procedures should give me the human-readable dates from the data numbers.
+### First Option
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Subfunction  JULIAN_DAY              %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function[jDay]= JULIAN_DAY(D)
+%%%% INPUT
+%%% Datam %% [Yr, MO, DA, HR]
+% Determine the julian day of the current time
+days = [31 28 31 30 31 30 31 31 30 31 30 31];
+nowYR=D(1); nowMO=D(2); nowDA=D(3); %nowHR =D(4);
+if(nowMO==1)
+    jDay = nowDA;
+elseif(nowMO==2)
+    jDay = days(1) + nowDA;
+else
+    jDay = sum(days(1:(nowMO-1))) + nowDA;
+    if(mod(nowYR,4)==0)
+        if(mod(nowYR,400)==0)
+            jDay = jDay + 1;
+        elseif(mod(nowYR,100)~=0)
+            jDay = jDay + 1;
+        end
+    end
+end
+return
+
+### Second option
+%% Extract and process the dates
+date_start=datenum(num2str(data(1,2)),'yyyymmddHHMM');
+date_end=datenum(num2str(data(end,2)),'yyyymmddHHMM');
+% Hourly Date
+Date = date_start:1/24:date_end;
+Date=Date';
+
