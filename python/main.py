@@ -90,7 +90,8 @@ def plot_timeseries(base_path, site_name):
     #####
 
 def train_pipeline(base_path, site_name):
-    pipeline_data = data.load_pipeline_data_dict(base_path, site_name, output_keys=["LE"])
+    pipeline_data = data.load_pipeline_data_dict(base_path, site_name, output_keys=["LE"], nPoints=500, verbose=False)
+    #pipeline_data = pipeline_data[497:499]
     gsCO2_model, Vmax_model = train.train_pipeline(pipeline_data)
 
 

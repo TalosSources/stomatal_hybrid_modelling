@@ -1,4 +1,5 @@
-from photosynthesis_biochemical import photosynthesis_biochemical
+import photosynthesis_biochemical
+from photosynthesis_biochemical import photosynthesis_biochemical as pb
 import differentiable_relations
 
 import models
@@ -7,6 +8,9 @@ import numpy as np
 
 import plot
 import inspect
+import utils
+
+parameters = None
 
 def train_general(
     model,
@@ -36,7 +40,13 @@ def train_general(
         else:
             x, y = next(data_iterator)
 
-        output = model(x)
+        # TODO: Decision. In the paper, they ignore points where Q_LE < 0. Here, I clamp them to 0.
+        if y < 0:
+            continue
+        y = y.clamp(min=0)
+
+        output, rs_values = model(x)
+        output = output[0]
         loss = criterion(output, y)
         #print(f"Epoch {i}: x={x}, y={y}, output={output}, loss={loss}")
         print(f"Epoch {i}: y={y}, output={output}, loss={loss}")
@@ -45,10 +55,37 @@ def train_general(
             print(f"Found nan or inf loss: don't compute gradient")
             continue
             #return
-        #loss.backward()
-        #optimizer.step()
+
+        # retain grads
+        for rs in rs_values:
+            rs.retain_grad()
+        loss.retain_grad()
+        output.retain_grad()
+        for p in optimizer.param_groups:
+            for param in p['params']:
+                #print(f"retaining grad on param {param} (and data={param.data})")
+                param.retain_grad()
+
+        # backward
+        loss.backward()
+
+        # print infos
+        utils.printGradInfo(output, "outputAfterBackward")
+        for rs in rs_values:
+            utils.printGradInfo(rs, "rsInTrainGeneral")
+        utils.printGradInfo(loss, "loss")
+        #utils.printGradInfo(photosynthesis_biochemical.gsCO2, "gsco2")
+        #utils.printGradInfo(photosynthesis_biochemical.model_output, "gsco2ModelOutput")
+        for p in optimizer.param_groups:
+            for param in p['params']:
+                utils.printGradInfo(param, "paramDataX")
+
+        # step
+        optimizer.step()
 
         losses.append(float(loss))
+
+        print(f"----------------------------------------------------")
 
         
 
@@ -111,49 +148,65 @@ def train_pipeline(train_data):
     It should store the constant inputs not considered predictors. 
     Else we should create another train_general function 
     """
-    model_wrapper = make_pipeline(gsCO2_model, Vmax_model)
-    #data_iterator = batch_dict_iterator(train_data, batch_size=1)
-    data_iterator = iter(train_data)
+    lr = 1e-2
+    epochs = 10000
 
-    loss = torch.nn.MSELoss()
+    model_wrapper = make_pipeline(gsCO2_model, Vmax_model, output_rs=True)
+    #data_iterator = batch_dict_iterator(train_data, batch_size=1) # TODO: Make a batch iterator for the new pipeline
+    # data_iterator = iter(train_data)
+    data_iterator = random_sample_iterator(train_data)
+
+    # choose a loss
+    #loss = torch.nn.MSELoss()
+    loss = torch.nn.L1Loss()
+
+    # choose an optimizer
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
-    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=1e-2)
+    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=lr)
+    #opt = torch.optim.SGD(gsCO2_model.parameters(), lr=lr)
 
-    epochs = 4000
+    print(f"using parameters: {gsCO2_model.parameters()}")
+    #parameters = gsCO2_model.parameters()
+    print(f"Gsco2 Model require_grad: {next(gsCO2_model.parameters()).requires_grad}")
+    for p in gsCO2_model.parameters():
+        print(f"param p : {p}")
+        print(f"requires_grad? = {p.requires_grad}")
 
     losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
 
     # show info about loss NOTE: Consider using wandb or similar foss
+    # TODO: Show info about gradient norm.
     avg_window = 50
     avg_loss = losses[-avg_window:].mean()
     print(f"Average of the last {avg_window} losses: {avg_loss}")
-    plot.plot_losses(losses[100:])
+    plot.plot_losses(losses)
 
     return gsCO2_model, Vmax_model
 
 # TODO: Move pure pipeline stuff (i.e. mostly agnostic to training) in a separate pipeline file
 def make_pipeline(gsCO2_model, Vmax_model, output_rs=False):
 
+    print(f"outputrs = {output_rs}")
     # define constants. Doing our function structure that way allows to store the constants cleanly
     # constants = ... # NOTE: Might not be necessary
 
     # the pipeline calls the pb module with the 2 models inserted, using the constants and predictors as inputs, and converts the outputs to Q_LE 
-    pb_params = set(inspect.signature(photosynthesis_biochemical).parameters)
+    pb_params = set(inspect.signature(pb).parameters)
     qle_params = set(inspect.signature(differentiable_relations.Q_LE).parameters)
 
     def subpipeline(predictors):
         pb_predictors = {k: v for k, v in predictors.items() if k in pb_params}
-        _,_,rs,_,_,_,_ = photosynthesis_biochemical(**pb_predictors, gsCO2_model=gsCO2_model, Vmax_model=Vmax_model)
+        _,_,rs,_,_,_,_ = pb(**pb_predictors, gsCO2_model=gsCO2_model, Vmax_model=Vmax_model)
         #print(f"input_rs={input_rs} while output_rs = {rs}")
         qle_predictors = {k: v for k, v in predictors.items() if k in qle_params}
         qle_predictors.__delitem__("rs") # TODO: temporary debug fix
 
-        pred_rs = predictors["rs"]
-        print(f"given_rs: {pred_rs}, computed_rs: {rs}")
-        if not torch.isnan(pred_rs) and not torch.isinf(pred_rs) and not torch.isnan(rs) and not torch.isinf(rs):
-            if torch.abs(rs - pred_rs) > 0.5 and rs*pred_rs > 0.001:
-                print(f"DIFFERENT!")
-                print(f"and pb_predictors are: {pb_predictors}")
+        #pred_rs = predictors["rs"]
+        #print(f"given_rs: {pred_rs}, computed_rs: {rs}")
+        #if not torch.isnan(pred_rs) and not torch.isinf(pred_rs) and not torch.isnan(rs) and not torch.isinf(rs):
+        #    if torch.abs(rs - pred_rs) > 0.5 and rs*pred_rs > 0.001:
+        #        print(f"DIFFERENT!")
+        #        print(f"and pb_predictors are: {pb_predictors}")
 
         # COMPUTE Q_LE USING THE PREDICTOR RS
         #Q_LE = differentiable_relations.Q_LE(rs=pred_rs, **qle_predictors)
@@ -161,9 +214,9 @@ def make_pipeline(gsCO2_model, Vmax_model, output_rs=False):
         # COMPUTE Q_LE USING THE ESTIMATED RS
         Q_LE = differentiable_relations.Q_LE(rs=rs, **qle_predictors)
 
-        #return Q_LE, rs if output_rs else Q_LE
+        return (Q_LE, rs) if output_rs else Q_LE
         #print(f"\n\nsubpipeline got {predictors}\n\n and output {Q_LE} (shape={Q_LE.size()})\n\n")
-        return Q_LE
+        #return Q_LE
     
     def W_on_m2_to_mm_on_H(Q):
         # For now simply divide by 684 NOTE: Not 100% sure it's the way to go
@@ -179,27 +232,36 @@ def make_pipeline(gsCO2_model, Vmax_model, output_rs=False):
     Assumes it receives predictors p, on this format:
     * single value tensors for general EG, ELitter, etc., and also EIn_H and EIn_L 
     * For key ctx, a map of predictors for pb and Q_LE, with values for this ctx.
+    Args: 
+        x: A pair (single, global), where single is a map ctx -> predictor_dict, 
+            and global is a dict of context-independant values. 
     """
-    def pipeline(p):
-        single_pipeline_values, g, output = p
+    def pipeline(x):
+        single_pipeline_values, g = x
         # predictors contains a map between context and predictor maps for this context.
         Q_LE_wm2 = torch.zeros(1)
+        rs_values = []
         #print(f"the acc is {Q_LE_wm2}, size={Q_LE_wm2.size()}")
         for ctx, preds in single_pipeline_values.items():
-            print(f"[ctx={ctx}] ", end='')
+            #print(f"[ctx={ctx}] ", end='')
             ctx_res = subpipeline(preds)
+            if output_rs:
+                ctx_res, rs = ctx_res
+                rs_values.append(rs)
             if not torch.isnan(ctx_res):
-                #print(f"... adding it ...")
+                print(f"... adding it ...")
                 Q_LE_wm2 += ctx_res
         Q_LE_mmH = W_on_m2_to_mm_on_H(Q_LE_wm2)
         #print(f"predicted Q_LE_mmH: {Q_LE_mmH}")
 
         HLTotal = Q_LE_mmH + g["EIn_H"] + g["EIn_L"]
         ET = HLTotal + g["EG"] + g["ELitter"] + g["ESN"] + g["ESN_In"] + g["EWAT"] + g["EICE"] + g["EIn_urb"] + g["EIn_rock"]
+        print(f"and then q_le_mmh={Q_LE_mmH}, ET=q_le_mmh+{g['EIn_H'] + g['EIn_L']+g['EG'] + g['ELitter'] + g['ESN'] + g['ESN_In'] + g['EWAT'] + g['EICE'] + g['EIn_urb'] + g['EIn_rock']}")
 
         final_Q_LE = mm_on_H_to_W_on_m2(ET)
+        print(f"yielding final_Q_LE = {final_Q_LE}")
 
-        return final_Q_LE
+        return (final_Q_LE, rs_values) if output_rs else final_Q_LE
 
     return pipeline
 
@@ -233,6 +295,20 @@ class batch_dict_iterator:
     
     def __next__(self):
         return dict_batch(self.data, self.batch_size)
+      
+class random_sample_iterator:
+    def __init__(self, data):
+        # data is an array of (input, output) tuples, where input and output can be anything.
+        self.data = data
+        self.n = len(data)
+
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        idx = random.randint(0, self.n-1)
+        print(f"(just sampled {idx})")
+        return self.data[idx]
 
     
 def generate_points(sampler, count = 100):

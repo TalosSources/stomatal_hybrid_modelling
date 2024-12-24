@@ -6,7 +6,7 @@ import torch
 import numpy as np
 
 class FCN(torch.nn.Module):
-    def __init__(self, layers, activation = torch.tanh):
+    def __init__(self, layers, activation = torch.tanh, positive_output = False):
         super(FCN, self).__init__()
         
         self.layers = torch.nn.ModuleList(
@@ -17,18 +17,22 @@ class FCN(torch.nn.Module):
         print(f"Initialized layers: {self.layers}")
         
         self.activation = activation
+        self.positive_output = positive_output
         
     
     def forward(self, x):
         to_print = f"calling forward, x={x}\n"
         for i, layer in enumerate(self.layers):
             x = layer(x)
-            to_print += f"using layer {layer}, getting x={x}\n"
-            #to_print += f"using layer {layer} (matrix={layer.weight}), getting x={x}\n" # with layer debug
+            #to_print += f"using layer {layer}, getting x={x}\n"
+            to_print += f"using layer {layer} (matrix={layer.weight}), getting x={x}\n" # with layer debug
+            #to_print += f"using layer {layer} (matrix={layer.weight})\n"
             if i < len(self.layers) - 1: # NOTE: Last layer is linear, necessary to express arbitrary real valued functions
                 x = self.activation(x)
                 to_print += f"using activation, getting x={x}\n"
         
+        if self.positive_output:
+            x = torch.nn.functional.relu(x)
         to_print += f"returning {x}\n"
         #print(to_print)
         return x
@@ -61,8 +65,9 @@ class FCRN(torch.nn.Module):
         for i in range(len(self.layers)-2):
             residue = self.activation(self.layers[i+1](x))
             x = x + residue # RECURRENT STEP
-            to_print += f"using layer {self.layers[i+1]}, getting x={x}\n"
+            #to_print += f"using layer {self.layers[i+1]}, getting x={x}\n"
             #to_print += f"using layer {layer} (matrix={layer.weight}), getting x={x}\n" # with layer debug
+            to_print += f"using layer {self.layers[i+1]} (matrix={self.layers[i+1].weight})\n"
         
         # OUTPUT LAYER
         x = self.layers[-1](x)
@@ -85,8 +90,13 @@ def gsCO2_model():
     """
     input_dim = 6
     output_dim = 1
-    return FCN([input_dim, 128, 64, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
+    #return FCN([input_dim, 128, 64, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
+    #return FCN([input_dim, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
+    #return FCN([input_dim, 32, output_dim], torch.nn.ReLU(), positive_output=True) # NOTE: relatively simple network, subject to change (activation?)
     #return FCRN(input_dim, output_dim, 3, 64, torch.nn.Tanh())
+
+    # Minimal test: Linear model
+    return FCN([input_dim, output_dim], torch.nn.ReLU())
 
 def vm_model():
     input_dim = 2
