@@ -90,6 +90,7 @@ Vmax is slightly
 * weight decay
 * layer normalization?
 * write evaluation functions. It seem if I can learn anything, it will be hard to spot just by staring at outputs/lossPlots. I need to make evaluations before/after training, and against empirical models.
+* Do is a constant. Does it need to be in the inputs of pb? doesn't it just makes computations more expensive?
 
 ## Matlab Code for Date:
 The invert of one of those procedures should give me the human-readable dates from the data numbers.
