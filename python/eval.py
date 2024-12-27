@@ -7,14 +7,14 @@ args:
     model -> function mapping x to a predicted y_hat
     criterion -> loss function taking y and y_hat as input
 """
-def eval_general(model, eval_data, criterion):
-    total_loss = 0
+def eval_general(model, eval_data, error_function):
+    total_error = 0
     with torch.no_grad():
         for x, y in eval_data:
-            output, _ = model(x)
-            loss = criterion(y, output)
-            total_loss += loss
+            output = model(x)
+            error = error_function(y, output)
+            total_error += error
     
-    total_loss /= len(eval_data) # NOTE: Optional, computes the average loss
+    total_error /= len(eval_data) # NOTE: Optional, computes the average loss
 
-    return total_loss
+    return total_error

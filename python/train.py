@@ -1,100 +1,226 @@
 import torch
 import numpy as np
+import random # NOTE: could use a random method from np
 
-import photosynthesis_biochemical
 import pipelines
 
 import models
 import plot
-import utils
 import eval
 
+"""
+General torch training method.
+Args:
+    model : callable with the x produced by the data_iterator
+    criterion : callable with the y produced by data_iterator and the model output
+    optimizer : torch optimizer containing model's parameters
+    epochs : integer containing the training step count
+    data_iterator : iterator yielding pairs (x, y)
+    batch_size=1 : size of mini-batches
+    print_every_iter : epoch count between two information prints during training
+"""
 def train_general(
     model,
     criterion,
     optimizer,
     epochs,
     data_iterator,
-    batch_size=1
+    print_every_iter=50
 ):
 
     losses = []
 
     for i in range(epochs):
 
-        printIter = (i%50) == 0
+        printIter = (i%print_every_iter) == 0
         
+        # Reset the gradients
         optimizer.zero_grad()
         
+        # produce a minibatch with x and y
+        x, y = next(data_iterator)
 
-        if batch_size > 1:
-            x_batch = []
-            y_batch = []
-            for _ in range(batch_size):
-                x, y = next(data_iterator)
-                x_batch.append(x)
-                y_batch.append(y)
-            x = torch.tensor(np.array(x_batch), dtype=torch.float32)
-            y = torch.tensor(np.array(y_batch), dtype=torch.float32)
-        else:
-            x, y = next(data_iterator)
-
-        # TODO: Decision. In the paper, they ignore points where Q_LE < 0. Here, I clamp them to 0.
+        # TODO: Decision. In the paper, they ignore points where Q_LE < 0. Here, I clamp them to 0. A sensible choice could be to select valid points in batch making or even data loading (for the latter, infrastructure exists already)
         #if (y < 0).any():
         #    print(f"y == 0: skipping")
         #    continue
         #y = y.clamp(min=0)
 
-        output, rs_values = model(x)
-        #print(f"in train: output = {output}")
-        #output = output[0]
+        # Obtain model predictions
+        output = model(x)
+
+        # Compute the loss
         loss = criterion(output, y)
-        #print(f"Epoch {i}: x={x}, y={y}, output={output}, loss={loss}")
+
         if printIter:
-            print(f"Epoch {i}: y={y}, output={output}, loss={loss}")
-        #print(f"Epoch {i}: loss={loss}")
-        if torch.isnan(loss) or torch.isinf(loss) or (output==0.).any(): # TODO: very crude fix. Actually understand why having output=0 breaks the whole pipeline. Also filter out and sanitize data properly
+            loss_average = np.array(losses[-print_every_iter:]).mean()
+            print(f"Epoch {i}: y={y}, output={output}, loss={loss}, average of last {print_every_iter} losses: {loss_average}")
+
+        if torch.isnan(loss) or torch.isinf(loss):#or (output==0.).any(): # TODO: very crude fix. Actually understand why having output=0 breaks the whole pipeline. Also filter out and sanitize data properly
             if printIter:
-                print(f"Found nan or inf loss: don't compute gradient")
+                print(f"Found nan or inf loss or 0 output: don't compute gradient")
+                print(f"loss={loss}, output={output}")
             continue
-            #return
 
-        # retain grads
-        for rs in rs_values:
-            rs.retain_grad()
-        loss.retain_grad()
-        output.retain_grad()
-        for p in optimizer.param_groups:
-            for param in p['params']:
-                #print(f"retaining grad on param {param} (and data={param.data})")
-                param.retain_grad()
-
-        # backward
+        # compute the loss gradient
         loss.backward()
 
-        # print infos
-        #utils.printGradInfo(output, "outputAfterBackward")
-        #for rs in rs_values:
-        #    utils.printGradInfo(rs, "rsInTrainGeneral")
-        #utils.printGradInfo(loss, "loss")
-        #utils.printGradInfo(photosynthesis_biochemical.gsCO2, "gsco2")
-        #utils.printGradInfo(photosynthesis_biochemical.model_output, "gsco2ModelOutput")
-        #for p in optimizer.param_groups:
-        #    for param in p['params']:
-        #        utils.printGradInfo(param, "paramDataX")
-
-        # step
+        # perform an optimization step
         optimizer.step()
 
         losses.append(float(loss))
 
-        #print(f"----------------------------------------------------")
-
-        
-
     return np.array(losses)
 
+def train_pipeline(train_data):
+    
+    gsCO2_model = models.gsCO2_model()
+    #Vmax_model = models.vm_model()
+    Vmax_model = None # NOTE: only train gsCO2 for now TO CONFIG whether to use it?
 
+    # hyperparameters TO CONFIG all of that
+    lr = 1e-3
+    epochs = 10000
+    weight_decay = 1e-2
+    batch_size = 32
+
+    # choose a loss TO CONFIG ? maybe, not necessary
+    #loss = torch.nn.MSELoss()
+    loss = torch.nn.L1Loss()
+
+    # choose an optimizer TO CONFIG ? maybe, not necessary
+    #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
+    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=lr, weight_decay=weight_decay)
+    #opt = torch.optim.SGD(gsCO2_model.parameters(), lr=lr, , weight_decay=weight_decay)
+
+    # choose a data iterator TO CONFIG ? maybe, not necessary
+    data_iterator = batch_ctx_dict_iterator(train_data, batch_size=batch_size) # TODO: Make a batch iterator for the new pipeline
+    # data_iterator = iter(train_data)
+    #data_iterator = random_sample_iterator(train_data)
+
+    # build the pipeline around the specific models
+    model_wrapper = pipelines.make_pipeline(gsCO2_model, Vmax_model, output_rs=False)
+
+    # eval the model before training
+    gsCO2_model.eval() # TODO: Would be better for the wrapper to offer this method. perhaps the wrapper should simply inherit from nn.module()
+    eval_before_training = eval.eval_general(model_wrapper, train_data, loss)
+    print(f"Eval before training: {eval_before_training}")
+
+    # train the whole pipeline
+    gsCO2_model.train()
+    losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
+
+    # eval the model after training
+    gsCO2_model.eval()
+    eval_after_training = eval.eval_general(model_wrapper, train_data, loss)
+    print(f"Eval after training: {eval_after_training}")
+
+    # eval the empirical model (for comparaison)
+    empirical_model_wrapper = pipelines.make_pipeline(None, None, output_rs=False)
+    eval_empirical_model = eval.eval_general(empirical_model_wrapper, train_data, loss)
+    print(f"Eval empirical model: {eval_empirical_model}")
+
+    # show info about loss 
+    # TODO: Consider using wandb or similar foss
+    # TODO: Show info about gradient norm.
+    plot.plot_losses(losses)
+
+    return gsCO2_model, Vmax_model
+
+
+
+    
+class batch_ctx_dict_iterator:
+    def __init__(self, data, batch_size=16):
+        # data is an array of dicts of params-values pairs
+        self.data = data
+        self.batch_size = batch_size
+
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        return ctx_dict_batch(self.data, self.batch_size)
+      
+class random_sample_iterator:
+    def __init__(self, data):
+        # data is an array of (input, output) tuples, where input and output can be anything.
+        self.data = data
+        self.n = len(data)
+
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        idx = random.randint(0, self.n-1)
+        #print(f"(just sampled {idx})")
+        return self.data[idx]
+
+
+
+
+"""
+This function takes a large array where each line is a tuple (x, y), 
+where x is a tuple (ctx_dict, global_dict) and y is a tensor with a single value,
+where ctx_dict is a dict ctx -> predictor_dict,
+and where predictor_dict and global_dict are dicts key -> tensor with a single value.
+and return a random batch of batch_size, in the form of a tuple (x, y) where 
+y is an tensor of size batch_size, and x has the same form, except
+predictor_dict and global_dict map keys to tensors of size batch_size
+Of course, the elements must be in the same order in the tensor for each key.
+"""
+def ctx_dict_batch(dict_array, batch_size):
+
+    # batch is an array of size batch_size containing (x,y) tuples
+    batch = random.sample(dict_array, batch_size)
+
+    # predictors is an array of size batch_size of (ctx_dict, global_dict) values
+    # y is an array of size batch_size of y values
+    predictors, outputs = zip(*batch)
+
+    # outputs_batch is already a y tensor in the form we want it
+    outputs_batch = torch.tensor(outputs) 
+
+    # ctx_dicts is an array of size batch_size of ctx_dict values, same for global_dicts
+    ctx_dicts, global_dicts = zip(*predictors)
+
+    # for each key present in global_dicts, we collect all the batch_size values for this key in a single tensor
+    # and map the key to that tensor
+    global_batch = {key: torch.tensor([global_dict[key] for global_dict in global_dicts]) 
+                  for key in global_dicts[0].keys()}
+    
+    # for each ctx present in ctx_dicts, and for each key present for this ctx,
+    # aggregate all these values into a tensor, and map the corresponding key to this tensor,
+    # and the corresponding ctx to this predictor_dict. 
+    ctx_batch = {
+        ctx: {
+            key: torch.tensor([ctx_dict[ctx][key] for ctx_dict in ctx_dicts]) 
+            for key in ctx_dicts[0][ctx].keys()
+        }
+        for ctx in ctx_dicts[0].keys()
+    }
+
+    # TODO: Sort out the reason that output and y don't have the same dimension
+
+                  
+    return ((ctx_batch, global_batch), outputs_batch)
+
+def check_gradients(module : torch.nn.Module):
+    for name, param in module.named_parameters():
+        if param.grad is not None:
+            if torch.isnan(param.grad).any():
+                print(f"NaN detected in gradients of {name}")
+            elif torch.isinf(param.grad).any():
+                print(f"Inf detected in gradients of {name}")
+    for param in module.parameters():
+        if param.grad is not None:
+            if torch.isnan(param.grad).any():
+                print(f"NaN detected in gradients of {param}")
+            elif torch.isinf(param.grad).any():
+                print(f"Inf detected in gradients of {param}")
+
+
+# ------------------------OLD-METHODS-USEFUL-FOR-THE-REPORT------------------------
 def train_gsco2():
     
     model = models.gsCO2_model()
@@ -140,68 +266,6 @@ def train_vm():
 
     return model
 
-def train_pipeline(train_data):
-    
-    gsCO2_model = models.gsCO2_model()
-    #Vmax_model = models.vm_model()
-    Vmax_model = None # NOTE: only train gsCO2 for now
-
-    """
-    Need some function that computes pb outputs given chosen predictors. 
-    It should store the constant inputs not considered predictors. 
-    Else we should create another train_general function 
-    """
-    lr = 1e-2
-    epochs = 10000
-
-    model_wrapper = pipelines.make_pipeline(gsCO2_model, Vmax_model, output_rs=True)
-    data_iterator = batch_ctx_dict_iterator(train_data, batch_size=32) # TODO: Make a batch iterator for the new pipeline
-    # data_iterator = iter(train_data)
-    #data_iterator = random_sample_iterator(train_data)
-
-    # choose a loss
-    #loss = torch.nn.MSELoss()
-    loss = torch.nn.L1Loss()
-
-    # choose an optimizer
-    #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
-    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=lr)
-    #opt = torch.optim.SGD(gsCO2_model.parameters(), lr=lr)
-
-    print(f"using parameters: {gsCO2_model.parameters()}")
-    #parameters = gsCO2_model.parameters()
-    print(f"Gsco2 Model require_grad: {next(gsCO2_model.parameters()).requires_grad}")
-    for p in gsCO2_model.parameters():
-        print(f"param p : {p}")
-        print(f"requires_grad? = {p.requires_grad}")
-
-    # eval the model before training
-    eval_before_training = eval.eval_general(model_wrapper, train_data, loss)
-    print(f"Eval before training: {eval_before_training}")
-
-    losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
-
-    # eval the model after training
-    eval_after_training = eval.eval_general(model_wrapper, train_data, loss)
-    print(f"Eval after training: {eval_after_training}")
-
-    # eval the empirical model
-    empirical_model_wrapper = pipelines.make_pipeline(None, None, output_rs=True)
-    eval_empirical_model = eval.eval_general(empirical_model_wrapper, train_data, loss)
-    print(f"Eval empirical model: {eval_empirical_model}")
-
-    # show info about loss NOTE: Consider using wandb or similar foss
-    # TODO: Show info about gradient norm.
-    avg_window = 50
-    avg_loss = losses[-avg_window:].mean()
-    print(f"Average of the last {avg_window} losses: {avg_loss}")
-    plot.plot_losses(losses)
-
-    return gsCO2_model, Vmax_model
-
-
-
-
 """
 Represents an iterator objects that, for some function y = f(x),
 samples random x values and outputs x,y pairs.
@@ -218,34 +282,8 @@ class function_sample_iterator:
         x = self.sampler()
         y = self.f(x)
         return x, y
-    
-class batch_ctx_dict_iterator:
-    def __init__(self, data, batch_size=16):
-        # data is an array of dicts of params-values pairs
-        self.data = data
-        self.batch_size = batch_size
 
-    def __iter__(self):
-        return self
-    
-    def __next__(self):
-        return ctx_dict_batch(self.data, self.batch_size)
-      
-class random_sample_iterator:
-    def __init__(self, data):
-        # data is an array of (input, output) tuples, where input and output can be anything.
-        self.data = data
-        self.n = len(data)
 
-    def __iter__(self):
-        return self
-    
-    def __next__(self):
-        idx = random.randint(0, self.n-1)
-        #print(f"(just sampled {idx})")
-        return self.data[idx]
-
-    
 def generate_points(sampler, count = 100):
     return [torch.tensor(sampler(), dtype=torch.float32) for _ in range(count)]
 
@@ -285,95 +323,3 @@ simple_data_generator = function_sample_iterator(
     f = lambda x : np.array([x[0] * x[1]]),# + x[2] + x[3] + x[4] + x[5]]),
     sampler = lambda: np.random.normal(0, 2, 2) # data centered around 0
 )
-
-
-"""
-This function takes a large array where each line is a dict with values for parameter names, 
-and return a random batch of batch_size, in the form of a dict where the value for a 
-parameter name is a tensor of size batch_size.
-Of course, the elements must be in the same order in the tensor for each parameter.
-"""
-import random
-def dict_batch(dict_array, batch_size):
-    batch = random.sample(dict_array, batch_size)
-    predictors, outputs = zip(*batch)
-    predictors_batch = {key: torch.tensor([entry[key] for entry in predictors]) 
-                  for key in predictors[0].keys()}
-
-    # ugly fix TODO
-    predictors_batch['CT'] = 3
-
-    # TODO: Sort out the reason that output and y don't have the same dimension
-
-    outputs_batch = torch.tensor(outputs) 
-    #outputs_batch[:] = 7.58 # dummy output, just to see if the training system can learn this TODO: remove
-                  
-    return (predictors_batch, outputs_batch)
-
-"""
-This function takes a large array where each line is a tuple (x, y), 
-where x is a tuple (ctx_dict, global_dict) and y is a tensor with a single value,
-where ctx_dict is a dict ctx -> predictor_dict,
-and where predictor_dict and global_dict are dicts key -> tensor with a single value.
-and return a random batch of batch_size, in the form of a tuple (x, y) where 
-y is an tensor of size batch_size, and x has the same form, except
-predictor_dict and global_dict map keys to tensors of size batch_size
-Of course, the elements must be in the same order in the tensor for each key.
-"""
-def ctx_dict_batch(dict_array, batch_size):
-
-    # batch is an array of size batch_size containing (x,y) tuples
-    batch = random.sample(dict_array, batch_size)
-
-    # predictors is an array of size batch_size of (ctx_dict, global_dict) values
-    # y is an array of size batch_size of y values
-    predictors, outputs = zip(*batch)
-
-    # outputs_batch is already a y tensor in the form we want it
-    outputs_batch = torch.tensor(outputs) 
-
-    # ctx_dicts is an array of size batch_size of ctx_dict values, same for global_dicts
-    ctx_dicts, global_dicts = zip(*predictors)
-
-    # for each key present in global_dicts, we collect all the batch_size values for this key in a single tensor
-    # and map the key to that tensor
-    global_batch = {key: torch.tensor([global_dict[key] for global_dict in global_dicts]) 
-                  for key in global_dicts[0].keys()}
-    
-    # for each ctx present in ctx_dicts, and for each key present for this ctx,
-    # aggregate all these values into a tensor, and map the corresponding key to this tensor,
-    # and the corresponding ctx to this predictor_dict. 
-    ctx_batch = {
-        ctx: {
-            key: torch.tensor([ctx_dict[ctx][key] for ctx_dict in ctx_dicts]) 
-            for key in ctx_dicts[0][ctx].keys()
-        }
-        for ctx in ctx_dicts[0].keys()
-    }
-
-    # ugly fix TODO I'm not sure what the proper way of doing this would be 
-    for predictor_dict in ctx_batch.values():
-        predictor_dict['CT'] = 3
-
-    # TODO: Sort out the reason that output and y don't have the same dimension
-
-                  
-    return ((ctx_batch, global_batch), outputs_batch)
-
-def check_gradients(module : torch.nn.Module):
-    for name, param in module.named_parameters():
-        if param.grad is not None:
-            if torch.isnan(param.grad).any():
-                print(f"NaN detected in gradients of {name}")
-            elif torch.isinf(param.grad).any():
-                print(f"Inf detected in gradients of {name}")
-    for param in module.parameters():
-        if param.grad is not None:
-            if torch.isnan(param.grad).any():
-                print(f"NaN detected in gradients of {param}")
-            elif torch.isinf(param.grad).any():
-                print(f"Inf detected in gradients of {param}")
-
-
-
-

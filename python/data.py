@@ -4,9 +4,15 @@ import torch
 import os
 
 """
+This module offers methods to load T&C matlab files res.mat and results.mat,
+and process them into handy and flexible dicts that can be used by the training pipeline.
+"""
+
+"""
 POTENTIAL VALUES TO FILTER OUT:
 Cc is sometimes 0.0000
 IPAR is sometimes 0.0000
+Negative Q_LE is bad
 
 TODO: interpolate gap, gap-fills
 """
@@ -15,74 +21,69 @@ TODO: interpolate gap, gap-fills
 The data is a dict from param_names to large arrays of values.
 We transform it into a large array of dicts (and perform some translation and constant handling)
 """
-def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_keys=None, output_keys=None, global_keys=None, verbose=False, nPoints=None): # NOTE: no real need to take 2 files into input, as the 2 files could be reconstructed from the site name
+def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_keys=None, 
+                            output_keys=None, global_keys=None, verbose=False, nPoints=None):
     
     # prepare paths
     predictor_path = os.path.join(basepath, f"Results_{site_name}.mat")
     observation_path = os.path.join(basepath, f"Res_{site_name}.mat")
 
-    if nPoints is None:
+    if nPoints is None: # TODO: Invalid, predictor_arrays doesn't exist yet. Use the predictor_data below somehow
         nPoints = predictor_arrays[ctxs[0]][predictor_keys[0]].shape[0]
     
     # load dat from both mat files
     predictor_data = scipy.io.loadmat(predictor_path)
     observation_data = scipy.io.loadmat(observation_path)
 
+    # Prepare the default keys
     if predictor_keys is None:
-        predictor_keys = ["Cc", "IPAR", "Csl", "ra", "rb", "Ts", "Pre", "Ds", "Psi_L", "Rn", "QG", "rs", "Vmax"] # NOTE: added rs for debugging 
+        predictor_keys = ["Cc", "IPAR", "Csl", "ra", "rb", "Ts", "Pre", 
+                          "Ds", "Psi_L", "Rn", "QG", "rs", "Vmax"] # NOTE: added rs for debugging 
     if constant_keys is None:
         constant_keys = ["Psi_sto_50", "Psi_sto_00", "CT", 
-     "Ha", "FI", "Oa", "Do", "a1", "go", "gmes", "rjv", "DS"] # NOTE: missing DS. also why do we have integers for some constants?
+     "Ha", "FI", "Oa", "Do", "a1", "go", "gmes", "rjv", "DS"]
     if output_keys is None:
         output_keys = ["LE_CORR"]
     if global_keys is None:
-        global_keys = ["EIn_H", "EIn_L", "EG", "ELitter", "ESN", "ESN_In", "EWAT", "EICE", "EIn_urb", "EIn_rock"]  
+        global_keys = ["EIn_H", "EIn_L", "EG", "ELitter", "ESN", "ESN_In", 
+                       "EWAT", "EICE", "EIn_urb", "EIn_rock"]  
 
-    # build a dictionary with the desired values and the correct names
     # sun_condition = if (LAI_L(i) > 0) && (Csno == 0) && (Cice == 0) TODO
-    # Arrange data by different contexts (sunny/shaded, low/high vegetation)
-    #ctxs =  ["sun_H", "sun_L", "shd_H", "shd_L"]
-    ctxs =  ["shd_H"]
+    ctxs =  ["sun_H", "sun_L", "shd_H", "shd_L"]
     # TODO: Very weird, understand why data points come by 2 all the time
 
     # Load the predictor arrays: For each ctx, for each pb predictor, a tensor
     predictor_arrays = {
         ctx: {
             k : torch.tensor(
-                (predictor_data[k_m][:, 0] if predictor_data[k_m].shape[1]==2 else predictor_data[k_m])
+                (predictor_data[k_m][:, 0:1] if predictor_data[k_m].shape[1]==2 else predictor_data[k_m])
                 .astype(np.float32))
                 .flatten()[:nPoints] 
                 for k,k_m in zip(predictor_keys, key_mapping(predictor_keys, ctx))
         } for ctx in ctxs
     }
 
+    # Load the constants array: For each ctx, for each constant, a single value
     constants = {
         ctx: {
-            k : torch.tensor(predictor_data[k_m][0][0].astype(np.float32))
+            k : torch.tensor(predictor_data[k_m][0, 0:1].astype(np.float32))
                     for k,k_m in zip(constant_keys, key_mapping(constant_keys, ctx))
         } for ctx in ctxs
     }
-    #print(f"predictor_data['Ci_sunH'].shape={predictor_data['Ci_sunH'].shape}")
-    #print(f"predictor_arrays['sun_H']['Cc'].shape={predictor_arrays['sun_H']['Cc'].shape}")
-    #print(f"predictor_data['Do_H'].shape={predictor_data['Do_H'].shape}")
-    #print(f"predictor_data['Do_H']={predictor_data['Do_H']}")
-    #print(f"predictor_data['Do_H'][0]={predictor_data['Do_H'][0][0]}")
-    #print(f"constants['sun_H']['Do'].shape={constants['sun_H']['Do'].shape}")
 
-    output_arrays = {
-        k : torch.tensor(observation_data[k].astype(np.float32)).flatten()[:nPoints] 
-        for k in output_keys
-    }
-    
-    # Correct Psi_L that's shifted 
-    #for ctx in predictor_arrays.keys():
-    #    predictor_arrays[ctx]["Psi_L"][:-1] = predictor_arrays[ctx]["Psi_L"][1:].clone() # roll to the left
-
+    # Load the global variable arrays: For each global key, a tensor
     global_arrays = {
         k : torch.tensor(predictor_data[k].astype(np.float32)).flatten()[:nPoints]
         for k in global_keys
     }
 
+    # Load the output arrays: For each output key, a tensor
+    output_arrays = {
+        k : torch.tensor(observation_data[k].astype(np.float32)).flatten()[:nPoints] 
+        for k in output_keys
+    }
+
+    # Check whether a data point is valid. TODO: Re-activate with some more checks if needed 
     def valid(i):
         return  True or ( # NOTE: this enables/disables the filtering
             not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan output values! 
@@ -90,7 +91,7 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
             and not predictor_arrays["IPAR"][i] == 0
         )
 
-    # merge the dictionaries into an array of (input, output) tuples
+    # merge the dictionaries into an array of (input, output) tuples, convenient for the pipeline
 
     # Output and Global don't depend on the context
     # Predictors and constants do.
@@ -104,10 +105,10 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
         (
             (
                 { ctx: 
-                    { k : predictor_arrays[ctx][k][i] for k in predictor_arrays[ctx] } | constants[ctx] | {"DS_" : 0.5}
+                    { k : predictor_arrays[ctx][k][i].unsqueeze(0) for k in predictor_arrays[ctx] } | constants[ctx] | {"DS_" : 0.5}
                     for ctx in ctxs
                 }, 
-                {k : global_arrays[k][i] for k in global_arrays},
+                {k : global_arrays[k][i].unsqueeze(0) for k in global_arrays},
             ), 
             output_arrays[output_keys[0]][i], 
         )
@@ -122,7 +123,8 @@ def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_k
         #print(f"observation_data={observation_data}")
         #print(f"predictor_data[Ts]={predictor_data['Ta']}")
         #print(f"predictor_data[\"Ts\"][:{trunc}]{predictor_data['Ta'][:trunc]}")
-        print(f"predictor_data_vmax: {predictor_data['Vmax_H']}")
+        print(f"predictor_data[\"Ta\"] = {predictor_data['Ta'].shape}")
+        print(f"predictor_data[\"Psi_sto_50_H\"] = {predictor_data['Psi_sto_50_H'].shape}")
 
         print(f" --------BASE SHAPES-------- ")
         for key in ["Vmax_H", "Vmax_L"]:

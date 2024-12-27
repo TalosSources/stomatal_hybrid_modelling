@@ -1,5 +1,5 @@
 ##############################################################
-#   Subfunction  Soil-Plant-Atmosphere-Continoum           ###
+#   Subfunction  Soil-Plant-Atmosphere-Continuum           ###
 ##############################################################
 
 # imports
@@ -7,27 +7,26 @@ from math import *
 import numpy as np
 import torch
 
-import utils
-
-gsCO2 = 0 
-
 """
-AUTOMATICALLY DIFFERENTIABLE TRANSLATION
-
-Some paramaters should be tensors, others don't need to be.
-The parameter to optimize for is gsCO2.
-Physical constants: Pre0, Tf, Pre, Tref, R
-Seemingly Physical constants: Hd, Ha, DS, 
-Seemingly Arbitrary: s1, s3, Tup, Tlow, ...
+AUTOMATICALLY DIFFERENTIABLE TRANSLATION OF THE MODULE OF THE SAME NAME
+IN T&C, FROM MATLAB TO PYTHON
+Args:
+    * All the args from the matlab module, torch tensors (scalars or batches)
+    * gsCO2_model: parametrized model for gsCO2 (or rs? TODO: decide what works best, and rename relevant stuff)
+        taking as input 6 numbers (An,Pre,Cc,GAM,Ds,Do). If None, uses the empirical model for gsCO2
+    * Vmax_model: For now, always expected to be None
+Output:
+    rs : prediction of the stomatal resistance
 """
-
-def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_sto_00, # [REPLACE WITH PARAMETERS OF THE Vmax() function]
+def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_sto_00,
     CT,Vmax,DS,Ha,FI,Oa,Do,a1,go,gmes,rjv,
-    gsCO2_model = None, Vmax_model = None):
+    gsCO2_model = None, rs_model=None, Vmax_model = None):
 
-    # CT is a flag, must be 3 or 4
-    assert CT == 3 or CT == 4
-
+    # CT is a flag (can be a tensor), must be 3 or 4, and the same for all elements
+    assert (CT == 3).all() or (CT == 4).all()
+    if CT.dim() > 0:
+        CT = CT[0]
+    
     Ta=Ts 
     Pre0 = 101325 ## [Pa] 
     Tf = 273.15 ## [K] 
@@ -211,64 +210,40 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
 
     An = A - Rdark # ## Net Assimilation Rate # [umolCO2/ s m^2 ]
 
-    global gsCO2
-    global model_output
-
     """
-    Test idea: simply predict rs directly, don't pass by all the weird values.
-    rs ranges around 10², 10³: multiply the output by 10².
-    given predictors range [-5.1388e-02,  8.2300e+04,  3.0278e+01,  6.1073e-01,  1.1394e+01, 8.0000e+02] -> divide them by this magnitude.
-    TODO: Depends on other stuff: Tf, Ts, Pre0, go, a1 ?
+    2 Options: 
+        1. simply predict rs directly, don't predict gsCO2 first.
+        we rescale the predictors and output by their expected magnitude, for more homogeneous features.
+        TODO: rs may depend on other variables: Tf, Ts, Pre0, go, a1 ?
+        2. predict gsCO2, and then map it to rs using physical laws.
     """
-    skipGSCO2 = True and (gsCO2_model is not None)
-    if skipGSCO2:
+    if rs_model is not None:
         predictors = torch.stack([An * 1e2,Pre * 1e-4,Cc * 1e-1,GAM * 1e1,Ds * 1e-1,Do * 1e-2], dim=-1)
         #predictors = torch.stack([Ds * 1e-1])
-        model_output = gsCO2_model(predictors).squeeze()
-        # tests to make the model_output behave better with gradient descent
+        model_output = rs_model(predictors).squeeze()
+        # tests to make the model_output behave better with gradient descent TO CONFIG
         #rs_small = torch.exp(model_output) # rs must be positive
         #rs_small = (torch.atan(model_output) + torch.pi/2.0) # 0 at -inf, pi (rs=~3100) at +inf, smooth transition in between
         rs_small = torch.nn.functional.softplus(model_output) # 0 at -inf, ~x fo~ large x, analytic 
         rs = rs_small * 1e2
-        #print(f"using predictors={predictors}, predicting rs_small={rs_small}, and rs={rs}")
-        return None, None, rs, None, None, None, None
-
-    if gsCO2_model is None:
-        gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
+        return rs
     else:
-        """ Predict using a neural network taking as input An, Pre, Cc, GAM, Ds, Do, and predict as go + a1 * output. 
-            First, check the nn can estimate the above empirical formula correctly, 
-            then try to see with real data if it can be improved. 
-            TODO: ask for GSCO2 data, input data for this module, and evapotranspiration data from Akash. 
-            also try with gaussian data first
-        """
-        # NOTE: With torch.no_grad or something ?
-        predictors = torch.stack([An,Pre,Cc,GAM,Ds,Do])
-        #print(f"gsco2 predictors = {predictors}")
-        model_output = gsCO2_model(predictors).squeeze() # We are unfortunately always truncated. NOTE: Does this impact the gradient?
-        model_output.retain_grad()
-        utils.printGradInfo(model_output, "model_output")
-        #print(f"gsco2 model output = {model_output}")
-        gsCO2 = go + a1 * model_output
-        gsCO2.retain_grad()
-        #print(f"computing gsco2={go}+{a1}*model_output={gsCO2}")
-    
-    
-    #gsCO2[gsCO2<go]=go # TODO: Activate again (choose what to do) QUESTION: Is gsCO2 an array? can it hold more than one value? NOTE: Disable for training? Can it pass gradients? TODO: Why can't we have this? we get : {RuntimeError: shape mismatch: value tensor of shape [8] cannot be broadcast to indexing result of shape [0]}
-    # using the data in the paper, we may need to add parameters to the function
+        if gsCO2_model is not None:
+            predictors = torch.stack([An,Pre,Cc,GAM,Ds,Do])
+            model_output = gsCO2_model(predictors).squeeze() # We are unfortunately always truncated. NOTE: Does this impact the gradient?
+            gsCO2 = go + a1 * model_output
+        else:
+            # EMPIRICAL MODEL
+            gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
+        
+        # TODO: Activate again (choose what to do) QUESTION: Is gsCO2 an array? can it hold more than one value? 
+        # NOTE: Disable for training? Can it pass gradients? TODO: Why can't we have this? we get : 
+        # {RuntimeError: shape mismatch: value tensor of shape [8] cannot be broadcast to indexing result of shape [0]}
+        #gsCO2[gsCO2<go]=go 
 
-    rsCO2=1/gsCO2 ### [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
-    #print(f"computing rsCO2=1/{gsCO2}={rsCO2}")
+        # Convert the stomatal conductance to the stomatal resistance
+        rsCO2=1/gsCO2 ### [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
+        rsH20 = (rsCO2/1.64)*(1e6) ### [ s m^2 / molH20 ] Stomatal resistence or canopy 
+        rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0) ## [s/m]  Stomatal resistence or Canopy [convert stomatal resistence in terms of water volumes into another unit]
 
-    CcF = Csl - An*Pre*(rsCO2 + rmes + 1.37*rb +ra) ##### [Pa] 
-    CcF[CcF<0] = 0 
-
-    rsH20 = (rsCO2/1.64)*(1e6) ### [ s m^2 / molH20 ] Stomatal resistence or canopy 
-    #print(f"computing rsH20 = ({rsCO2}/1.64)*(1e6)={rsH20}")
-    An = (Csl - CcF)/(Pre*(rsCO2 + rmes + 1.37*rb + ra)) ### Net Assimilation Rate  # [umolCO2/ s m^2 ]
-
-    CcF = CcF/(Pre*1e-6) ## [umolCO2 /molAIR ]
-    rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0) ## [s/m]  Stomatal resistence or Canopy [convert stomatal resistence in terms of water volumes into another unit]
-    #print(f"computing rs = rsH20*({Tf}*{Pre})/(0.0224*({Ts}+273.15)*{Pre0})={rs}")
-
-    return CcF,An,rs,Rdark,F755nm,GAM,gsCO2
+        return rs
