@@ -72,6 +72,8 @@ def make_pipeline(gsCO2_model, Vmax_model, output_rs=False):
 
             # put nan values to 0
             ctx_res[torch.isnan(ctx_res)] = 0.
+            #ctx_res = torch.where(torch.isnan(ctx_res), torch.tensor(0.0), ctx_res).detach()
+            #ctx_res.requires_grad_()  # Re-enable gradient tracking for the modified tensor
             Q_LE_wm2 = Q_LE_wm2 + ctx_res 
 
         # Convert the result to mm/H, to perform the computation below

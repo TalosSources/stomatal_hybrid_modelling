@@ -12,6 +12,7 @@ def eval_general(model, eval_data, error_function):
     with torch.no_grad():
         for x, y in eval_data:
             output = model(x)
+            #print(f"evaluating with x={x}, obtained out={output}")
             error = error_function(y, output)
             total_error += error
     

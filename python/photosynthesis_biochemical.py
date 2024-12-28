@@ -226,7 +226,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         #rs_small = (torch.atan(model_output) + torch.pi/2.0) # 0 at -inf, pi (rs=~3100) at +inf, smooth transition in between
         rs_small = torch.nn.functional.softplus(model_output) # 0 at -inf, ~x fo~ large x, analytic 
         rs = rs_small * 1e2
-        print(f"in the trained model, returned rs={rs}")
+        #print(f"in the trained model, returned rs={rs}")
         return rs
     else:
         if gsCO2_model is not None:
@@ -247,5 +247,5 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         rsH20 = (rsCO2/1.64)*(1e6) ### [ s m^2 / molH20 ] Stomatal resistence or canopy 
         rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0) ## [s/m]  Stomatal resistence or Canopy [convert stomatal resistence in terms of water volumes into another unit]
 
-        print(f"in the empirical model, returned rs={rs}")
+        #print(f"in the empirical model, returned rs={rs}")
         return rs

@@ -25,7 +25,7 @@ def train_general(
     optimizer,
     epochs,
     data_iterator,
-    print_every_iter=50
+    print_every_iter=1
 ):
 
     losses = []
@@ -67,6 +67,7 @@ def train_general(
 
         # perform an optimization step
         optimizer.step()
+        print(f"performed a step with loss {loss}")
 
         losses.append(float(loss))
 
@@ -96,9 +97,9 @@ def train_pipeline(config, train_data):
     model_wrapper = pipelines.make_pipeline(rs_model, Vmax_model, output_rs=False)
 
     # eval the model before training
-    rs_model.eval() # TODO: Would be better for the wrapper to offer this method. perhaps the wrapper should simply inherit from nn.module()
-    eval_before_training = eval.eval_general(model_wrapper, train_data, loss_criterion)
-    print(f"Eval before training: {eval_before_training}")
+    #rs_model.eval() # TODO: Would be better for the wrapper to offer this method. perhaps the wrapper should simply inherit from nn.module()
+    #eval_before_training = eval.eval_general(model_wrapper, train_data, loss_criterion)
+    #print(f"Eval before training: {eval_before_training}")
 
     # train the whole pipeline
     rs_model.train()
