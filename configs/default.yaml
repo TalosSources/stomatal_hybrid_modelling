@@ -1,0 +1,46 @@
+# @package _global_
+
+#defaults:
+#  - environment/base
+
+
+model:
+    n_hidden : 3
+    hidden_size : 32 # Perhaps replace with an array describing layers?
+    batch_norm : True
+    activation : 'ReLU'
+
+data: # (does it need to be nested?)
+    sites : ["CH-Dav"] 
+    #site_name = ["DE-Tha"]
+    #site_name = ["DE-Hai"]
+    #site_name = ["US-Me2"]
+    base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
+    nPoints : 1000 # -> and decide if we want to truncate, what to do in training?
+
+pipeline:
+    # modelMapping : 'softplus'
+    # which pipeline?
+    use_vmax : False
+
+train:
+    lr: 1e-2
+    epochs: 10000
+    weight_decay: 1e-3
+    batch_size: 32
+    # loss?opt?iterator?
+
+
+wandb:
+  use_wandb: False
+  project: "change-project"
+  tags: []
+
+#hydra:
+#  job:
+#    chdir: True
+#  run:
+#    dir: ./outputs/${environment.gym_name}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+#  sweeper:
+#    params:
+#      +sweep_id: ${generate_random_seed:}

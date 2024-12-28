@@ -72,52 +72,46 @@ def train_general(
 
     return np.array(losses)
 
-def train_pipeline(train_data):
+def train_pipeline(config, train_data):
     
-    gsCO2_model = models.gsCO2_model()
+    rs_model = models.rs_model(config.model)
     #Vmax_model = models.vm_model()
     Vmax_model = None # NOTE: only train gsCO2 for now TO CONFIG whether to use it?
 
-    # hyperparameters TO CONFIG all of that
-    lr = 1e-3
-    epochs = 10000
-    weight_decay = 1e-2
-    batch_size = 32
-
     # choose a loss TO CONFIG ? maybe, not necessary
     #loss = torch.nn.MSELoss()
-    loss = torch.nn.L1Loss()
+    loss_criterion = torch.nn.L1Loss()
 
     # choose an optimizer TO CONFIG ? maybe, not necessary
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
-    opt = torch.optim.Adam(gsCO2_model.parameters(), lr=lr, weight_decay=weight_decay)
+    opt = torch.optim.Adam(rs_model.parameters(), lr=config.train.lr, weight_decay=config.train.weight_decay)
     #opt = torch.optim.SGD(gsCO2_model.parameters(), lr=lr, , weight_decay=weight_decay)
 
     # choose a data iterator TO CONFIG ? maybe, not necessary
-    data_iterator = batch_ctx_dict_iterator(train_data, batch_size=batch_size) # TODO: Make a batch iterator for the new pipeline
+    data_iterator = batch_ctx_dict_iterator(train_data, batch_size=config.train.batch_size) # TODO: Make a batch iterator for the new pipeline
     # data_iterator = iter(train_data)
     #data_iterator = random_sample_iterator(train_data)
 
     # build the pipeline around the specific models
-    model_wrapper = pipelines.make_pipeline(gsCO2_model, Vmax_model, output_rs=False)
+    model_wrapper = pipelines.make_pipeline(rs_model, Vmax_model, output_rs=False)
 
     # eval the model before training
-    gsCO2_model.eval() # TODO: Would be better for the wrapper to offer this method. perhaps the wrapper should simply inherit from nn.module()
-    eval_before_training = eval.eval_general(model_wrapper, train_data, loss)
+    rs_model.eval() # TODO: Would be better for the wrapper to offer this method. perhaps the wrapper should simply inherit from nn.module()
+    eval_before_training = eval.eval_general(model_wrapper, train_data, loss_criterion)
     print(f"Eval before training: {eval_before_training}")
 
     # train the whole pipeline
-    gsCO2_model.train()
-    losses = train_general(model_wrapper, loss, opt, epochs, data_iterator)
+    rs_model.train()
+    losses = train_general(model_wrapper, loss_criterion, opt, config.train.epochs, data_iterator)
 
     # eval the model after training
-    gsCO2_model.eval()
-    eval_after_training = eval.eval_general(model_wrapper, train_data, loss)
+    rs_model.eval()
+    eval_after_training = eval.eval_general(model_wrapper, train_data, loss_criterion)
     print(f"Eval after training: {eval_after_training}")
 
     # eval the empirical model (for comparaison)
     empirical_model_wrapper = pipelines.make_pipeline(None, None, output_rs=False)
-    eval_empirical_model = eval.eval_general(empirical_model_wrapper, train_data, loss)
+    eval_empirical_model = eval.eval_general(empirical_model_wrapper, train_data, loss_criterion)
     print(f"Eval empirical model: {eval_empirical_model}")
 
     # show info about loss 
@@ -125,7 +119,7 @@ def train_pipeline(train_data):
     # TODO: Show info about gradient norm.
     plot.plot_losses(losses)
 
-    return gsCO2_model, Vmax_model
+    return rs_model, Vmax_model
 
 
 
@@ -223,7 +217,7 @@ def check_gradients(module : torch.nn.Module):
 # ------------------------OLD-METHODS-USEFUL-FOR-THE-REPORT------------------------
 def train_gsco2():
     
-    model = models.gsCO2_model()
+    model = models.rs_model()
     loss = torch.nn.MSELoss()
     opt = torch.optim.Adam(model.parameters(), lr=3e-4)
     #opt = torch.optim.SGD(model.parameters(), lr=1e-2)

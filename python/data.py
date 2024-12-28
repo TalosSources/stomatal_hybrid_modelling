@@ -21,13 +21,16 @@ TODO: interpolate gap, gap-fills
 The data is a dict from param_names to large arrays of values.
 We transform it into a large array of dicts (and perform some translation and constant handling)
 """
-def load_pipeline_data_dict(basepath, site_name, predictor_keys=None, constant_keys=None, 
-                            output_keys=None, global_keys=None, verbose=False, nPoints=None):
+def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None, 
+                            output_keys=None, global_keys=None, verbose=False):
     
     # prepare paths
-    predictor_path = os.path.join(basepath, f"Results_{site_name}.mat")
-    observation_path = os.path.join(basepath, f"Res_{site_name}.mat")
+    base_path = os.path.expanduser(config.base_path)
+    site_name = config.sites[0] # NOTE: Could add the option to merge data from multiple sites
+    predictor_path = os.path.join(base_path, f"Results_{site_name}.mat")
+    observation_path = os.path.join(base_path, f"Res_{site_name}.mat")
 
+    nPoints = config.nPoints
     if nPoints is None: # TODO: Invalid, predictor_arrays doesn't exist yet. Use the predictor_data below somehow
         nPoints = predictor_arrays[ctxs[0]][predictor_keys[0]].shape[0]
     

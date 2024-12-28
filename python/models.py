@@ -31,7 +31,7 @@ class FCN(torch.nn.Module):
         return x
 
 
-def gsCO2_model():
+def rs_model(config):
     """
     Ideas for improvement:
     * weight decay? normalisation? that kind of stuff
@@ -46,10 +46,11 @@ def gsCO2_model():
     #return FCN([input_dim, 128, 64, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
     #return FCN([input_dim, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
     #return FCN([input_dim, 32, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
-    return FCN([input_dim, 32, 32, output_dim], torch.nn.ReLU(), batch_norm=True) # NOTE: relatively simple network, subject to change (activation?)
-
-    # Minimal test: Linear model
-    #return FCN([input_dim, output_dim], torch.nn.ReLU())
+    activation_map = {
+        "ReLU" : torch.nn.ReLU
+    }
+    layers = [input_dim] + [config.hidden_size]*config.n_hidden + [output_dim]
+    return FCN(layers, activation_map[config.activation](), batch_norm=config.batch_norm)
 
 def vm_model():
     input_dim = 2
