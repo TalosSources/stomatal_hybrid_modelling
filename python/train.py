@@ -132,11 +132,6 @@ def train_pipeline(config, train_data):
     eval_empirical_model = eval.eval_general(empirical_model_wrapper, train_data[::eval_stride], loss_criterion)
     print(f"Eval empirical model: {eval_empirical_model}")
 
-    # eval the trivial model (mostly for testing)
-    trivial_model_wrapper = pipelines.make_pipeline(lambda _ : torch.tensor([0.]), None, output_rs=False)
-    eval_trivial_model = eval.eval_general(trivial_model_wrapper, train_data[::eval_stride], loss_criterion)
-    print(f"Eval trivial model: {eval_trivial_model}")
-
     # show info about loss 
     # TODO: Show info about gradient norm.
     #plot.plot_losses(losses)
