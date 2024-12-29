@@ -93,6 +93,7 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
     def is_valid_timestep(i):
         return  (
             not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan Q_LE values! 
+            and not output_arrays[output_keys[0]][i] < 0.
             # TODO: Perhaps add some more checks if needed 
         )
     

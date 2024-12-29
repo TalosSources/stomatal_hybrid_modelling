@@ -2,6 +2,9 @@ import torch
 import numpy as np
 import random # NOTE: could use a random method from np
 
+from omegaconf import OmegaConf
+import wandb
+
 import pipelines
 
 import models
@@ -25,7 +28,8 @@ def train_general(
     optimizer,
     epochs,
     data_iterator,
-    print_every_iter=20
+    print_every_iter=20,
+    wandb_run=None
 ):
 
     losses = []
@@ -33,7 +37,7 @@ def train_general(
     for i in range(epochs):
 
         printIter = (i%print_every_iter) == 0
-        
+
         # Reset the gradients
         optimizer.zero_grad()
         
@@ -69,6 +73,10 @@ def train_general(
         # perform an optimization step
         optimizer.step()
 
+        # log to wandb TODO: log other stuff: grad, ??? some stuff specific to this problem
+        if wandb_run is not None:
+            wandb_run.log({'loss' : float(loss)}, commit=True)
+
     return np.array(losses)
 
 def train_pipeline(config, train_data):
@@ -100,9 +108,19 @@ def train_pipeline(config, train_data):
     #eval_before_training = eval.eval_general(model_wrapper, train_data, loss_criterion)
     #print(f"Eval before training: {eval_before_training}")
 
+    # Init wandb
+    # NOTE: Consider moving it in the other method, train_pipeline
+    run = None
+    if config.wandb.use_wandb:
+        run = wandb.init(
+            project=config.wandb.project,
+            tags=config.wandb.tags,
+            config=OmegaConf.to_container(config, resolve=True),
+        )
+
     # train the whole pipeline
     rs_model.train()
-    losses = train_general(model_wrapper, loss_criterion, opt, config.train.epochs, data_iterator)
+    losses = train_general(model_wrapper, loss_criterion, opt, config.train.epochs, data_iterator, wandb_run=run)
 
     # eval the model after training
     rs_model.eval()
@@ -114,10 +132,14 @@ def train_pipeline(config, train_data):
     eval_empirical_model = eval.eval_general(empirical_model_wrapper, train_data[::eval_stride], loss_criterion)
     print(f"Eval empirical model: {eval_empirical_model}")
 
+    # eval the trivial model (mostly for testing)
+    trivial_model_wrapper = pipelines.make_pipeline(lambda _ : torch.tensor([0.]), None, output_rs=False)
+    eval_trivial_model = eval.eval_general(trivial_model_wrapper, train_data[::eval_stride], loss_criterion)
+    print(f"Eval trivial model: {eval_trivial_model}")
+
     # show info about loss 
-    # TODO: Consider using wandb or similar foss
     # TODO: Show info about gradient norm.
-    plot.plot_losses(losses)
+    #plot.plot_losses(losses)
 
     return rs_model, Vmax_model
 
