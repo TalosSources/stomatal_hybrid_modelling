@@ -166,6 +166,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         b3= JC*JL   ##  b1 = 0.8 Bonan et al 2011  for C4  0.83 Cox 2001
 
     JP=torch.min((-b2+torch.sqrt(b2**2-4*b1*b3))/(2*b1),(-b2-torch.sqrt(b2**2-4*b1*b3))/(2*b1))
+    
 
     if CT == 3:
         c1 = 0.95 
@@ -177,7 +178,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         c3= JP*JE  ### c1=0.95 Bonan et al 2011 for C4  0.93 Cox 2001
 
     A=torch.min((-c2+torch.sqrt(c2**2-4*c1*c3))/(2*c1),(-c2-torch.sqrt(c2**2-4*c1*c3))/(2*c1))
-    
+
     Rgsws=0.02
     p2= log((1 -Rgsws)/Rgsws)/(Psi_sto_00 - Psi_sto_50)## [1/MPa]
     q2=-p2*Psi_sto_50 ##[-]
@@ -219,6 +220,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     """
     if rs_model is not None:
         predictors = torch.stack([An * 1e2,Pre * 1e-4,Cc * 1e-1,GAM * 1e1,Ds * 1e-1,Do * 1e-2], dim=-1)
+        predictors[predictors.isnan()] = 0. # TODO: Crude fix. Actually do a proper data sanitization beforehand
         #predictors = torch.stack([Ds * 1e-1])
         model_output = rs_model(predictors).squeeze()
         # tests to make the model_output behave better with gradient descent TO CONFIG
@@ -226,11 +228,11 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         #rs_small = (torch.atan(model_output) + torch.pi/2.0) # 0 at -inf, pi (rs=~3100) at +inf, smooth transition in between
         rs_small = torch.nn.functional.softplus(model_output) # 0 at -inf, ~x fo~ large x, analytic 
         rs = rs_small * 1e2
-        #print(f"in the trained model, returned rs={rs}")
         return rs
     else:
         if gsCO2_model is not None:
             predictors = torch.stack([An,Pre,Cc,GAM,Ds,Do])
+            predictors[predictors.isnan()] = 0.
             model_output = gsCO2_model(predictors).squeeze() # We are unfortunately always truncated. NOTE: Does this impact the gradient?
             gsCO2 = go + a1 * model_output
         else:
@@ -247,5 +249,4 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         rsH20 = (rsCO2/1.64)*(1e6) ### [ s m^2 / molH20 ] Stomatal resistence or canopy 
         rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0) ## [s/m]  Stomatal resistence or Canopy [convert stomatal resistence in terms of water volumes into another unit]
 
-        #print(f"in the empirical model, returned rs={rs}")
         return rs

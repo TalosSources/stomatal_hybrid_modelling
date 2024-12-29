@@ -11,8 +11,10 @@ and process them into handy and flexible dicts that can be used by the training 
 """
 POTENTIAL VALUES TO FILTER OUT:
 Cc is sometimes 0.0000
-IPAR is sometimes 0.0000
+IPAR is sometimes 0.0000 (and NaN)
 Negative Q_LE is bad
+in pb, An is sometimes 0, and sometimes even NaN [INVESTIGATED: CAUSED BY IPAR]
+does every timestep have exactly 1 valid ctx? at least 1?
 
 TODO: interpolate gap, gap-fills
 """
@@ -30,6 +32,7 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
     predictor_path = os.path.join(base_path, f"Results_{site_name}.mat")
     observation_path = os.path.join(base_path, f"Res_{site_name}.mat")
 
+    # potentially truncate the site data
     nPoints = config.nPoints
     if nPoints is None: # TODO: Invalid, predictor_arrays doesn't exist yet. Use the predictor_data below somehow
         nPoints = predictor_arrays[ctxs[0]][predictor_keys[0]].shape[0]
@@ -52,10 +55,10 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
                        "EWAT", "EICE", "EIn_urb", "EIn_rock"]  
 
     # sun_condition = if (LAI_L(i) > 0) && (Csno == 0) && (Cice == 0) TODO
-    ctxs =  ["sun_H", "sun_L", "shd_H", "shd_L"]
     # TODO: Very weird, understand why data points come by 2 all the time
+    ctxs =  ["sun_H", "sun_L", "shd_H", "shd_L"]
 
-    # Load the predictor arrays: For each ctx, for each pb predictor, a tensor
+    # Load the predictor arrays: For each ctx, for each pipeline predictor, a tensor
     predictor_arrays = {
         ctx: {
             k : torch.tensor(
@@ -86,13 +89,24 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
         for k in output_keys
     }
 
-    # Check whether a data point is valid. TODO: Re-activate with some more checks if needed 
-    def valid(i):
-        return  True or ( # NOTE: this enables/disables the filtering
-            not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan output values! 
-            and not predictor_arrays["Cc"][i] == 0
-            and not predictor_arrays["IPAR"][i] == 0
+    # Check whether a data point is valid.
+    def is_valid_timestep(i):
+        return  (
+            not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan Q_LE values! 
+            # TODO: Perhaps add some more checks if needed 
         )
+    
+    # Check all ctxs, and return the valid ones
+    def is_valid_context(ctx, i):
+        return (
+            predictor_arrays[ctx]['ra'][i] != 0. # ra is in the denom of the PM equation: can't be 0.
+            and not predictor_arrays[ctx]['IPAR'][i].isnan() # IPAR is used in the pb pipeline.
+            # TODO: Add other checks
+            #and not predictor_arrays["Cc"][i] == 0 # Filter out values where cc is 0 (for which context???) I guess, it should 0 for all contexts?
+            #and not predictor_arrays["IPAR"][i] == 0 # Filter out values where IPAR is 0 (for which context???)
+        )
+        
+    
 
     # merge the dictionaries into an array of (input, output) tuples, convenient for the pipeline
 
@@ -104,19 +118,28 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
     # global_dict maps global variables -> single number
     # single_pipeline_dict maps ctx -> predictor_dict
     # output is a single number (for now?)
-    data = [
-        (
-            (
-                { ctx: 
-                    { k : predictor_arrays[ctx][k][i].unsqueeze(0) for k in predictor_arrays[ctx] } | constants[ctx] | {"DS_" : 0.5}
-                    for ctx in ctxs
-                }, 
-                {k : global_arrays[k][i].unsqueeze(0) for k in global_arrays},
-            ), 
-            output_arrays[output_keys[0]][i], 
-        )
-        for i in range(nPoints) if valid(i) # Filter out nan output values! 
-    ]
+    data = []
+    for i in range(nPoints):
+        # perform ctx checks, to find valid contexts
+        valid_ctxs = [ctx for ctx in ctxs if is_valid_context(ctx, i)]
+
+        # perform the global check
+        is_valid = is_valid_timestep(i) and len(valid_ctxs) > 0
+
+        # if the timestep is valid, include the valid contexts
+        if is_valid:
+            data.append((
+                (
+                    {ctx: 
+                        { k : predictor_arrays[ctx][k][i].unsqueeze(0) for k in predictor_arrays[ctx] } | constants[ctx] | {"DS_" : 0.5}
+                        for ctx in valid_ctxs
+                    }, 
+                    {k : global_arrays[k][i].unsqueeze(0) for k in global_arrays},
+                ), 
+                output_arrays[output_keys[0]][i], 
+            ))
+
+
 
     if verbose:
 

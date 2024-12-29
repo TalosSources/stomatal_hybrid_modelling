@@ -6,7 +6,7 @@
 
 model:
     n_hidden : 3
-    hidden_size : 32 # Perhaps replace with an array describing layers?
+    hidden_size : 32 # NOTE: Perhaps replace with an array describing layers?
     batch_norm : False
     activation : 'ReLU'
 
@@ -16,7 +16,7 @@ data: # (does it need to be nested?)
     #site_name = ["DE-Hai"]
     #site_name = ["US-Me2"]
     base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
-    nPoints : 2000 # -> and decide if we want to truncate, what to do in training?
+    nPoints : 10000 # -> decide if we want to truncate, what to do in training?
 
 pipeline:
     # modelMapping : 'softplus'
@@ -24,10 +24,10 @@ pipeline:
     use_vmax : False
 
 train:
-    lr: 1e-2
-    epochs: 200
-    weight_decay: 1e-3
-    batch_size: 10
+    lr: 1e-3
+    epochs: 4000
+    weight_decay: 1e-5
+    batch_size: 1
     # loss?opt?iterator?
 
 

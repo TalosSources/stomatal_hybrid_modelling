@@ -25,7 +25,7 @@ def train_general(
     optimizer,
     epochs,
     data_iterator,
-    print_every_iter=1
+    print_every_iter=20
 ):
 
     losses = []
@@ -52,24 +52,22 @@ def train_general(
         # Compute the loss
         loss = criterion(output, y)
 
+        if torch.isnan(loss) or torch.isinf(loss) or (output==0.).any(): # TODO: very crude fix. Actually understand why having output=0 breaks the whole pipeline. Also filter out and sanitize data properly
+            if printIter:
+                print(f"Found nan or inf loss or 0 output: don't compute gradient")
+                print(f"loss={loss}, output={output}, y={y}")
+            continue
+
+        losses.append(float(loss))
         if printIter:
             loss_average = np.array(losses[-print_every_iter:]).mean()
             print(f"Epoch {i}: y={y}, output={output}, loss={loss}, average of last {print_every_iter} losses: {loss_average}")
-
-        if torch.isnan(loss) or torch.isinf(loss):#or (output==0.).any(): # TODO: very crude fix. Actually understand why having output=0 breaks the whole pipeline. Also filter out and sanitize data properly
-            if printIter:
-                print(f"Found nan or inf loss or 0 output: don't compute gradient")
-                print(f"loss={loss}, output={output}")
-            continue
 
         # compute the loss gradient
         loss.backward()
 
         # perform an optimization step
         optimizer.step()
-        print(f"performed a step with loss {loss}")
-
-        losses.append(float(loss))
 
     return np.array(losses)
 
@@ -96,6 +94,7 @@ def train_pipeline(config, train_data):
     # build the pipeline around the specific models
     model_wrapper = pipelines.make_pipeline(rs_model, Vmax_model, output_rs=False)
 
+    eval_stride = 20 # NOTE: To config?
     # eval the model before training
     #rs_model.eval() # TODO: Would be better for the wrapper to offer this method. perhaps the wrapper should simply inherit from nn.module()
     #eval_before_training = eval.eval_general(model_wrapper, train_data, loss_criterion)
@@ -107,12 +106,12 @@ def train_pipeline(config, train_data):
 
     # eval the model after training
     rs_model.eval()
-    eval_after_training = eval.eval_general(model_wrapper, train_data, loss_criterion)
+    eval_after_training = eval.eval_general(model_wrapper, train_data[::eval_stride], loss_criterion)
     print(f"Eval after training: {eval_after_training}")
 
     # eval the empirical model (for comparaison)
     empirical_model_wrapper = pipelines.make_pipeline(None, None, output_rs=False)
-    eval_empirical_model = eval.eval_general(empirical_model_wrapper, train_data, loss_criterion)
+    eval_empirical_model = eval.eval_general(empirical_model_wrapper, train_data[::eval_stride], loss_criterion)
     print(f"Eval empirical model: {eval_empirical_model}")
 
     # show info about loss 
