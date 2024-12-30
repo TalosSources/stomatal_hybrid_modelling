@@ -24,20 +24,10 @@ def train_and_eval_pipeline(config):
 
 
 
-def show_data_ctxs(config):
-    pipeline_data = data.load_pipeline_data_dict(config.data, output_keys=['LE'])
-    for t in pipeline_data:
-        preds, _ = t
-        ctx_preds, _ = preds
-        print(f"ctxs: {ctx_preds.keys()}, yielding id = {utils.compute_ctx_set_id(ctx_preds.keys())}")
-
-
-
 def main():
 
     config = OmegaConf.load("configs/default.yaml") # NOTE: Could be passed as arg, or maybe we can have a list of experiments to perform
-    #train_and_eval_pipeline(config)
-    show_data_ctxs(config)
+    train_and_eval_pipeline(config)
 
 
 

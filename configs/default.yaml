@@ -16,7 +16,7 @@ data: # (does it need to be nested?)
     #site_name = ["DE-Hai"]
     #site_name = ["US-Me2"]
     base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
-    nPoints : 1000 # -> decide if we want to truncate, what to do in training?
+    nPoints : 100000 # -> decide if we want to truncate, what to do in training?
     # perhaps options on what to filter? do we filter negative Q_LE? stuff like that
 
 pipeline:
@@ -27,10 +27,10 @@ pipeline:
 train:
     #lr: [1e-1, 1e-2, 1e-3]
     lr: 1e-2
-    epochs: 10000
+    epochs: 1000
     #weight_decay: [1e-2, 1e-4, 1e-6, 0]
     weight_decay: 1e-6
-    batch_size: 1
+    batch_size: 1000
     hp_tuning: False # If this is true, hyperparameters are expected to be arrays.
     # loss?opt?iterator?
 

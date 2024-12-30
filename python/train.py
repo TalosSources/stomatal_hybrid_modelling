@@ -91,8 +91,6 @@ def perform_hp_tuning(config, data):
 
     # TODO: Since a lot of this is common to both methods, need to factor it
 
-    data = np.array(data) # TODO: Do we want this? does this work?
-
     rs_model_producer = lambda : models.rs_model(config.model)
     Vmax_model = None # NOTE: only train gsCO2 for now TO CONFIG whether to use it?
 
@@ -149,8 +147,6 @@ def perform_hp_tuning(config, data):
     return best_hps
 
 def train_and_evaluate_pipeline(config, data):
-
-    data = np.array(data) # TODO: Do we want this? does this work?
 
     train_data, test_data = train_test_split(data, test_size=0.2) # TO CONFIG
 
@@ -243,14 +239,21 @@ def k_folds(data, model_producer, opt_producer, criterion, iterator_producer, hp
 class batch_ctx_dict_iterator:
     def __init__(self, data, batch_size=16):
         # data is an array of dicts of params-values pairs
-        self.data = data
+        grouped_data, probs = utils.group_by_ctx_id(data) # data is a dict ctx_id -> array of data points with the same context set
+        self.grouped_data = grouped_data
+        self.probs = probs
+        self.n_groups = len(probs)
         self.batch_size = batch_size
 
     def __iter__(self):
         return self
     
     def __next__(self):
-        return ctx_dict_batch(self.data, self.batch_size)
+        # sample randomly a ctx_set_id
+        id = np.random.choice(self.n_groups, p=self.probs)
+
+        # then, sample a random batch with this specific ctx_set_id
+        return ctx_dict_batch(self.grouped_data[id], self.batch_size)
       
 class random_sample_iterator:
     def __init__(self, data):
