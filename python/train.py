@@ -5,11 +5,14 @@ import random # NOTE: could use a random method from np
 from omegaconf import OmegaConf
 import wandb
 
+from sklearn.model_selection import KFold, train_test_split
+
 import pipelines
 
 import models
 import plot
 import eval
+import utils
 
 """
 General torch training method.
@@ -79,10 +82,79 @@ def train_general(
 
     return np.array(losses)
 
-def train_pipeline(config, train_data):
+"""
+Performs a search over the hyperparameter-space.
+For each hp-set, test its performances with k-fold cross-validation
+Return the best performing hp-set
+"""
+def perform_hp_tuning(config, data):
+
+    # TODO: Since a lot of this is common to both methods, need to factor it
+
+    data = np.array(data) # TODO: Do we want this? does this work?
+
+    rs_model_producer = lambda : models.rs_model(config.model)
+    Vmax_model = None # NOTE: only train gsCO2 for now TO CONFIG whether to use it?
+
+    # choose a loss TO CONFIG ? maybe, not necessary
+    loss_criterion = torch.nn.L1Loss()
+
+    # choose an optimizer TO CONFIG ? maybe, not necessary
+    opt_producer = lambda parameters, hps : torch.optim.Adam(parameters, lr=hps['lr'], weight_decay=hps['weight_decay'])
+
+    # choose a data iterator TO CONFIG ? maybe, not necessary
+    iterator_producer = lambda data : batch_ctx_dict_iterator(data, batch_size=config.train.batch_size)
+
+    # build the pipeline around the specific models
+    def model_producer():
+        rs_model = rs_model_producer()
+        pipeline = pipelines.make_pipeline(rs_model, Vmax_model, output_rs=False)
+        return pipeline, rs_model.parameters()
+
+    # perform K-Fold for the given set of hp
+    # For now, use the entire data to perform k-fold
     
+    # dict hp_name -> list of values
+    param_possible_values = {'lr' : config.train.lr, 'weight_decay' : config.train.weight_decay}
+
+    # iterator that gives all possible combinations
+    grid_search_hp_iterator = utils.grid_search_iterator(param_possible_values)
+
+    lowest_score = np.inf
+    best_hps = None
+    for hp_set in grid_search_hp_iterator:
+        total_score = k_folds(data, model_producer, opt_producer, loss_criterion, iterator_producer, hp_set)
+        print(f"K-Fold total score = {total_score}")
+        if total_score < lowest_score:
+            lowest_score = total_score
+            best_hps = hp_set
+
+    print(f"Finished hp-tuning: found best hp = {best_hps}, yielding score {lowest_score}")
+
+    # eval the model after training
+    # rs_model.eval()
+    # eval_after_training = eval.eval_general(model_wrapper, test_data[::eval_stride], loss_criterion)
+    # print(f"Eval after training: {eval_after_training}")
+
+    # eval the empirical model (for comparaison)
+    # empirical_model_wrapper = pipelines.make_pipeline(None, None, output_rs=False)
+    # eval_empirical_model = eval.eval_general(empirical_model_wrapper, test_data[::eval_stride], loss_criterion)
+    # print(f"Eval empirical model: {eval_empirical_model}")
+
+    # show info about loss 
+    # TODO: Show info about gradient norm.
+    #plot.plot_losses(losses)
+
+    # return rs_model, Vmax_model
+    return best_hps
+
+def train_and_evaluate_pipeline(config, data):
+
+    data = np.array(data) # TODO: Do we want this? does this work?
+
+    train_data, test_data = train_test_split(data, test_size=0.2) # TO CONFIG
+
     rs_model = models.rs_model(config.model)
-    #Vmax_model = models.vm_model()
     Vmax_model = None # NOTE: only train gsCO2 for now TO CONFIG whether to use it?
 
     # choose a loss TO CONFIG ? maybe, not necessary
@@ -91,13 +163,13 @@ def train_pipeline(config, train_data):
 
     # choose an optimizer TO CONFIG ? maybe, not necessary
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
-    opt = torch.optim.Adam(rs_model.parameters(), lr=config.train.lr, weight_decay=config.train.weight_decay)
     #opt = torch.optim.SGD(gsCO2_model.parameters(), lr=lr, , weight_decay=weight_decay)
+    opt = torch.optim.Adam(rs_model.parameters(), lr=config.train.lr, weight_decay=config.train.weight_decay)
 
     # choose a data iterator TO CONFIG ? maybe, not necessary
-    data_iterator = batch_ctx_dict_iterator(train_data, batch_size=config.train.batch_size) # TODO: Make a batch iterator for the new pipeline
     # data_iterator = iter(train_data)
     #data_iterator = random_sample_iterator(train_data)
+    data_iterator = batch_ctx_dict_iterator(train_data, batch_size=config.train.batch_size) # TODO: Make a batch iterator for the new pipeline
 
     # build the pipeline around the specific models
     model_wrapper = pipelines.make_pipeline(rs_model, Vmax_model, output_rs=False)
@@ -124,20 +196,47 @@ def train_pipeline(config, train_data):
 
     # eval the model after training
     rs_model.eval()
-    eval_after_training = eval.eval_general(model_wrapper, train_data[::eval_stride], loss_criterion)
+    eval_after_training = eval.eval_general(model_wrapper, test_data[::eval_stride], loss_criterion)
     print(f"Eval after training: {eval_after_training}")
 
     # eval the empirical model (for comparaison)
     empirical_model_wrapper = pipelines.make_pipeline(None, None, output_rs=False)
-    eval_empirical_model = eval.eval_general(empirical_model_wrapper, train_data[::eval_stride], loss_criterion)
+    eval_empirical_model = eval.eval_general(empirical_model_wrapper, test_data[::eval_stride], loss_criterion)
     print(f"Eval empirical model: {eval_empirical_model}")
 
     # show info about loss 
     # TODO: Show info about gradient norm.
-    #plot.plot_losses(losses)
+    plot.plot_losses(losses)
 
-    return rs_model, Vmax_model
+    # return rs_model, Vmax_model
+    return rs_model, None
 
+# took inspiration from https://github.com/christianversloot/machine-learning-articles/blob/main/how-to-use-k-fold-cross-validation-with-pytorch.md
+def k_folds(data, model_producer, opt_producer, criterion, iterator_producer, hp_set):
+
+    k = 5 # TO CONFIG
+    k_fold_epochs = 500 # TO CONFIG
+    total_score = 0.
+    kfold = KFold(n_splits=k, shuffle=True)
+
+    for train_ids, test_ids in kfold.split(data):
+        # then they use handy batch methods that I could use elsewhere also
+
+        # simply train the pipeline using data[train_ids] or something NOTE: Need to reset stuff like model, optimizer, etc.
+        split_train_data = data[train_ids]
+        iterator =  iterator_producer(split_train_data)
+        model, parameters = model_producer()
+        opt = opt_producer(parameters, hp_set)
+        train_general(model, criterion, opt, k_fold_epochs, iterator)
+        with torch.no_grad():
+            test_data_iterator = data[test_ids]
+            # evaluate with our eval function the test data
+            eval_score = eval.eval_general(model, test_data_iterator, criterion)
+            print(f"Finished a fold, got result={eval_score}")
+            total_score += eval_score
+    
+    # average the results over trains?
+    return total_score / k
 
 
     
@@ -183,7 +282,9 @@ Of course, the elements must be in the same order in the tensor for each key.
 def ctx_dict_batch(dict_array, batch_size):
 
     # batch is an array of size batch_size containing (x,y) tuples
-    batch = random.sample(dict_array, batch_size)
+    #batch = random.sample(dict_array, batch_size)
+    batch_indices = np.random.choice(len(dict_array), batch_size, replace=False)
+    batch = dict_array[batch_indices]
 
     # predictors is an array of size batch_size of (ctx_dict, global_dict) values
     # y is an array of size batch_size of y values

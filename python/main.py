@@ -14,7 +14,12 @@ import eval
 
 def train_and_eval_pipeline(config):
     pipeline_data = data.load_pipeline_data_dict(config.data, output_keys=["LE"], verbose=True)
-    gsCO2_model, Vmax_model = train.train_pipeline(config, pipeline_data)
+
+    if config.train.hp_tuning:
+        best_hps = train.perform_hp_tuning(config, pipeline_data)
+    else:
+        gsCO2_model, Vmax_model = train.train_and_evaluate_pipeline(config, pipeline_data)
+
     # TODO: Store the models?
 
 

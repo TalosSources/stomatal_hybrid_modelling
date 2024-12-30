@@ -65,13 +65,14 @@ def make_pipeline(gsCO2_model, Vmax_model, output_rs=False):
         # Sum all the relevant results
         rs_values = []
         for _, preds in ctx_to_predictors.items():
+            # TODO: All ctxs as a batch
             ctx_res = subpipeline(preds)
             if output_rs:
                 ctx_res, rs = ctx_res
                 rs_values.append(rs)
 
             # put nan values to 0
-            ctx_res[torch.isnan(ctx_res)] = 0.
+            #ctx_res[torch.isnan(ctx_res)] = 0.
             #ctx_res = torch.where(torch.isnan(ctx_res), torch.tensor(0.0), ctx_res).detach()
             #ctx_res.requires_grad_()  # Re-enable gradient tracking for the modified tensor
             Q_LE_wm2 = Q_LE_wm2 + ctx_res 
