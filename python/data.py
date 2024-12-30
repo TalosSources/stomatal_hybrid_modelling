@@ -89,15 +89,15 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
         for k in output_keys
     }
 
-    # Check whether a data point is valid.
+    # Check whether a data point is valid. maybe TO CONFIG which check to perform
     def is_valid_timestep(i):
         return  (
             not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan Q_LE values! 
-            and not output_arrays[output_keys[0]][i] < 0.
+            #and not output_arrays[output_keys[0]][i] < 0. # Filter out negative Q_LE values! actually should we? our pipeline can actually output negative values
             # TODO: Perhaps add some more checks if needed 
         )
     
-    # Check all ctxs, and return the valid ones
+    # Check whether a ctx for a specific timestep is valid. maybe TO CONFIG which check to perform
     def is_valid_context(ctx, i):
         return (
             predictor_arrays[ctx]['ra'][i] != 0. # ra is in the denom of the PM equation: can't be 0.
