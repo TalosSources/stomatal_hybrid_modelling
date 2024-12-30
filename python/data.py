@@ -32,14 +32,14 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
     predictor_path = os.path.join(base_path, f"Results_{site_name}.mat")
     observation_path = os.path.join(base_path, f"Res_{site_name}.mat")
 
-    # potentially truncate the site data
-    nPoints = config.nPoints
-    if nPoints is None: # TODO: Invalid, predictor_arrays doesn't exist yet. Use the predictor_data below somehow
-        nPoints = predictor_arrays[ctxs[0]][predictor_keys[0]].shape[0]
-    
     # load dat from both mat files
     predictor_data = scipy.io.loadmat(predictor_path)
     observation_data = scipy.io.loadmat(observation_path)
+
+    # potentially truncate the site data
+    nPoints = config.nPoints
+    if nPoints is None:
+        observation_data["LE"].shape[0]
 
     # Prepare the default keys
     if predictor_keys is None:
@@ -55,7 +55,8 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
                        "EWAT", "EICE", "EIn_urb", "EIn_rock"]  
 
     # sun_condition = if (LAI_L(i) > 0) && (Csno == 0) && (Cice == 0) TODO
-    # TODO: Very weird, understand why data points come by 2 all the time
+    # TODO: Data points come by 2 because there's 2 types of high vegetation in some sites. 
+    # In this case, either we ignore the site, or we can treat them as 2 separate contexts?
     ctxs =  ["sun_H", "sun_L", "shd_H", "shd_L"]
 
     # Load the predictor arrays: For each ctx, for each pipeline predictor, a tensor
@@ -93,8 +94,8 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
     def is_valid_timestep(i):
         return  (
             not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan Q_LE values! 
-            #and not output_arrays[output_keys[0]][i] < 0. # Filter out negative Q_LE values! actually should we? our pipeline can actually output negative values
-            # TODO: Perhaps add some more checks if needed 
+            #and not output_arrays[output_keys[0]][i] < 0. # Filter out negative Q_LE values! actually should we? our pipeline can actually output negative values TO CONFIG
+            # NOTE: Perhaps add some more checks if needed 
         )
     
     # Check whether a ctx for a specific timestep is valid. maybe TO CONFIG which check to perform
@@ -102,7 +103,7 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
         return (
             predictor_arrays[ctx]['ra'][i] != 0. # ra is in the denom of the PM equation: can't be 0.
             and not predictor_arrays[ctx]['IPAR'][i].isnan() # IPAR is used in the pb pipeline.
-            # TODO: Add other checks
+            # NOTE: Add other checks
             #and not predictor_arrays["Cc"][i] == 0 # Filter out values where cc is 0 (for which context???) I guess, it should 0 for all contexts?
             #and not predictor_arrays["IPAR"][i] == 0 # Filter out values where IPAR is 0 (for which context???)
         )

@@ -12,7 +12,7 @@ AUTOMATICALLY DIFFERENTIABLE TRANSLATION OF THE MODULE OF THE SAME NAME
 IN T&C, FROM MATLAB TO PYTHON
 Args:
     * All the args from the matlab module, torch tensors (scalars or batches)
-    * gsCO2_model: parametrized model for gsCO2 (or rs? TODO: decide what works best, and rename relevant stuff)
+    * gsCO2_model: parametrized model for gsCO2 (or rs? TO CONFIG)
         taking as input 6 numbers (An,Pre,Cc,GAM,Ds,Do). If None, uses the empirical model for gsCO2
     * Vmax_model: For now, always expected to be None
 Output:
@@ -40,7 +40,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     Oa = Oa*1e-6*Pre ## [Pa]
     Csl = Csl*1e-6*Pre ## [Pa] -- Leaf surface CO2 concentration 
 
-    rmes = 1/(1e+6*gmes)  ## [ s m^2 /umolCO2 ] Mesophyl Conductance # TODO: check if it's infinite, in which case 0? or maybe it's okay
+    rmes = 1/(1e+6*gmes)  ## [ s m^2 /umolCO2 ] Mesophyl Conductance
     go = go*1e6 ###  [umolCO2 / s m^2] 
 
     Ts_k = Ts + 273.15 ##[K]
@@ -220,14 +220,16 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     """
     if rs_model is not None:
         predictors = torch.stack([An * 1e2,Pre * 1e-4,Cc * 1e-1,GAM * 1e1,Ds * 1e-1,Do * 1e-2], dim=-1)
-        predictors[predictors.isnan()] = 0. # TODO: Crude fix. Actually do a proper data sanitization beforehand
-        #predictors = torch.stack([Ds * 1e-1])
+        #predictors[predictors.isnan()] = 0. # Crude fix in case of poor data. In practice, shouldn't change anything
         model_output = rs_model(predictors).squeeze()
+
         # tests to make the model_output behave better with gradient descent TO CONFIG
         #rs_small = torch.exp(model_output) # rs must be positive
         #rs_small = (torch.atan(model_output) + torch.pi/2.0) # 0 at -inf, pi (rs=~3100) at +inf, smooth transition in between
+
         rs_small = torch.nn.functional.softplus(model_output) # 0 at -inf, ~x fo~ large x, analytic 
         rs = rs_small * 1e2
+
         return rs
     else:
         if gsCO2_model is not None:
@@ -239,8 +241,8 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
             # EMPIRICAL MODEL
             gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
         
-        # TODO: Activate again (choose what to do) QUESTION: Is gsCO2 an array? can it hold more than one value? 
-        # NOTE: Disable for training? Can it pass gradients? TODO: Why can't we have this? we get : 
+        # TODO: Activate again (if we want the gsco2 pipeline) (choose what to do) QUESTION: Is gsCO2 an array? can it hold more than one value? 
+        # NOTE: Disable for training? Can it pass gradients? Why can't we have this? we get : 
         # {RuntimeError: shape mismatch: value tensor of shape [8] cannot be broadcast to indexing result of shape [0]}
         #gsCO2[gsCO2<go]=go 
 

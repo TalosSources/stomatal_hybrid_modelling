@@ -47,19 +47,13 @@ def train_general(
         # produce a minibatch with x and y
         x, y = next(data_iterator)
 
-        # TODO: Decision. In the paper, they ignore points where Q_LE < 0. Here, I clamp them to 0. A sensible choice could be to select valid points in batch making or even data loading (for the latter, infrastructure exists already)
-        #if (y < 0).any():
-        #    print(f"y == 0: skipping")
-        #    continue
-        #y = y.clamp(min=0)
-
         # Obtain model predictions
         output = model(x)
 
         # Compute the loss
         loss = criterion(output, y)
 
-        if torch.isnan(loss) or torch.isinf(loss) or (output==0.).any(): # TODO: very crude fix. Actually understand why having output=0 breaks the whole pipeline. Also filter out and sanitize data properly
+        if torch.isnan(loss) or torch.isinf(loss) or (output==0.).any(): # Safety measure to avoid breaking training, shouldn't happen in practice
             if printIter:
                 print(f"Found nan or inf loss or 0 output: don't compute gradient")
                 print(f"loss={loss}, output={output}, y={y}")
@@ -129,21 +123,6 @@ def perform_hp_tuning(config, data):
 
     print(f"Finished hp-tuning: found best hp = {best_hps}, yielding score {lowest_score}")
 
-    # eval the model after training
-    # rs_model.eval()
-    # eval_after_training = eval.eval_general(model_wrapper, test_data[::eval_stride], loss_criterion)
-    # print(f"Eval after training: {eval_after_training}")
-
-    # eval the empirical model (for comparaison)
-    # empirical_model_wrapper = pipelines.make_pipeline(None, None, output_rs=False)
-    # eval_empirical_model = eval.eval_general(empirical_model_wrapper, test_data[::eval_stride], loss_criterion)
-    # print(f"Eval empirical model: {eval_empirical_model}")
-
-    # show info about loss 
-    # TODO: Show info about gradient norm.
-    #plot.plot_losses(losses)
-
-    # return rs_model, Vmax_model
     return best_hps
 
 def train_and_evaluate_pipeline(config, data):
@@ -165,14 +144,14 @@ def train_and_evaluate_pipeline(config, data):
     # choose a data iterator TO CONFIG ? maybe, not necessary
     # data_iterator = iter(train_data)
     #data_iterator = random_sample_iterator(train_data)
-    data_iterator = batch_ctx_dict_iterator(train_data, batch_size=config.train.batch_size) # TODO: Make a batch iterator for the new pipeline
+    data_iterator = batch_ctx_dict_iterator(train_data, batch_size=config.train.batch_size)
 
     # build the pipeline around the specific models
     model_wrapper = pipelines.make_pipeline(rs_model, Vmax_model, output_rs=False)
 
     eval_stride = 20 # NOTE: To config?
     # eval the model before training
-    #rs_model.eval() # TODO: Would be better for the wrapper to offer this method. perhaps the wrapper should simply inherit from nn.module()
+    #rs_model.eval() # NOTE: Would be better for the wrapper to offer this method. perhaps the wrapper should simply inherit from nn.module()
     #eval_before_training = eval.eval_general(model_wrapper, train_data, loss_criterion)
     #print(f"Eval before training: {eval_before_training}")
 
@@ -200,8 +179,7 @@ def train_and_evaluate_pipeline(config, data):
     eval_empirical_model = eval.eval_general(empirical_model_wrapper, test_data[::eval_stride], loss_criterion)
     print(f"Eval empirical model: {eval_empirical_model}")
 
-    # show info about loss 
-    # TODO: Show info about gradient norm.
+    # show info about loss (optional)
     plot.plot_losses(losses)
 
     # return rs_model, Vmax_model
@@ -315,9 +293,6 @@ def ctx_dict_batch(dict_array, batch_size):
         for ctx in ctx_dicts[0].keys()
     }
 
-    # TODO: Sort out the reason that output and y don't have the same dimension
-
-                  
     return ((ctx_batch, global_batch), outputs_batch)
 
 def check_gradients(module : torch.nn.Module):
