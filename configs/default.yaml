@@ -5,18 +5,18 @@
 
 
 model:
-    n_hidden : 3
-    hidden_size : 32 # NOTE: Perhaps replace with an array describing layers?
-    batch_norm : False # NOTE: Can't be True if batch_size==1. We may add an assertion for this
+    n_hidden : 4
+    hidden_size : 64 # NOTE: Perhaps replace with an array describing layers?
+    batch_norm : True # NOTE: Can't be True if batch_size==1. We may add an assertion for this
     activation : 'ReLU'
 
 data: # (does it need to be nested?)
-    sites : ["CH-Dav"] 
+    sites : ["CH-Dav", "AR-Vir", "AU-Ade", "AU-Stp"] 
     #site_name = ["DE-Tha"]
     #site_name = ["DE-Hai"]
     #site_name = ["US-Me2"]
     base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
-    nPoints : 100000 # -> decide if we want to truncate, what to do in training?
+    nPoints : 500 # -> decide if we want to truncate, what to do in training?
     # perhaps options on what to filter? do we filter negative Q_LE? stuff like that
 
 pipeline:
@@ -26,19 +26,23 @@ pipeline:
 
 train:
     #lr: [1e-1, 1e-2, 1e-3]
-    lr: 1e-2
+    lr: 1e-3
     epochs: 1000
     #weight_decay: [1e-2, 1e-4, 1e-6, 0]
-    weight_decay: 1e-6
-    batch_size: 1000
+    weight_decay: 1e-4
+    batch_size: 100
+    test_split: 0.2
+    k_folds: 5
+    k_folds_epochs: 500 # may be less than the large train epochs to save time
     hp_tuning: False # If this is true, hyperparameters are expected to be arrays.
     # loss?opt?iterator?
-
 
 wandb:
   use_wandb: False
   project: "change-project"
   tags: ['default_config']
+
+model_weights_path: "model_weights/default_model.pt"
 
 #hydra:
 #  job:

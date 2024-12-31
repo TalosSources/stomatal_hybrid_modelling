@@ -4,7 +4,7 @@ Each timestep may contain valid or invalid data for each context independantly.
 Ideally, it would be best to have some ground truth flag indicating which ctx is valid along with the actual data.
 With this, I could safely discard other contexts, and ignore any value that makes the pipeline fail as an ill-value.
 However, I don't think I have this.
-TODO: I should ask Akash if I can determine this directly from the data.
+DONE: I should ask Akash if I can determine this directly from the data.
 But assuming I can't, we assume each time-step can have data for low and high vegetation, and that potentially, there could be both valid shaded, sunny component to the flux, or none.
 The only way to figure what ctx is valid, is to look for 0. or NaN values (or potentially inf), in the timestep values.
 

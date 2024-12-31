@@ -223,9 +223,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         #predictors[predictors.isnan()] = 0. # Crude fix in case of poor data. In practice, shouldn't change anything
         model_output = rs_model(predictors).squeeze()
 
-        # tests to make the model_output behave better with gradient descent TO CONFIG
-        #rs_small = torch.exp(model_output) # rs must be positive
-        #rs_small = (torch.atan(model_output) + torch.pi/2.0) # 0 at -inf, pi (rs=~3100) at +inf, smooth transition in between
+        # tests to make the model_output behave better with gradient descent
 
         rs_small = torch.nn.functional.softplus(model_output) # 0 at -inf, ~x fo~ large x, analytic 
         rs = rs_small * 1e2

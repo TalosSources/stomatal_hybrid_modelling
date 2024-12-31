@@ -16,30 +16,44 @@ Negative Q_LE is bad
 in pb, An is sometimes 0, and sometimes even NaN [INVESTIGATED: CAUSED BY IPAR]
 does every timestep have exactly 1 valid ctx? at least 1?
 
-TODO: interpolate gap, gap-fills
+NOTE: can interpolate gap, gap-fills
 """
+
+
+def load_pipeline_data_dict_from_all_sites(config, predictor_keys=None, constant_keys=None, 
+                            output_keys=None, global_keys=None, verbose=False):
+
+    # prepare paths
+    base_path = os.path.expanduser(config.base_path)
+    data = []
+    for site_name in config.sites:
+        predictor_path = os.path.join(base_path, f"Results_{site_name}.mat")
+        observation_path = os.path.join(base_path, f"Res_{site_name}.mat")
+
+        load_pipeline_data_dict_single_site(predictor_path, observation_path, data, config.nPoints, 
+            predictor_keys=predictor_keys, constant_keys=constant_keys, output_keys=output_keys,
+            global_keys=global_keys, verbose=verbose)
+        
+    return data
+
 
 """
 The data is a dict from param_names to large arrays of values.
 We transform it into a large array of dicts (and perform some translation and constant handling)
 """
-def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None, 
-                            output_keys=None, global_keys=None, verbose=False):
+def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, nPoints = None, predictor_keys=None, 
+                        constant_keys=None, output_keys=None, global_keys=None, verbose=False):
     
-    # prepare paths
-    base_path = os.path.expanduser(config.base_path)
-    site_name = config.sites[0] # NOTE: Could add the option to merge data from multiple sites
-    predictor_path = os.path.join(base_path, f"Results_{site_name}.mat")
-    observation_path = os.path.join(base_path, f"Res_{site_name}.mat")
-
     # load dat from both mat files
     predictor_data = scipy.io.loadmat(predictor_path)
     observation_data = scipy.io.loadmat(observation_path)
 
     # potentially truncate the site data
-    nPoints = config.nPoints
+    site_data_length = observation_data["LE"].shape[0]
     if nPoints is None:
-        observation_data["LE"].shape[0]
+        nPoints = site_data_length
+    else:
+        nPoints = min(nPoints, site_data_length)
 
     # Prepare the default keys
     if predictor_keys is None:
@@ -54,7 +68,7 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
         global_keys = ["EIn_H", "EIn_L", "EG", "ELitter", "ESN", "ESN_In", 
                        "EWAT", "EICE", "EIn_urb", "EIn_rock"]  
 
-    # sun_condition = if (LAI_L(i) > 0) && (Csno == 0) && (Cice == 0) TODO
+    # sun_condition = if (LAI_L(i) > 0) && (Csno == 0) && (Cice == 0) NOTE: Could use that if ever
     # TODO: Data points come by 2 because there's 2 types of high vegetation in some sites. 
     # In this case, either we ignore the site, or we can treat them as 2 separate contexts?
     ctxs =  ["sun_H", "sun_L", "shd_H", "shd_L"]
@@ -94,7 +108,7 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
     def is_valid_timestep(i):
         return  (
             not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan Q_LE values! 
-            #and not output_arrays[output_keys[0]][i] < 0. # Filter out negative Q_LE values! actually should we? our pipeline can actually output negative values TO CONFIG
+            #and not output_arrays[output_keys[0]][i] < 0. # Filter out negative Q_LE values! actually should we? our pipeline can actually output negative values
             # NOTE: Perhaps add some more checks if needed 
         )
     
@@ -120,7 +134,6 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
     # global_dict maps global variables -> single number
     # single_pipeline_dict maps ctx -> predictor_dict
     # output is a single number (for now?)
-    data = []
     for i in range(nPoints):
         # perform ctx checks, to find valid contexts
         valid_ctxs = [ctx for ctx in ctxs if is_valid_context(ctx, i)]
@@ -160,13 +173,13 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
         for key in output_keys:
             print(f"Initial Shape for output {key}: {observation_data[key].shape}")
 
-        print(f"\n --------ARRAYS SHAPES-------- ")
+        #print(f"\n --------ARRAYS SHAPES-------- ")
 
-        for ctx, preds in predictor_arrays.items():
-            print(f"For context {ctx}:")
-            for k,v in preds.items():
-                print(f"    predictor array [{k}] shape = {v.shape}")
-            #print(f"predictor array [{k}] = {v}")
+        # for ctx, preds in predictor_arrays.items():
+        #     print(f"For context {ctx}:")
+        #     for k,v in preds.items():
+        #         print(f"    predictor array [{k}] shape = {v.shape}")
+        #     #print(f"predictor array [{k}] = {v}")
         for k,v in output_arrays.items():
             print(f"output array [{k}] shape = {v.shape}")
         #print(f"output_arrays={output_arrays}")
@@ -181,10 +194,6 @@ def load_pipeline_data_dict(config, predictor_keys=None, constant_keys=None,
 
         print(f"n_points after filter: {len(data)}")
         print(f"first {print_k_points} data points:\n{data[:print_k_points]}")
-
-
-
-    return data
 
 
 

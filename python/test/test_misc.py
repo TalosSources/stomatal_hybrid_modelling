@@ -3,15 +3,15 @@ import data
 import plot
 
 def debug_data_loading(base_path, site_name):
-    data.load_pipeline_data_dict(base_path, site_name, verbose=True) # NOTE: Could use LE_CORR
+    data.load_pipeline_data_dict_single_site(base_path, site_name, verbose=True) # NOTE: Could use LE_CORR
 
 
 def plot_timeseries(base_path, site_name):
     ##### plot stuff
     print("Loading LE")
-    LE_data = data.load_pipeline_data_dict(base_path, site_name, output_keys=["LE"])
+    LE_data = data.load_pipeline_data_dict_single_site(base_path, site_name, output_keys=["LE"])
     print("Loading LE_CORR")
-    LE_corr_data = data.load_pipeline_data_dict(base_path, site_name, output_keys=["LE_CORR"])
+    LE_corr_data = data.load_pipeline_data_dict_single_site(base_path, site_name, output_keys=["LE_CORR"])
     pipeline = train.make_pipeline(None, None)
     output_LE = []
     groundtruth_LE = []

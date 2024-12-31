@@ -1,0 +1,32 @@
+# @package _global_
+
+model:
+    n_hidden : 2
+    hidden_size : 32 # NOTE: Perhaps replace with an array describing layers?
+    batch_norm : True # NOTE: Can't be True if batch_size==1. We may add an assertion for this
+    activation : 'ReLU'
+
+data: # (does it need to be nested?)
+    sites : ["CH-Dav", "AR-Vir", "AU-Ade", "AU-Stp"] 
+    base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
+    nPoints : 1000 # -> decide if we want to truncate, what to do in training?
+
+pipeline:
+    use_vmax : False
+
+train:
+    lr: [1e-1, 1e-2]
+    weight_decay: [1e-4, 1e-6]
+    epochs: 10000
+    batch_size: 10
+    test_split: 0.2
+    k_folds: 5
+    k_folds_epochs: 100 # may be less than the large train epochs to save time
+    hp_tuning: True # If this is true, hyperparameters are expected to be arrays.
+
+wandb:
+  use_wandb: False
+  project: "change-project"
+  tags: ['default_config']
+
+model_weights_path: "model_weights/default_model.pt"

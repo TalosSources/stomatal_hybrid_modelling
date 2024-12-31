@@ -17,9 +17,6 @@ class FCN(torch.nn.Module):
                 module_list.append(activation)
         self.layers = torch.nn.ModuleList(module_list)
             
-        print(f"Initialized layers: {self.layers}")
-        
-    
     def forward(self, x):
         to_print = f"calling forward, x={x}\n"
         for i, layer in enumerate(self.layers):
@@ -42,10 +39,7 @@ def rs_model(config):
     input_dim = 6
     output_dim = 1
 
-    # Different possible architectures TO CONFIG probably, if I want to give this option
-    #return FCN([input_dim, 128, 64, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
-    #return FCN([input_dim, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
-    #return FCN([input_dim, 32, 32, output_dim], torch.nn.ReLU()) # NOTE: relatively simple network, subject to change (activation?)
+    # Architecture is specified in the config
     activation_map = {
         "ReLU" : torch.nn.ReLU
     }

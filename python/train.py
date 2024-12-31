@@ -62,7 +62,8 @@ def train_general(
         losses.append(float(loss))
         if printIter:
             loss_average = np.array(losses[-print_every_iter:]).mean()
-            print(f"Epoch {i}: y={y}, output={output}, loss={loss}, average of last {print_every_iter} losses: {loss_average}")
+            #print(f"Epoch {i}: y={y}, output={output}, loss={loss}, average of last {print_every_iter} losses: {loss_average}")
+            print(f"Epoch {i}: loss={loss}, average of last {print_every_iter} losses: {loss_average}")
 
         # compute the loss gradient
         loss.backward()
@@ -86,7 +87,7 @@ def perform_hp_tuning(config, data):
     # TODO: Since a lot of this is common to both methods, need to factor it
 
     rs_model_producer = lambda : models.rs_model(config.model)
-    Vmax_model = None # NOTE: only train gsCO2 for now TO CONFIG whether to use it?
+    Vmax_model = None # NOTE: only train gsCO2 for now TO CONFIG whether to use it? Probably not
 
     # choose a loss TO CONFIG ? maybe, not necessary
     loss_criterion = torch.nn.L1Loss()
@@ -101,7 +102,7 @@ def perform_hp_tuning(config, data):
     def model_producer():
         rs_model = rs_model_producer()
         pipeline = pipelines.make_pipeline(rs_model, Vmax_model, output_rs=False)
-        return pipeline, rs_model.parameters()
+        return pipeline, rs_model.parameters(), lambda: rs_model.eval()
 
     # perform K-Fold for the given set of hp
     # For now, use the entire data to perform k-fold
@@ -115,22 +116,21 @@ def perform_hp_tuning(config, data):
     lowest_score = np.inf
     best_hps = None
     for hp_set in grid_search_hp_iterator:
-        total_score = k_folds(data, model_producer, opt_producer, loss_criterion, iterator_producer, hp_set)
-        print(f"K-Fold total score = {total_score}")
+        total_score = k_folds(config.train, np.array(data), model_producer, opt_producer, loss_criterion, iterator_producer, hp_set)
+        print(f"K-Fold total score for hp-set {hp_set}: {total_score}")
         if total_score < lowest_score:
             lowest_score = total_score
             best_hps = hp_set
 
-    print(f"Finished hp-tuning: found best hp = {best_hps}, yielding score {lowest_score}")
+    print(f"Finished hp-tuning: found best hp-set = {best_hps}, yielding score {lowest_score}")
 
     return best_hps
 
 def train_and_evaluate_pipeline(config, data):
 
-    train_data, test_data = train_test_split(data, test_size=0.2) # TO CONFIG
+    train_data, test_data = train_test_split(data, test_size=config.train.test_split)
 
     rs_model = models.rs_model(config.model)
-    Vmax_model = None # NOTE: only train gsCO2 for now TO CONFIG whether to use it?
 
     # choose a loss TO CONFIG ? maybe, not necessary
     #loss = torch.nn.MSELoss()
@@ -147,7 +147,7 @@ def train_and_evaluate_pipeline(config, data):
     data_iterator = batch_ctx_dict_iterator(train_data, batch_size=config.train.batch_size)
 
     # build the pipeline around the specific models
-    model_wrapper = pipelines.make_pipeline(rs_model, Vmax_model, output_rs=False)
+    model_wrapper = pipelines.make_pipeline(rs_model, None, output_rs=False)
 
     eval_stride = 20 # NOTE: To config?
     # eval the model before training
@@ -186,10 +186,10 @@ def train_and_evaluate_pipeline(config, data):
     return rs_model, None
 
 # took inspiration from https://github.com/christianversloot/machine-learning-articles/blob/main/how-to-use-k-fold-cross-validation-with-pytorch.md
-def k_folds(data, model_producer, opt_producer, criterion, iterator_producer, hp_set):
+def k_folds(config, data, model_producer, opt_producer, criterion, iterator_producer, hp_set):
 
-    k = 5 # TO CONFIG
-    k_fold_epochs = 500 # TO CONFIG
+    k = config.k_folds
+    k_fold_epochs = config.k_folds_epochs
     total_score = 0.
     kfold = KFold(n_splits=k, shuffle=True)
 
@@ -199,10 +199,11 @@ def k_folds(data, model_producer, opt_producer, criterion, iterator_producer, hp
         # simply train the pipeline using data[train_ids] or something NOTE: Need to reset stuff like model, optimizer, etc.
         split_train_data = data[train_ids]
         iterator =  iterator_producer(split_train_data)
-        model, parameters = model_producer()
+        model, parameters, eval_lambda = model_producer()
         opt = opt_producer(parameters, hp_set)
         train_general(model, criterion, opt, k_fold_epochs, iterator)
         with torch.no_grad():
+            eval_lambda() # put the model in eval mode # NOTE: This is very bad practice, would be cleaner to have a class wrapper (decorator?) rather than a lambda
             test_data_iterator = data[test_ids]
             # evaluate with our eval function the test data
             eval_score = eval.eval_general(model, test_data_iterator, criterion)

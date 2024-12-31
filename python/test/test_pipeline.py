@@ -1,7 +1,7 @@
 import numpy as np
 import os
 
-from data import load_pipeline_data_dict
+from data import load_pipeline_data_dict_single_site
 from pipelines import make_pipeline
 from plot import time_series_plot
 
@@ -9,7 +9,7 @@ from plot import time_series_plot
 def debug_pipeline(base_path, site_name):
     #output_keys=["LE_CORR"]
     output_keys=["LE"]
-    LE_data = load_pipeline_data_dict(base_path, site_name, output_keys=output_keys, nPoints=10000) # NOTE: Could use LE_CORR
+    LE_data = load_pipeline_data_dict_single_site(base_path, site_name, output_keys=output_keys, nPoints=10000) # NOTE: Could use LE_CORR
     pipeline = make_pipeline(None, None, output_rs=False)
     groundtruth_rs = []
     groundtruth_LE = []
