@@ -1,3 +1,16 @@
+"""
+In this experiment, we exclude time-steps with negative measured flux in the dataset.
+NOTE: It could be the opposite (the baseline would be exclude, this experiment could be include)
+This one might be removed. Indeed, do we test on data with or without negative flux?
+Without, it makes little sense (we just make the dataset easier to learn).
+With, we can only expect results to be worse, as we didn't even give a chance to the model to learn
+and adapt to some of the data distribution.
+Also, the pipeline can predict negative flux, even though it's not always possible and depends on 
+the global variables (too annoying to check when it's possible to predict the output LE using the pipeline,
+amounts to a sensitivity study). But, perhaps rs is simply an proportional inversion of Q_LE assuming 
+other parameters are fixed. Then, perhaps there's a chance. But it seems too much work.
+"""
+
 model:
     n_hidden : 4
     hidden_size : 64 # NOTE: Perhaps replace with an array describing layers?

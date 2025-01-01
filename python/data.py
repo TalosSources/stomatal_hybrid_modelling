@@ -108,7 +108,7 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
     def is_valid_timestep(i):
         return  (
             not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan Q_LE values! 
-            #and not output_arrays[output_keys[0]][i] < 0. # Filter out negative Q_LE values! actually should we? our pipeline can actually output negative values
+            and (not config.exclude_negative or not output_arrays[output_keys[0]][i] < 0.) # Filter out negative Q_LE values! actually should we? our pipeline can actually output negative values
             # NOTE: Perhaps add some more checks if needed 
         )
     

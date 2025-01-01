@@ -15,7 +15,7 @@ import differentiable_relations
 
 
 
-def make_pipeline(rs_model, Vmax_model, output_rs=False):
+def make_pipeline(rs_model, gsco2_model, Vmax_model, output_rs=False):
 
     # this pipeline calls the pb module with the 2 models inserted, using the constants and predictors as inputs, 
     # and computes Q_LE from the outputs 
@@ -25,7 +25,7 @@ def make_pipeline(rs_model, Vmax_model, output_rs=False):
     # Actual call to the pb and PM modules, called for each ctx
     def subpipeline(predictors):
         pb_predictors = {k: v for k, v in predictors.items() if k in pb_params}
-        rs = pb(**pb_predictors, rs_model=rs_model, Vmax_model=Vmax_model)
+        rs = pb(**pb_predictors, rs_model=rs_model, gsCO2_model=gsco2_model, Vmax_model=Vmax_model)
 
         qle_predictors = {k: v for k, v in predictors.items() if k in qle_params}
         qle_predictors.__delitem__("rs") # TODO: temporary debug fix. will need to remove rs from predictors one day

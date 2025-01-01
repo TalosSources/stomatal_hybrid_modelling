@@ -1,3 +1,9 @@
+"""
+In this experiment, we use a parametrized FCN to predict 
+gsCO2 instead of rs, and then perform linear phyiscal operations
+on the predicted gsCO2 to obtain rs
+"""
+
 model:
     n_hidden : 4
     hidden_size : 64 # NOTE: Perhaps replace with an array describing layers?
