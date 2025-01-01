@@ -101,7 +101,10 @@ def perform_hp_tuning(config, data):
     # build the pipeline around the specific models
     def model_producer():
         rs_model = rs_model_producer()
-        pipeline = pipelines.make_pipeline(rs_model, Vmax_model, output_rs=False)
+        if config.pipeline.predict_rs:
+            pipeline = pipelines.make_pipeline(rs_model, None, None, output_rs=False)
+        else:
+            pipeline = pipelines.make_pipeline(None, rs_model, None, output_rs=False)
         return pipeline, rs_model.parameters(), lambda: rs_model.eval()
 
     # perform K-Fold for the given set of hp
@@ -147,7 +150,11 @@ def train_and_evaluate_pipeline(config, data):
     data_iterator = batch_ctx_dict_iterator(train_data, batch_size=config.train.batch_size)
 
     # build the pipeline around the specific models
-    model_wrapper = pipelines.make_pipeline(rs_model, None, output_rs=False)
+    # NOTE: Doing it like this is poor nomenclature, it would be better to rename it as something like 'learnable_module'
+    if config.pipeline.predict_rs:
+        model_wrapper = pipelines.make_pipeline(rs_model, None, None, output_rs=False)
+    else:
+        model_wrapper = pipelines.make_pipeline(None, rs_model, None, output_rs=False)
 
     eval_stride = 20 # NOTE: To config?
     # eval the model before training

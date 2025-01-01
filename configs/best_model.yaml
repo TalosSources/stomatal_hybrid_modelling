@@ -1,3 +1,6 @@
+# This config describes the best performing model yet
+# To be updated depending on the results of other experiments
+
 model:
     n_hidden : 4
     hidden_size : 64 # NOTE: Perhaps replace with an array describing layers?
@@ -7,12 +10,10 @@ model:
 data: # (does it need to be nested?)
     sites : ["CH-Dav", "AR-Vir", "AU-Ade", "AU-Stp"] 
     base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
-    nPoints : 500 # -> decide if we want to truncate, what to do in training?
-    exclude_negative : False
+    nPoints : 50000 # -> decide if we want to truncate, what to do in training?
 
 pipeline:
     use_vmax : False
-    predict_rs: True # If false, we predict gsCO2 instead, and perform physical operations to obtain rs.
 
 train:
     lr: 1e-3
