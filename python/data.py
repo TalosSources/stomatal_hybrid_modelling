@@ -32,7 +32,7 @@ def load_pipeline_data_dict_from_all_sites(config, predictor_keys=None, constant
 
         load_pipeline_data_dict_single_site(predictor_path, observation_path, data, config.nPoints, 
             predictor_keys=predictor_keys, constant_keys=constant_keys, output_keys=output_keys,
-            global_keys=global_keys, verbose=verbose)
+            global_keys=global_keys, verbose=verbose, exclude_negative_outputs=config.exclude_negative)
         
     return data
 
@@ -42,7 +42,7 @@ The data is a dict from param_names to large arrays of values.
 We transform it into a large array of dicts (and perform some translation and constant handling)
 """
 def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, nPoints = None, predictor_keys=None, 
-                        constant_keys=None, output_keys=None, global_keys=None, verbose=False):
+                        constant_keys=None, output_keys=None, global_keys=None, verbose=False, exclude_negative_outputs=False):
     
     # load dat from both mat files
     predictor_data = scipy.io.loadmat(predictor_path)
@@ -108,7 +108,7 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
     def is_valid_timestep(i):
         return  (
             not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan Q_LE values! 
-            and (not config.exclude_negative or not output_arrays[output_keys[0]][i] < 0.) # Filter out negative Q_LE values! actually should we? our pipeline can actually output negative values
+            and (not exclude_negative_outputs or not output_arrays[output_keys[0]][i] < 0.) # Filter out negative Q_LE values! actually should we? our pipeline can actually output negative values
             # NOTE: Perhaps add some more checks if needed 
         )
     

@@ -14,6 +14,8 @@ import plot
 import eval
 import utils
 
+import time
+
 """
 General torch training method.
 Args:
@@ -86,7 +88,8 @@ def perform_hp_tuning(config, data):
 
     # TODO: Since a lot of this is common to both methods, need to factor it
 
-    rs_model_producer = lambda : models.rs_model(config.model)
+    rs_model_producer = lambda hps : models.rs_model(hidden_size=hps['hidden_size'], n_hidden=hps['n_hidden'], 
+                                        activation=config.model.activation, batch_norm=hps['batch_norm'])
     Vmax_model = None # NOTE: only train gsCO2 for now TO CONFIG whether to use it? Probably not
 
     # choose a loss TO CONFIG ? maybe, not necessary
@@ -99,8 +102,8 @@ def perform_hp_tuning(config, data):
     iterator_producer = lambda data : batch_ctx_dict_iterator(data, batch_size=config.train.batch_size)
 
     # build the pipeline around the specific models
-    def model_producer():
-        rs_model = rs_model_producer()
+    def model_producer(hps):
+        rs_model = rs_model_producer(hps)
         if config.pipeline.predict_rs:
             pipeline = pipelines.make_pipeline(rs_model, None, None, output_rs=False)
         else:
@@ -111,29 +114,41 @@ def perform_hp_tuning(config, data):
     # For now, use the entire data to perform k-fold
     
     # dict hp_name -> list of values
-    param_possible_values = {'lr' : config.train.lr, 'weight_decay' : config.train.weight_decay}
+    param_possible_values = {'lr' : config.train.lr, 'weight_decay' : config.train.weight_decay, 
+        'n_hidden' : config.model.n_hidden, 'hidden_size': config.model.hidden_size, 'batch_norm': config.model.batch_norm}
 
     # iterator that gives all possible combinations
     grid_search_hp_iterator = utils.grid_search_iterator(param_possible_values)
 
     lowest_score = np.inf
     best_hps = None
+    losses = {}
+    benchmarks = {}
+    coeffs_determination = {}
     for hp_set in grid_search_hp_iterator:
-        total_score = k_folds(config.train, np.array(data), model_producer, opt_producer, loss_criterion, iterator_producer, hp_set)
+        total_score, loss, benchmark, coeff_determination = k_folds(config.train, np.array(data), model_producer, opt_producer, loss_criterion, iterator_producer, hp_set)
         print(f"K-Fold total score for hp-set {hp_set}: {total_score}")
         if total_score < lowest_score:
             lowest_score = total_score
             best_hps = hp_set
 
+        hp_set_string = utils.hp_set_to_string(hp_set)
+        losses[hp_set_string] = loss
+        benchmarks[hp_set_string] = benchmark
+        coeffs_determination[hp_set_string] = coeff_determination
+
     print(f"Finished hp-tuning: found best hp-set = {best_hps}, yielding score {lowest_score}")
 
-    return best_hps
+    # losses is a dict hp_set_string -> array of losses
+    # benchmarks is a dict hp_set_string -> execution time 
+
+    return best_hps, losses, benchmarks, coeffs_determination
 
 def train_and_evaluate_pipeline(config, data):
 
     train_data, test_data = train_test_split(data, test_size=config.train.test_split)
 
-    rs_model = models.rs_model(config.model)
+    rs_model = models.rs_model_from_config(config.model)
 
     # choose a loss TO CONFIG ? maybe, not necessary
     #loss = torch.nn.MSELoss()
@@ -174,7 +189,10 @@ def train_and_evaluate_pipeline(config, data):
 
     # train the whole pipeline
     rs_model.train()
+    start = time.time()
     losses = train_general(model_wrapper, loss_criterion, opt, config.train.epochs, data_iterator, wandb_run=run)
+    end = time.time()
+    benchmark = end - start # training time in seconds
 
     # eval the model after training
     rs_model.eval()
@@ -182,7 +200,7 @@ def train_and_evaluate_pipeline(config, data):
     print(f"Eval after training: {eval_after_training}")
 
     # eval the empirical model (for comparaison)
-    empirical_model_wrapper = pipelines.make_pipeline(None, None, output_rs=False)
+    empirical_model_wrapper = pipelines.make_pipeline(None, None, None, output_rs=False)
     eval_empirical_model = eval.eval_general(empirical_model_wrapper, test_data[::eval_stride], loss_criterion)
     print(f"Eval empirical model: {eval_empirical_model}")
 
@@ -190,7 +208,7 @@ def train_and_evaluate_pipeline(config, data):
     plot.plot_losses(losses)
 
     # return rs_model, Vmax_model
-    return rs_model, None
+    return rs_model, losses, benchmark
 
 # took inspiration from https://github.com/christianversloot/machine-learning-articles/blob/main/how-to-use-k-fold-cross-validation-with-pytorch.md
 def k_folds(config, data, model_producer, opt_producer, criterion, iterator_producer, hp_set):
@@ -200,25 +218,34 @@ def k_folds(config, data, model_producer, opt_producer, criterion, iterator_prod
     total_score = 0.
     kfold = KFold(n_splits=k, shuffle=True)
 
+    losses = torch.tensor(0.)
+    benchmarks = 0
+    coeff_determination = 0
+
     for train_ids, test_ids in kfold.split(data):
         # then they use handy batch methods that I could use elsewhere also
 
         # simply train the pipeline using data[train_ids] or something NOTE: Need to reset stuff like model, optimizer, etc.
         split_train_data = data[train_ids]
         iterator =  iterator_producer(split_train_data)
-        model, parameters, eval_lambda = model_producer()
+        model, parameters, eval_lambda = model_producer(hp_set)
         opt = opt_producer(parameters, hp_set)
-        train_general(model, criterion, opt, k_fold_epochs, iterator)
+        start = time.time()
+        loss = train_general(model, criterion, opt, k_fold_epochs, iterator)
+        end = time.time()
+        losses += torch.tensor(losses)
+        benchmarks += (end - start)
         with torch.no_grad():
             eval_lambda() # put the model in eval mode # NOTE: This is very bad practice, would be cleaner to have a class wrapper (decorator?) rather than a lambda
             test_data_iterator = data[test_ids]
             # evaluate with our eval function the test data
             eval_score = eval.eval_general(model, test_data_iterator, criterion)
             print(f"Finished a fold, got result={eval_score}")
+            coeff_determination += eval.coefficient_of_determination(model, test_data_iterator)
             total_score += eval_score
     
     # average the results over trains?
-    return total_score / k
+    return total_score / k, loss / k, benchmarks / k, coeff_determination / k
 
 
     

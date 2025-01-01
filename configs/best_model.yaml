@@ -23,9 +23,11 @@ train:
     test_split: 0.2
     hp_tuning: False # If this is true, hyperparameters are expected to be arrays.
 
+name: best_model
+
 wandb:
   use_wandb: False
   project: "change-project"
-  tags: ['default_config']
+  tags: ['best_model']
 
 model_weights_path: "model_weights/default_model.pt"

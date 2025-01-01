@@ -16,7 +16,7 @@ pipeline:
 
 train:
     lr: 1e-3
-    epochs: 1000
+    epochs: 100
     weight_decay: 1e-4
     batch_size: 100
     test_split: 0.2
@@ -27,4 +27,4 @@ wandb:
   project: "change-project"
   tags: ['default_config']
 
-model_weights_path: "model_weights/default_model.pt"
+name: default

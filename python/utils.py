@@ -1,5 +1,6 @@
 from itertools import product
 import numpy as np
+import os
 
 def printGradInfo(x, name):
     print(f"{name} value: {x}")
@@ -54,3 +55,41 @@ def group_by_ctx_id(data):
         probs.append(size / total_length)
 
     return grouped_data, probs
+
+def hp_set_to_string(hp_set):
+    # hp set is param_name -> value.
+    # the value is usually a number but not always?
+    s = ""
+    for param, val in hp_set.items():
+        s += f"{param}-{val}_"
+    return s
+
+def save_losses(losses, results_path, suffix=''):
+    losses = np.array(losses)
+    if suffix != '':
+        suffix = '_' + suffix
+    np.save(os.path.join(results_path, f"losses{suffix}"), losses)
+
+def save_multiple_benchmarks(benchmarks, results_path):
+    path = os.path.join(results_path, "benchmark.txt")
+    with open(path, "w") as text_file:
+        for name, val in benchmarks.items():
+            text_file.write(f"{name} : {val} [s]\n")
+
+def save_single_benchmark(benchmark, results_path):
+    path = os.path.join(results_path, "benchmark.txt")
+    with open(path, "w") as text_file:
+        text_file.write(f"{benchmark} [s]\n")
+
+def save_coeffs_of_determination(coeffs, results_path):
+    path = os.path.join(results_path, "coefficients_of_determination.txt")
+    with open(path, "w") as text_file:
+        for name, val in coeffs.items():
+            text_file.write(f"{name} : {val}\n")
+
+def save_best_hps(hps, results_path):
+    path = os.path.join(results_path, "best_hyperparameters.txt")
+    with open(path, "w") as text_file:
+        for name, val in hps.items():
+            text_file.write(f"{name} : {val}\n")
+

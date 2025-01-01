@@ -1,0 +1,4 @@
+lr-0.1_weight_decay-0.0001_n_hidden-2_hidden_size-32_batch_norm-False_ : 0.5412567456563314 [s]
+lr-0.1_weight_decay-1e-06_n_hidden-2_hidden_size-32_batch_norm-False_ : 0.520500659942627 [s]
+lr-0.01_weight_decay-0.0001_n_hidden-2_hidden_size-32_batch_norm-False_ : 0.5161869525909424 [s]
+lr-0.01_weight_decay-1e-06_n_hidden-2_hidden_size-32_batch_norm-False_ : 0.5216511090596517 [s]

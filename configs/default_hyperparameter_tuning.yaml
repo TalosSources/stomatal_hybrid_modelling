@@ -1,26 +1,31 @@
 model:
-    n_hidden : 2
-    hidden_size : 32 # NOTE: Perhaps replace with an array describing layers?
-    batch_norm : True # NOTE: Can't be True if batch_size==1. We may add an assertion for this
+    n_hidden : [2, 4]
+    hidden_size : [32, 64] # NOTE: Perhaps replace with an array describing layers?
+    batch_norm : [True, False] # NOTE: Can't be True if batch_size==1. We may add an assertion for this
     activation : 'ReLU'
 
 data: # (does it need to be nested?)
     sites : ["CH-Dav", "AR-Vir", "AU-Ade", "AU-Stp"] 
     base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
     nPoints : 1000 # -> decide if we want to truncate, what to do in training?
+    exclude_negative : False
 
 pipeline:
     use_vmax : False
+    predict_rs: True # If false, we predict gsCO2 instead, and perform physical operations to obtain rs.
 
 train:
     lr: [1e-1, 1e-2]
     weight_decay: [1e-4, 1e-6]
     batch_size: 10
-    k_folds: 5
-    k_folds_epochs: 100 # may be less than the large train epochs to save time
+    k_folds: 3
+    k_folds_epochs: 50 # may be less than the large train epochs to save time
     hp_tuning: True # If this is true, hyperparameters are expected to be arrays.
 
 wandb:
   use_wandb: False
   project: "change-project"
   tags: ['default_config']
+
+name:
+    hyper_parameter_tuning

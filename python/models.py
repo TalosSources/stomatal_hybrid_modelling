@@ -28,7 +28,10 @@ class FCN(torch.nn.Module):
         return x
 
 
-def rs_model(config):
+def rs_model_from_config(config):
+    return rs_model(config.hidden_size, config.n_hidden, config.activation, config.batch_norm)
+
+def rs_model(hidden_size, n_hidden, activation, batch_norm):
     """
     Ideas for improvement:
     * weight decay? normalisation? that kind of stuff
@@ -43,8 +46,8 @@ def rs_model(config):
     activation_map = {
         "ReLU" : torch.nn.ReLU
     }
-    layers = [input_dim] + [config.hidden_size]*config.n_hidden + [output_dim]
-    return FCN(layers, activation_map[config.activation](), batch_norm=config.batch_norm)
+    layers = [input_dim] + [hidden_size]*n_hidden + [output_dim]
+    return FCN(layers, activation_map[activation](), batch_norm=batch_norm)
 
 def vm_model():
     input_dim = 2
