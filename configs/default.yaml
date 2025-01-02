@@ -5,21 +5,21 @@ model:
     activation : 'ReLU'
 
 data: # (does it need to be nested?)
-    sites : ["CH-Dav", "AR-Vir", "AU-Ade", "AU-Stp"] 
+    sites : ["CN-Du2", "US-Me2", "CH-Dav", "ES-Amo", "AU-Wac", "AU-Stp", "GF-Guy"] 
     base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
-    nPoints : 500 # -> decide if we want to truncate, what to do in training?
+    nPoints : 50000 # -> decide if we want to truncate, what to do in training?
     exclude_negative : False
 
 pipeline:
-    use_vmax : False
-    predict_rs: True # If false, we predict gsCO2 instead, and perform physical operations to obtain rs.
+    predict_rs: True # If false, we predict gsCO2 instead, and convert it to rs.
 
 train:
     lr: 1e-3
-    epochs: 100
+    epochs: 2000
     weight_decay: 1e-4
-    batch_size: 100
+    batch_size: 1000
     test_split: 0.2
+    random_state: 24 # Assuming the data loading doesn't change, this ensures the test_split will be the same.
     hp_tuning: False # If this is true, hyperparameters are expected to be arrays.
 
 wandb:

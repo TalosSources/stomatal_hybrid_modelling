@@ -12,8 +12,11 @@ AUTOMATICALLY DIFFERENTIABLE TRANSLATION OF THE MODULE OF THE SAME NAME
 IN T&C, FROM MATLAB TO PYTHON
 Args:
     * All the args from the matlab module, torch tensors (scalars or batches)
-    * gsCO2_model: parametrized model for gsCO2 (or rs? TO CONFIG)
-        taking as input 6 numbers (An,Pre,Cc,GAM,Ds,Do). If None, uses the empirical model for gsCO2
+    * rs_model: parametrized model for rs 
+        taking as input 7 numbers (An,Pre,Cc,GAM,Ds,Do, Ts)
+    * gsCO2_model: parametrized model for gsCO2 
+        taking as input 6 numbers (An,Pre,Cc,GAM,Ds,Do)
+    If rs_model and gsCO2_model are both None, we use the empirical formulation for rs.
     * Vmax_model: For now, always expected to be None
 Output:
     rs : prediction of the stomatal resistance
@@ -215,12 +218,10 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     2 Options: 
         1. simply predict rs directly, don't predict gsCO2 first.
         we rescale the predictors and output by their expected magnitude, for more homogeneous features.
-        TODO: rs may depend on other variables: Tf, Ts, Pre0, go, a1 ?
         2. predict gsCO2, and then map it to rs using physical laws.
     """
     if rs_model is not None:
-        predictors = torch.stack([An * 1e2,Pre * 1e-4,Cc * 1e-1,GAM * 1e1,Ds * 1e-1,Do * 1e-2], dim=-1)
-        #predictors[predictors.isnan()] = 0. # Crude fix in case of poor data. In practice, shouldn't change anything
+        predictors = torch.stack([An * 1e2,Pre * 1e-4,Cc * 1e-1,GAM * 1e1,Ds * 1e-1,Do * 1e-2, Ts], dim=-1)
         model_output = rs_model(predictors).squeeze()
 
         # tests to make the model_output behave better with gradient descent
@@ -231,22 +232,19 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         return rs
     else:
         if gsCO2_model is not None:
-            predictors = torch.stack([An,Pre,Cc,GAM,Ds,Do])
-            predictors[predictors.isnan()] = 0.
+            predictors = torch.stack([An * 1e2,Pre * 1e-4,Cc * 1e-1,GAM * 1e1,Ds * 1e-1,Do * 1e-2], dim=-1)
             model_output = gsCO2_model(predictors).squeeze() # We are unfortunately always truncated. NOTE: Does this impact the gradient?
+            model_output = torch.nn.functional.softplus(model_output)
             gsCO2 = go + a1 * model_output
         else:
             # EMPIRICAL MODEL
             gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
         
-        # TODO: Activate again (if we want the gsco2 pipeline) (choose what to do) QUESTION: Is gsCO2 an array? can it hold more than one value? 
-        # NOTE: Disable for training? Can it pass gradients? Why can't we have this? we get : 
-        # {RuntimeError: shape mismatch: value tensor of shape [8] cannot be broadcast to indexing result of shape [0]}
-        #gsCO2[gsCO2<go]=go 
+        # For differentiability, we should use something like softplus centered on go
+        gsCO2 = torch.max(gsCO2, go)
 
         # Convert the stomatal conductance to the stomatal resistance
         rsCO2=1/gsCO2 ### [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
         rsH20 = (rsCO2/1.64)*(1e6) ### [ s m^2 / molH20 ] Stomatal resistence or canopy 
         rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0) ## [s/m]  Stomatal resistence or Canopy [convert stomatal resistence in terms of water volumes into another unit]
-
         return rs

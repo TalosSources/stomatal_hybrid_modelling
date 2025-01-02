@@ -86,11 +86,14 @@ Return the best performing hp-set
 """
 def perform_hp_tuning(config, data):
 
+    # split the data to avoid tuning with the final testing data
+    data, _ = train_test_split(data, test_size=config.train.test_split, random_state=config.train.random_state)
+
     # TODO: Since a lot of this is common to both methods, need to factor it
 
-    rs_model_producer = lambda hps : models.rs_model(hidden_size=hps['hidden_size'], n_hidden=hps['n_hidden'], 
+    model_func = models.rs_model if config.pipeline.predict_rs else models.gsCO2_model
+    sub_model_producer = lambda hps : model_func(hidden_size=hps['hidden_size'], n_hidden=hps['n_hidden'], 
                                         activation=config.model.activation, batch_norm=hps['batch_norm'])
-    Vmax_model = None # NOTE: only train gsCO2 for now TO CONFIG whether to use it? Probably not
 
     # choose a loss TO CONFIG ? maybe, not necessary
     loss_criterion = torch.nn.L1Loss()
@@ -103,7 +106,7 @@ def perform_hp_tuning(config, data):
 
     # build the pipeline around the specific models
     def model_producer(hps):
-        rs_model = rs_model_producer(hps)
+        rs_model = sub_model_producer(hps)
         if config.pipeline.predict_rs:
             pipeline = pipelines.make_pipeline(rs_model, None, None, output_rs=False)
         else:
@@ -146,9 +149,9 @@ def perform_hp_tuning(config, data):
 
 def train_and_evaluate_pipeline(config, data):
 
-    train_data, test_data = train_test_split(data, test_size=config.train.test_split)
+    train_data, test_data = train_test_split(data, test_size=config.train.test_split, random_state=config.train.random_state)
 
-    rs_model = models.rs_model_from_config(config.model)
+    model = models.rs_model_from_config(config.model) if config.pipeline.predict_rs else models.gsCO2_model_from_config(config.model)
 
     # choose a loss TO CONFIG ? maybe, not necessary
     #loss = torch.nn.MSELoss()
@@ -157,7 +160,7 @@ def train_and_evaluate_pipeline(config, data):
     # choose an optimizer TO CONFIG ? maybe, not necessary
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
     #opt = torch.optim.SGD(gsCO2_model.parameters(), lr=lr, , weight_decay=weight_decay)
-    opt = torch.optim.Adam(rs_model.parameters(), lr=config.train.lr, weight_decay=config.train.weight_decay)
+    opt = torch.optim.Adam(model.parameters(), lr=config.train.lr, weight_decay=config.train.weight_decay)
 
     # choose a data iterator TO CONFIG ? maybe, not necessary
     # data_iterator = iter(train_data)
@@ -167,15 +170,15 @@ def train_and_evaluate_pipeline(config, data):
     # build the pipeline around the specific models
     # NOTE: Doing it like this is poor nomenclature, it would be better to rename it as something like 'learnable_module'
     if config.pipeline.predict_rs:
-        model_wrapper = pipelines.make_pipeline(rs_model, None, None, output_rs=False)
+        model_wrapper = pipelines.make_pipeline(model, None, None, output_rs=False)
     else:
-        model_wrapper = pipelines.make_pipeline(None, rs_model, None, output_rs=False)
+        model_wrapper = pipelines.make_pipeline(None, model, None, output_rs=False)
 
-    eval_stride = 20 # NOTE: To config?
+    eval_stride = 1 # NOTE: TO CONFIG?
     # eval the model before training
-    #rs_model.eval() # NOTE: Would be better for the wrapper to offer this method. perhaps the wrapper should simply inherit from nn.module()
-    #eval_before_training = eval.eval_general(model_wrapper, train_data, loss_criterion)
-    #print(f"Eval before training: {eval_before_training}")
+    model.eval() # NOTE: Would be better for the wrapper to offer this method. perhaps the wrapper should simply inherit from nn.module()
+    eval_before_training = eval.eval_general(model_wrapper, train_data, loss_criterion)
+    print(f"Eval before training: {eval_before_training}")
 
     # Init wandb
     # NOTE: Consider moving it in the other method, train_pipeline
@@ -188,27 +191,36 @@ def train_and_evaluate_pipeline(config, data):
         )
 
     # train the whole pipeline
-    rs_model.train()
+    model.train()
     start = time.time()
     losses = train_general(model_wrapper, loss_criterion, opt, config.train.epochs, data_iterator, wandb_run=run)
     end = time.time()
     benchmark = end - start # training time in seconds
 
     # eval the model after training
-    rs_model.eval()
+    model.eval()
     eval_after_training = eval.eval_general(model_wrapper, test_data[::eval_stride], loss_criterion)
     print(f"Eval after training: {eval_after_training}")
+
+    eval_after_training_train = eval.eval_general(model_wrapper, train_data[::eval_stride], loss_criterion)
+    print(f"Eval after training on train data (to check overfitting): {eval_after_training_train}")
 
     # eval the empirical model (for comparaison)
     empirical_model_wrapper = pipelines.make_pipeline(None, None, None, output_rs=False)
     eval_empirical_model = eval.eval_general(empirical_model_wrapper, test_data[::eval_stride], loss_criterion)
     print(f"Eval empirical model: {eval_empirical_model}")
 
+    # Eval the R² score (for information)
+    model_coeff = eval.coefficient_of_determination(model_wrapper, test_data[::eval_stride])
+    empirical_coeff = eval.coefficient_of_determination(empirical_model_wrapper, test_data[::eval_stride])
+    print(f"Coefficient of determination after training: {model_coeff}")
+    print(f"Coefficient of determination of empirical model: {empirical_coeff}")
+
     # show info about loss (optional)
     plot.plot_losses(losses)
 
     # return rs_model, Vmax_model
-    return rs_model, losses, benchmark
+    return model, losses, benchmark
 
 # took inspiration from https://github.com/christianversloot/machine-learning-articles/blob/main/how-to-use-k-fold-cross-validation-with-pytorch.md
 def k_folds(config, data, model_producer, opt_producer, criterion, iterator_producer, hp_set):
@@ -302,33 +314,7 @@ def ctx_dict_batch(dict_array, batch_size):
     batch_indices = np.random.choice(len(dict_array), batch_size, replace=False)
     batch = dict_array[batch_indices]
 
-    # predictors is an array of size batch_size of (ctx_dict, global_dict) values
-    # y is an array of size batch_size of y values
-    predictors, outputs = zip(*batch)
-
-    # outputs_batch is already a y tensor in the form we want it
-    outputs_batch = torch.tensor(outputs) 
-
-    # ctx_dicts is an array of size batch_size of ctx_dict values, same for global_dicts
-    ctx_dicts, global_dicts = zip(*predictors)
-
-    # for each key present in global_dicts, we collect all the batch_size values for this key in a single tensor
-    # and map the key to that tensor
-    global_batch = {key: torch.tensor([global_dict[key] for global_dict in global_dicts]) 
-                  for key in global_dicts[0].keys()}
-    
-    # for each ctx present in ctx_dicts, and for each key present for this ctx,
-    # aggregate all these values into a tensor, and map the corresponding key to this tensor,
-    # and the corresponding ctx to this predictor_dict. 
-    ctx_batch = {
-        ctx: {
-            key: torch.tensor([ctx_dict[ctx][key] for ctx_dict in ctx_dicts]) 
-            for key in ctx_dicts[0][ctx].keys()
-        }
-        for ctx in ctx_dicts[0].keys()
-    }
-
-    return ((ctx_batch, global_batch), outputs_batch)
+    return utils.make_batch(batch)
 
 def check_gradients(module : torch.nn.Module):
     for name, param in module.named_parameters():

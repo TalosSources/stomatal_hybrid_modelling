@@ -58,7 +58,7 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
     # Prepare the default keys
     if predictor_keys is None:
         predictor_keys = ["Cc", "IPAR", "Csl", "ra", "rb", "Ts", "Pre", 
-                          "Ds", "Psi_L", "Rn", "QG", "rs", "Vmax"] # NOTE: added rs for debugging 
+                          "Ds", "Psi_L", "Rn", "QG", "Vmax"] 
     if constant_keys is None:
         constant_keys = ["Psi_sto_50", "Psi_sto_00", "CT", 
      "Ha", "FI", "Oa", "Do", "a1", "go", "gmes", "rjv", "DS"]
@@ -104,7 +104,7 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
         for k in output_keys
     }
 
-    # Check whether a data point is valid. maybe TO CONFIG which check to perform
+    # Check whether a data point is valid.
     def is_valid_timestep(i):
         return  (
             not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan Q_LE values! 
@@ -112,7 +112,7 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
             # NOTE: Perhaps add some more checks if needed 
         )
     
-    # Check whether a ctx for a specific timestep is valid. maybe TO CONFIG which check to perform
+    # Check whether a ctx for a specific timestep is valid.
     def is_valid_context(ctx, i):
         return (
             predictor_arrays[ctx]['ra'][i] != 0. # ra is in the denom of the PM equation: can't be 0.
@@ -134,6 +134,7 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
     # global_dict maps global variables -> single number
     # single_pipeline_dict maps ctx -> predictor_dict
     # output is a single number (for now?)
+    start_idx = len(data)
     for i in range(nPoints):
         # perform ctx checks, to find valid contexts
         valid_ctxs = [ctx for ctx in ctxs if is_valid_context(ctx, i)]
@@ -192,8 +193,8 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
 
         print("--------------FINAL FILTERED SHAPES-------------")
 
-        print(f"n_points after filter: {len(data)}")
-        print(f"first {print_k_points} data points:\n{data[:print_k_points]}")
+        print(f"n_points after filter: {len(data) - start_idx}")
+        print(f"first {print_k_points} data points:\n{data[start_idx:start_idx+print_k_points]}")
 
 
 

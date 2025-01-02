@@ -28,7 +28,6 @@ def make_pipeline(rs_model, gsco2_model, Vmax_model, output_rs=False):
         rs = pb(**pb_predictors, rs_model=rs_model, gsCO2_model=gsco2_model, Vmax_model=Vmax_model)
 
         qle_predictors = {k: v for k, v in predictors.items() if k in qle_params}
-        qle_predictors.__delitem__("rs") # TODO: temporary debug fix. will need to remove rs from predictors one day
 
         # COMPUTE Q_LE USING THE ESTIMATED RS
         Q_LE = differentiable_relations.Q_LE(rs=rs, **qle_predictors)

@@ -39,7 +39,28 @@ def rs_model(hidden_size, n_hidden, activation, batch_norm):
     * proper recurrent network?
     * read the ML course again
     """
-    input_dim = 6
+    input_dim = 7
+    output_dim = 1
+
+    # Architecture is specified in the config
+    activation_map = {
+        "ReLU" : torch.nn.ReLU
+    }
+    layers = [input_dim] + [hidden_size]*n_hidden + [output_dim]
+    return FCN(layers, activation_map[activation](), batch_norm=batch_norm)
+
+def gsCO2_model_from_config(config):
+    return gsCO2_model(config.hidden_size, config.n_hidden, config.activation, config.batch_norm)
+
+def gsCO2_model(hidden_size, n_hidden, activation, batch_norm):
+    """
+    Ideas for improvement:
+    * weight decay? normalisation? that kind of stuff
+    * random forest?
+    * proper recurrent network?
+    * read the ML course again
+    """
+    input_dim = 6 # the only difference with the rs_model
     output_dim = 1
 
     # Architecture is specified in the config

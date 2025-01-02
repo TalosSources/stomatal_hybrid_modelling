@@ -1,5 +1,6 @@
 from itertools import product
 import numpy as np
+import torch
 import os
 
 def printGradInfo(x, name):
@@ -40,6 +41,10 @@ def group_by_ctx_id(data):
         x, _ = t
         ctx_preds, _ = x
         id = compute_ctx_set_id(ctx_preds.keys())
+        for p in ctx_preds.values():
+            if p['CT'] == 3: # differentiate between CT==3 and CT==4
+                id += 2**4
+            break
         if id not in grouped_data:
             grouped_data[id] = []
         grouped_data[id].append(t)
@@ -51,10 +56,50 @@ def group_by_ctx_id(data):
     total_length = len(data)
     for i in range(len(grouped_data)):
         size = len(grouped_data[i])
-        grouped_data[i] = np.array(grouped_data[i])
+        grouped_data[i] = np.array(grouped_data[i], dtype=object)
         probs.append(size / total_length)
 
     return grouped_data, probs
+
+"""
+given a list of datapoints in the usual format (tuple preds, output, with global, ctx, etc.) 
+Returns a batch in the usual format, containing tensors instead of single points.
+Assumes all given datapoints share the same context set
+"""
+def make_batch(data):
+
+    # predictors is an array of size batch_size of (ctx_dict, global_dict) values
+    # y is an array of size batch_size of y values
+    predictors, outputs = zip(*data)
+
+    # outputs_batch is already a y tensor in the form we want it
+    outputs_tensor = torch.tensor(outputs) 
+
+    # ctx_dicts is an array of size batch_size of ctx_dict values, same for global_dicts
+    ctx_dicts, global_dicts = zip(*predictors)
+
+    # for each key present in global_dicts, we collect all the batch_size values for this key in a single tensor
+    # and map the key to that tensor
+    global_data = {key: torch.tensor([global_dict[key] for global_dict in global_dicts]) 
+                  for key in global_dicts[0].keys()}
+    
+    # for each ctx present in ctx_dicts, and for each key present for this ctx,
+    # aggregate all these values into a tensor, and map the corresponding key to this tensor,
+    # and the corresponding ctx to this predictor_dict. 
+    ctx_data = {
+        ctx: {
+            key: torch.tensor([ctx_dict[ctx][key] for ctx_dict in ctx_dicts]) 
+            for key in ctx_dicts[0][ctx].keys()
+        }
+        for ctx in ctx_dicts[0].keys()
+    }
+
+    return ((ctx_data, global_data), outputs_tensor)
+
+def make_eval_batches(data):
+    grouped_data, _ = group_by_ctx_id(data)
+    return [make_batch(ctx_data) for ctx_data in grouped_data]
+
 
 def hp_set_to_string(hp_set):
     # hp set is param_name -> value.
