@@ -1,7 +1,7 @@
 model:
-    n_hidden : 4
-    hidden_size : 128 # NOTE: Perhaps replace with an array describing layers?
-    batch_norm : True # NOTE: Can't be True if batch_size==1. We may add an assertion for this
+    n_hidden : [4]
+    hidden_size : [128] # NOTE: Perhaps replace with an array describing layers?
+    batch_norm : [True] # NOTE: Can't be True if batch_size==1. We may add an assertion for this
     activation : 'ReLU'
 
 data: # (does it need to be nested?)
@@ -14,17 +14,19 @@ pipeline:
     predict_rs: True # If false, we predict gsCO2 instead, and convert it to rs.
 
 train:
-    lr: 1e-3
-    epochs: 4000
-    weight_decay: 1e-6
+    lr: [1e-3]
+    weight_decay: [1e-5, 1e-6]
     batch_size: 1000
+    k_folds: 3
+    k_folds_epochs: 2500 # may be less than the large train epochs to save time
     test_split: 0.2
     random_state: 24 # Assuming the data loading doesn't change, this ensures the test_split will be the same.
-    hp_tuning: False # If this is true, hyperparameters are expected to be arrays.
+    hp_tuning: True # If this is true, hyperparameters are expected to be arrays.
 
 wandb:
   use_wandb: False
   project: "change-project"
-  tags: ['best_model']
+  tags: ['lr_wd_tuning_fine']
 
-name: best_model
+name:
+    lr_wd_tuning_fine

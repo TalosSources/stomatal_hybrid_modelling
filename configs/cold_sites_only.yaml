@@ -1,8 +1,6 @@
-"""
-In this experiment, we use a parametrized FCN to predict 
-gsCO2 instead of rs, and then perform linear phyiscal operations
-on the predicted gsCO2 to obtain rs
-"""
+###
+#In this experiment, we use only cold sites for training.
+###
 
 model:
     n_hidden : 4
@@ -11,13 +9,13 @@ model:
     activation : 'ReLU'
 
 data: # (does it need to be nested?)
-    sites : ["CN-Du2", "US-Me2", "CH-Dav", "ES-Amo", "AU-Wac", "AU-Stp", "GF-Guy"] 
+    sites : ["CN-Du2", "US-Me2", "CH-Dav"] 
     base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
     nPoints : 50000 # -> decide if we want to truncate, what to do in training?
     exclude_negative : False
 
 pipeline:
-    predict_rs: False # If false, we predict gsCO2 instead, and convert it to rs.
+    predict_rs: True # If false, we predict gsCO2 instead, and convert it to rs.
 
 train:
     lr: 1e-3
@@ -31,6 +29,6 @@ train:
 wandb:
   use_wandb: False
   project: "change-project"
-  tags: ['gsCO2_experiment']
+  tags: ['cold_sites_only']
 
-name: gsCO2_experiment
+name: cold_sites_only
