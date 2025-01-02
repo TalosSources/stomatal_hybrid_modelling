@@ -1,0 +1,9 @@
+lr-0.001_weight_decay-0.0001_n_hidden-2_hidden_size-32_batch_norm-True_ : 0.2942353864201322
+lr-0.001_weight_decay-0.0001_n_hidden-2_hidden_size-64_batch_norm-True_ : 0.32240793112935956
+lr-0.001_weight_decay-0.0001_n_hidden-2_hidden_size-128_batch_norm-True_ : 0.3274814462121987
+lr-0.001_weight_decay-0.0001_n_hidden-4_hidden_size-32_batch_norm-True_ : 0.33902703122030037
+lr-0.001_weight_decay-0.0001_n_hidden-4_hidden_size-64_batch_norm-True_ : 0.3208164451866939
+lr-0.001_weight_decay-0.0001_n_hidden-4_hidden_size-128_batch_norm-True_ : 0.42031387395747305
+lr-0.001_weight_decay-0.0001_n_hidden-5_hidden_size-32_batch_norm-True_ : 0.2977117499442212
+lr-0.001_weight_decay-0.0001_n_hidden-5_hidden_size-64_batch_norm-True_ : 0.2895231458195311
+lr-0.001_weight_decay-0.0001_n_hidden-5_hidden_size-128_batch_norm-True_ : 0.40275451488180253
