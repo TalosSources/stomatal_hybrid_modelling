@@ -217,7 +217,7 @@ def train_and_evaluate_pipeline(config, data):
     print(f"Coefficient of determination of empirical model: {empirical_coeff}")
 
     # show info about loss (optional)
-    plot.plot_losses(losses)
+    plot.plot_losses([losses], labels=['Loss'], coefficients=[model_coeff], minmax=False, smoothing=0.1)
 
     # return rs_model, Vmax_model
     return model, losses, benchmark

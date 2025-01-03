@@ -40,8 +40,17 @@ def main():
 
     #config = OmegaConf.load("configs/default.yaml") # NOTE: Could be passed as arg, or maybe we can have a list of experiments to perform
     #config = OmegaConf.load("configs/default_hyperparameter_tuning.yaml")
+    config = OmegaConf.load("configs/best_model.yaml")
     #config = OmegaConf.load("configs/model_size_tuning.yaml")
-    config = OmegaConf.load("configs/lr_wd_tuning.yaml")
+    #config = OmegaConf.load("configs/lr_wd_tuning.yaml")
+    #config = OmegaConf.load("configs/lr_wd_tuning_fine.yaml")
+    #config = OmegaConf.load("configs/batch_norm_tuning.yaml")
+    #config = OmegaConf.load("configs/dry_sites_only_experiment.yaml")
+    #config = OmegaConf.load("configs/wet_sites_only_experiment.yaml")
+    #config = OmegaConf.load("configs/hot_sites_only.yaml")
+    #config = OmegaConf.load("configs/cold_sites_only.yaml")
+    #config = OmegaConf.load("configs/gsCO2_experiment.yaml")
+
     train_and_eval_pipeline(config)
 
 
