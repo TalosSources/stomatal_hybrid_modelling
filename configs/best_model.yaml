@@ -15,7 +15,7 @@ pipeline:
 
 train:
     lr: 1e-3
-    epochs: 4000
+    epochs: 5000
     weight_decay: 1e-6
     batch_size: 1000
     test_split: 0.2
