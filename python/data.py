@@ -63,7 +63,7 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
         constant_keys = ["Psi_sto_50", "Psi_sto_00", "CT", 
      "Ha", "FI", "Oa", "Do", "a1", "go", "gmes", "rjv", "DS"]
     if output_keys is None:
-        output_keys = ["LE_CORR"]
+        output_keys = ["LE"]
     if global_keys is None:
         global_keys = ["EIn_H", "EIn_L", "EG", "ELitter", "ESN", "ESN_In", 
                        "EWAT", "EICE", "EIn_urb", "EIn_rock"]  
@@ -108,7 +108,7 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
     def is_valid_timestep(i):
         return  (
             not torch.isnan(output_arrays[output_keys[0]][i])  # Filter out nan Q_LE values! 
-            and (not exclude_negative_outputs or not output_arrays[output_keys[0]][i] < 0.) # Filter out negative Q_LE values! actually should we? our pipeline can actually output negative values
+            and ((not exclude_negative_outputs) or (not (output_arrays[output_keys[0]][i] < 0.))) # Filter out negative Q_LE values! actually should we? our pipeline can actually output negative values
             # NOTE: Perhaps add some more checks if needed 
         )
     
@@ -161,18 +161,21 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
 
         print_k_points=1
 
+        site_name = predictor_path[-10:-4]
+        print(f"---------LOADING DATA FOR SITE {site_name}---------")
+
         #print(f"predictor_data={predictor_data}")
         #print(f"observation_data={observation_data}")
         #print(f"predictor_data[Ts]={predictor_data['Ta']}")
         #print(f"predictor_data[\"Ts\"][:{trunc}]{predictor_data['Ta'][:trunc]}")
-        print(f"predictor_data[\"Ta\"] = {predictor_data['Ta'].shape}")
-        print(f"predictor_data[\"Psi_sto_50_H\"] = {predictor_data['Psi_sto_50_H'].shape}")
+        #print(f"predictor_data[\"Ta\"] = {predictor_data['Ta'].shape}")
+        #print(f"predictor_data[\"Psi_sto_50_H\"] = {predictor_data['Psi_sto_50_H'].shape}")
 
-        print(f" --------BASE SHAPES-------- ")
-        for key in ["Vmax_H", "Vmax_L"]:
-            print(f"Initial Shape for predictor {key}: {predictor_data[key].shape}")
-        for key in output_keys:
-            print(f"Initial Shape for output {key}: {observation_data[key].shape}")
+        #print(f" --------BASE SHAPES-------- ")
+        #for key in ["Vmax_H", "Vmax_L"]:
+        #    print(f"Initial Shape for predictor {key}: {predictor_data[key].shape}")
+        #for key in output_keys:
+        #    print(f"Initial Shape for output {key}: {observation_data[key].shape}")
 
         #print(f"\n --------ARRAYS SHAPES-------- ")
 
@@ -181,8 +184,8 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
         #     for k,v in preds.items():
         #         print(f"    predictor array [{k}] shape = {v.shape}")
         #     #print(f"predictor array [{k}] = {v}")
-        for k,v in output_arrays.items():
-            print(f"output array [{k}] shape = {v.shape}")
+        #for k,v in output_arrays.items():
+        #    print(f"output array [{k}] shape = {v.shape}")
         #print(f"output_arrays={output_arrays}")
 
         #print(f"n_points before filter: {len(predictor_arrays['Cc'])}")
@@ -191,7 +194,7 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
         #print(f"first {print_k_points} predictors before filter: \n{predictor_arrays[:print_k_points]}")
         #print(f"first {print_k_points} outputs before filter: \n{output_arrays[:print_k_points]}")
 
-        print("--------------FINAL FILTERED SHAPES-------------")
+        #print("--------------FINAL FILTERED SHAPES-------------")
 
         print(f"n_points after filter: {len(data) - start_idx}")
         print(f"first {print_k_points} data points:\n{data[start_idx:start_idx+print_k_points]}")

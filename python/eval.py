@@ -21,7 +21,8 @@ def eval_general(model, eval_data, error_function):
             n_points_batch = len(y)
             output = model(x)
             error = error_function(y, output)
-            total_error += (n_points_batch/n_points) * error
+            scale = n_points_batch/n_points
+            total_error += scale * error
     
     return total_error
 

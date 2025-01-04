@@ -332,50 +332,39 @@ def check_gradients(module : torch.nn.Module):
 
 
 # ------------------------OLD-METHODS-USEFUL-FOR-THE-REPORT------------------------
-def train_gsco2():
+def train_rs(config):
     
-    model = models.rs_model()
-    loss = torch.nn.MSELoss()
-    opt = torch.optim.Adam(model.parameters(), lr=3e-4)
-    #opt = torch.optim.SGD(model.parameters(), lr=1e-2)
+    model = models.rs_model_from_config(config.model)
+    def wrapper(x):
+        x = x * torch.tensor([1e2, 1e-4, 1e-1, 1e1, 1e-1, 1e-2, 1]) # Optional: makes the wrapper take the actual predictor values as inputs
+        model_output = model(x)
+        #rs_small = torch.nn.functional.softplus(model_output)
+        rs_small = model_output
+        #print(f"received x={x}, obtained out={model_output}, small={rs_small}, rs={rs_small*1e2}")
+        #rs = rs_small
+        rs = rs_small*1e2
+        #print(f"model_output={model_output}")
+        return rs
+    loss = torch.nn.L1Loss()
+    opt = torch.optim.Adam(model.parameters(), lr=0.005)
     epochs = 10000
-    data_iterator = gsco2_dummy_data_generator
-    #data_iterator = simple_data_generator
+    batch_size = 1
+    #data_iterator = rs_dummy_data_generator
+    data_iterator = batch_decorator_iterator(rs_dummy_data_generator, batch_size)
 
-    losses = train_general(model, loss, opt, epochs, data_iterator)
+    losses = train_general(wrapper, loss, opt, epochs, data_iterator)
 
     avg_window = 50
     avg_loss = losses[-avg_window:].mean()
     print(f"Average of the last {avg_window} losses: {avg_loss}")
 
-    plot.plot_losses(losses)
+    plot.plot_losses([losses], ['dummy training loss'], minmax=False, smoothing=0.5)
     #plot.plot_univariate_slice(model, gsco2_dummy_data_generator.f, torch.tensor([5, 5, 8, 2, 2, 4], dtype=torch.float32), 2, np.arange(5, 11, 0.1), "gsco2")
     #plot.plot_univariate_slice(model, gsco2_dummy_data_generator.f, torch.tensor([5, 5, 8, 2, 2, 4], dtype=torch.float32), 1, np.arange(2, 8, 0.1), "gsco2")
     #plot.plot_univariate_slice(model, gsco2_dummy_data_generator.f, torch.tensor([5, 5, 8, 2, 2, 4], dtype=torch.float32), 0, np.arange(2, 8, 0.1), "gsco2")
-    plot.fit_plot(model, gsco2_dummy_data_generator.f, generate_points(gsco2_dummy_data_generator.sampler, 100), "gsco2_fcn")
+    #plot.fit_plot(model, gsco2_dummy_data_generator.f, generate_points(gsco2_dummy_data_generator.sampler, 100), "gsco2_fcn")
 
-    return model
-
-def train_vm():
-    
-    model = models.vm_model()
-    loss = torch.nn.MSELoss()
-    opt = torch.optim.Adam(model.parameters(), lr=1e-3)
-    epochs = 500
-    data_iterator = vm_dummy_data_generator
-
-    losses = train_general(model, loss, opt, epochs, data_iterator, batch_size=1)
-
-    avg_window = 50
-    avg_loss = losses[-avg_window:].mean()
-    print(f"Average of the last {avg_window} losses: {avg_loss}")
-
-    plot.plot_losses(losses)
-    plot.plot_univariate_slice(model, vm_dummy_data_generator.f, torch.tensor([5, 5], dtype=torch.float32), 0, np.arange(3, 7, 0.1), "vm")
-    plot.plot_univariate_slice(model, vm_dummy_data_generator.f, torch.tensor([5, 5], dtype=torch.float32), 1, np.arange(3, 7, 0.1), "vm")
-    plot.fit_plot(model, vm_dummy_data_generator.f, generate_points(vm_dummy_data_generator.sampler, 100), "vm_fcn")
-
-    return model
+    return wrapper
 
 """
 Represents an iterator objects that, for some function y = f(x),
@@ -392,15 +381,69 @@ class function_sample_iterator:
     def __next__(self):
         x = self.sampler()
         y = self.f(x)
+        #print(f"sampled x={x}, y={y}")
         return x, y
+    
+class batch_decorator_iterator:  
+    def __init__(self, iterator, batch_size=32):
+        self.it = iterator
+        self.bs = batch_size
+        
+    def __iter__(self):
+        return self
+
+    # assumes x and y are tensors of shape m and 1.
+    # groups them into shape (batch_size, m) and (batch_size, 1)
+    def __next__(self):
+        xs = []
+        ys = []
+        for _ in range(self.bs):
+            x, y = next(self.it)
+            xs.append(np.array(x))
+            ys.append(np.array(y))
+
+        xs = np.array(xs)
+        ys = np.array(ys)
+        return torch.tensor(xs), torch.tensor(ys)
 
 
-def generate_points(sampler, count = 100):
-    return [torch.tensor(sampler(), dtype=torch.float32) for _ in range(count)]
+def generate_points(sampler, count = 100, dtype=torch.float64):
+    return [sampler() for _ in range(count)]
 
 gsco2_dummy_data_generator = function_sample_iterator(
     f = lambda x : np.array([x[0]*x[1]/((x[2]-x[3])*(1+x[4]/x[5]))]),
     sampler = lambda: np.random.normal([5, 5, 8, 2, 2, 4], 1, 6) # NOTE: This could easily be changed
+)
+
+def empirical_model(x):
+    a1=5
+    go=10000
+    An=x[0]
+    Pre=x[1]
+    Cc=x[2]
+    GAM=x[3]
+    Ds=x[4]
+    Do=x[5]
+    Ts=x[6]
+    gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
+    #gsCO2 = torch.max(gsCO2, torch.tensor(go))
+    rsCO2=1/gsCO2 ### [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
+    rsH20 = (rsCO2/1.64)*(1e6) ### [ s m^2 / molH20 ] Stomatal resistence or canopy 
+    rs = rsH20*(273.15*Pre)/(0.0224*(Ts+273.15)*101325) ## [s/m]  Stomatal resistence or Canopy [convert stomatal resistence in terms of water volumes into another unit]
+    #print(f"sampling gsCo2={gsCO2}, rsCO2={rsCO2}, rsH20={rsH20}, rs={rs}")
+    return rs
+
+def rs_sampler():
+    lows =  np.array([2, 90000,  25, 1, 10  , 50, 5])
+    highs = np.array([5, 95000, 50, 10,  300, 100, 20]) 
+    #lows = np.ones((7)) * 20
+    #highs = np.ones((7)) * 70
+
+    return lambda: torch.tensor(np.random.uniform(lows, highs), dtype=torch.float32)
+
+rs_dummy_data_generator = function_sample_iterator(
+    f = lambda x : empirical_model(x),
+    sampler = rs_sampler()
 )
 
 def vm_empirical(x):

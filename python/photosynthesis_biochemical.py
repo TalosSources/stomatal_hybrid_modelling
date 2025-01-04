@@ -229,6 +229,8 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         rs_small = torch.nn.functional.softplus(model_output) # 0 at -inf, ~x fo~ large x, analytic 
         rs = rs_small * 1e2
 
+        #print(f"got preds={predictors}, obtained rs={rs}")
+
         return rs
     else:
         if gsCO2_model is not None:
