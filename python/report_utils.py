@@ -52,7 +52,7 @@ def load_ordered_data(config_name):
             combined_site_data.append((site_data, site_name))
     return combined_site_data
     
-
+# TODO Re-run hp-tuning with the new configs
 def generate_hp_tuning_loss_plot():
     results_path = "results/lr_wd_tuning"
     filenames = [
@@ -93,6 +93,7 @@ def generate_hp_tuning_loss_plot():
 
     plot.plot_losses(losses, labels, coefficients=coefficients, minmax=False, smoothing=0.01)
 
+# TODO: Choose interesting x_0s
 def generate_rs_slice_plots(rs_model):
     # load specific(s) datapoint(s)
     # as info: predictors = torch.stack([An * 1e2,Pre * 1e-4,Cc * 1e-1,GAM * 1e1,Ds * 1e-1,Do * 1e-2, Ts], dim=-1)
@@ -219,7 +220,6 @@ def generate_Q_LE_slice_plots():
             plot.plot_univariate_slices(models_list, x_0, idx, idx_label, idx_range, 100, labels, path=path, show=True)
 
 def generate_scatter_plots(test_data, rs_model):
-    # TODO: Data, rs_model, that kind of things could be factorized, to avoid doing it that many times
     # TODO: Do daily aggregates. Idea: log in global_preds, the i index of the timestep. 
     # then, write a function that, given data from some site (in sequential order? perhaps not needed),
     # groups the data in  
@@ -240,8 +240,8 @@ def generate_scatter_plots(test_data, rs_model):
     with torch.no_grad():
         plot.fit_plot(models_list, test_data, labels, path, plot_range=(0, 600), show=True)
 
+# TODO: Put annotations on the plot I choose
 def generate_torch_viz_graph():
-    # TODO: For now it only shows the model architecture, and some long line.
     # First, decide if I want to keep the model architecture. Perhaps not, it's not the focus
     # Then, give some of the predictors to torchviz, to display the actual Q_LE PM pipeline
     # If possible, find a datapoint with 2 or 4 valid contexts. (further? perhaps the crazy AU-Stp?)
@@ -253,9 +253,34 @@ def generate_torch_viz_graph():
     cfg.data.sites = ["CH-Dav"]
     cfg.model.batch_norm = False
     rs_model = models.rs_model_from_config(cfg.model)
+
+    class BlackBox(torch.nn.Module):
+        def __init__(self):
+            super(BlackBox, self).__init__()
+            self.l = torch.nn.Linear(7, 1, bias=False)
+        def forward(self, x):
+            return self.l.forward(x)  # Placeholder operation
+    #rs_model = BlackBox()
+
+
     pipeline = pipelines.make_pipeline(rs_model, None, None)
-    datapoints = data.load_pipeline_data_dict_from_all_sites(cfg.data)
-    datapoint = datapoints[0]
+    #cfg.data.n_points = 100
+    #datapoints = data.load_pipeline_data_dict_from_all_sites(cfg.data)
+    #datapoint = datapoints[0]
+    t = torch.tensor
+    datapoint = (
+        (
+            {
+                'sun_H': {'Cc': t([368.0680]), 'IPAR': t([0.]), 'Csl': t([362.6800]), 'ra': t([38.7362]), 'rb': t([19.6884]), 'Ts': t([-5.3135]), 'Pre': t([823.]), 'Ds': t([50.7378]), 'Psi_L': t([0.]), 'Rn': t([-58.5669]), 'QG': t([-68.8654]), 'Vmax': t([25.3091]), 'Psi_sto_50': t([-2.5000]), 'Psi_sto_00': t([-0.5000]), 'CT': t([3.]), 'Ha': t([72.]), 'FI': t([0.0810]), 'Oa': t([210000.]), 'Do': t([800.]), 'a1': t([5.]), 'go': t([0.0100]), 'gmes': t([np.inf]), 'rjv': t([2.1000]), 'DS': t([0.6490]), 'DS_': 0.5},
+                'sun_L': {'Cc': t([368.0680]), 'IPAR': t([0.]), 'Csl': t([362.6800]), 'ra': t([38.7362]), 'rb': t([19.6884]), 'Ts': t([-5.3135]), 'Pre': t([823.]), 'Ds': t([50.7378]), 'Psi_L': t([0.]), 'Rn': t([-58.5669]), 'QG': t([-68.8654]), 'Vmax': t([25.3091]), 'Psi_sto_50': t([-2.5000]), 'Psi_sto_00': t([-0.5000]), 'CT': t([3.]), 'Ha': t([72.]), 'FI': t([0.0810]), 'Oa': t([210000.]), 'Do': t([800.]), 'a1': t([5.]), 'go': t([0.0100]), 'gmes': t([np.inf]), 'rjv': t([2.1000]), 'DS': t([0.6490]), 'DS_': 0.5},
+                'shd_H': {'Cc': t([368.0680]), 'IPAR': t([0.]), 'Csl': t([362.6800]), 'ra': t([38.7362]), 'rb': t([19.6884]), 'Ts': t([-5.3135]), 'Pre': t([823.]), 'Ds': t([50.7378]), 'Psi_L': t([0.]), 'Rn': t([-58.5669]), 'QG': t([-68.8654]), 'Vmax': t([25.3091]), 'Psi_sto_50': t([-2.5000]), 'Psi_sto_00': t([-0.5000]), 'CT': t([3.]), 'Ha': t([72.]), 'FI': t([0.0810]), 'Oa': t([210000.]), 'Do': t([800.]), 'a1': t([5.]), 'go': t([0.0100]), 'gmes': t([np.inf]), 'rjv': t([2.1000]), 'DS': t([0.6490]), 'DS_': 0.5},
+                'shd_L': {'Cc': t([368.0680]), 'IPAR': t([0.]), 'Csl': t([362.6800]), 'ra': t([38.7362]), 'rb': t([19.6884]), 'Ts': t([-5.3135]), 'Pre': t([823.]), 'Ds': t([50.7378]), 'Psi_L': t([0.]), 'Rn': t([-58.5669]), 'QG': t([-68.8654]), 'Vmax': t([25.3091]), 'Psi_sto_50': t([-2.5000]), 'Psi_sto_00': t([-0.5000]), 'CT': t([3.]), 'Ha': t([72.]), 'FI': t([0.0810]), 'Oa': t([210000.]), 'Do': t([800.]), 'a1': t([5.]), 'go': t([0.0100]), 'gmes': t([np.inf]), 'rjv': t([2.1000]), 'DS': t([0.6490]), 'DS_': 0.5},
+            }, 
+            {'EIn_H': t([0.]), 'EIn_L': t([0.]), 'EG': t([0.0028]), 'ELitter': t([0.]), 'ESN': t([0.]), 'ESN_In': t([0.]), 'EWAT': t([0.]), 'EICE': t([0.]), 'EIn_urb': t([0.]), 'EIn_rock': t([0.])}), 
+        t(2.6774)
+    )
+
+    print(f"found datapoint {datapoint}")
     x, y = datapoint
     output = pipeline(x)
     graph = torchviz.make_dot(output, params=dict(rs_model.named_parameters()))
@@ -323,7 +348,68 @@ def generate_Q_LE_rs_sensitivity_plots():
                                 1000, ['PM Equation'], 'Q_LE [W/m²]', path=path, show=True)
 
 def generate_multiple_model_plots():
-    ... # TODO: Choose which plot to make (timeserie, scatter, slice)
+    # TODO: Actually train several models (of course after I'm fixed on a model)
+    # TODO: Also include a table with results for all models (mainly R²?)
+    config_names = [
+        'best_model',
+        'cold_sites_only',
+        'hot_sites_only',
+        'dry_sites_only',
+    ]
+
+    models = [
+        load_model(config_name)
+        for config_name in config_names
+    ]
+
+    # scatter : will be hard to see and understand stuff
+    # slice : can be interesting
+    # timeseries : perhaps a bit less interesting
+
+    x_0s = [
+            torch.tensor([-0.2730, 91887.5000, 38.0901, 2.2750, 393.0414, 1000., 14.6980]),
+            #torch.tensor([2.510115,   84400,   24.540,  2.2750,  898.362,   800.00,  12.1075])
+        ]
+
+    x_0_labels = ['']
+
+    # wrap the rs_model so that it outputs the actual rs
+    def wrapper(x):
+        x = x * torch.tensor([1e2, 1e-4, 1e-1, 1e1, 1e-1, 1e-2, 1]) # Optional: makes the wrapper take the actual predictor values as inputs
+        model_output = rs_model(x)
+        rs_small = torch.nn.functional.softplus(model_output)
+        return rs_small * 1e2
+    def empirical_model(x):
+        a1=5
+        go=10000
+        An=x[:,0]
+        Pre=x[:,1]
+        Cc=x[:,2]
+        GAM=x[:,3]
+        Ds=x[:,4]
+        Do=x[:,5]
+        Ts=x[:,6]
+        gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
+        gsCO2 = torch.max(gsCO2, torch.tensor(go))
+        rsCO2=1/gsCO2 ### [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
+        rsH20 = (rsCO2/1.64)*(1e6) ### [ s m^2 / molH20 ] Stomatal resistence or canopy 
+        rs = rsH20*(273.15*Pre)/(0.0224*(Ts+273.15)*101325) ## [s/m]  Stomatal resistence or Canopy [convert stomatal resistence in terms of water volumes into another unit]
+        return rs
+    
+    idx_and_ranges = [
+        [1, (82000, 102000), 'Pressure [Pa]'], # Pre plot
+        [2, (25, 50), 'Cc'], # Cc plot
+        [4, (0, 2500), 'Ds [Pa]'], # Ds plot
+        [6, (-10, 40), 'Temperature [°C]'], # Ts plot
+    ]
+
+    # for each of the input variables, make a slice plot
+    for idx, idx_range, idx_label in idx_and_ranges:
+        path = os.path.join('figures', 'model_robustness_slices', f'slice_varying_{idx}.png')
+        plot.plot_univariate_slices(models, x_0s, x_0_labels, idx, idx_label, idx_range, 100,
+                                    config_names, res_label='rs [s/m]',path=path, show=True)
+
+
 
 def generate_ctx_decomposition_plots():
     ... # TODO
@@ -346,6 +432,7 @@ def generate_site_experiment_plots():
 #generate_scatter_plots(test_data, rs_model)
 #generate_Q_LE_timeseries(ordered_data, rs_model)
 #generate_empirical_learning_scatter('best_model')
-generate_Q_LE_rs_sensitivity_plots()
+#generate_Q_LE_rs_sensitivity_plots()
+generate_multiple_model_plots()
 
 

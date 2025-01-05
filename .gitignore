@@ -1,2 +1,2 @@
 wandb
-*.pt
+*.pt # we may want to include them anyway
