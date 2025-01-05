@@ -5,10 +5,10 @@ model:
     activation : 'ReLU'
 
 data: # (does it need to be nested?)
-    sites : ["CN-Du2", "US-Me2", "CH-Dav", "ES-Amo", "AU-Wac", "AU-Stp", "GF-Guy"] 
-    #sites : ["CH-Dav"] 
+    #sites : ["CN-Du2", "US-Me2", "CH-Dav", "ES-Amo", "AU-Wac", "AU-Stp", "GF-Guy"] 
+    sites : ["CH-Dav"] 
     base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
-    nPoints : 50000 # -> decide if we want to truncate, what to do in training?
+    nPoints : 5000 # -> decide if we want to truncate, what to do in training?
     exclude_negative : True
 
 pipeline:
