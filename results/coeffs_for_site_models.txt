@@ -1,0 +1,150 @@
+---------------------------------------
+evaluating COLD model on test data
+Evaluating site AU-TTE:
+Hybrid R² (ours) : -0.16032115955569903
+Empirical R²: -6.371802554655099
+Evaluating site CH-Cha:
+Hybrid R² (ours) : 0.7126026325118371
+Empirical R²: 0.48729175745263775
+Evaluating site CG-Tch:
+Hybrid R² (ours) : 0.7144086993979657
+Empirical R²: -3.1365748603061236
+Evaluating site FI-Sod:
+Hybrid R² (ours) : 0.5027802058622213
+Empirical R²: 0.0566947310450171
+---------------------------------------
+evaluating HOT model on test data
+Evaluating site AU-TTE:
+Hybrid R² (ours) : -0.006596491377206748
+Empirical R²: -6.371802554655099
+Evaluating site CH-Cha:
+Hybrid R² (ours) : 0.5925157796871042
+Empirical R²: 0.48729175745263775
+Evaluating site CG-Tch:
+Hybrid R² (ours) : 0.5582389278878933
+Empirical R²: -3.1365748603061236
+Evaluating site FI-Sod:
+Hybrid R² (ours) : 0.04066754704382758
+Empirical R²: 0.0566947310450171
+---------------------------------------
+evaluating WET model on test data
+Evaluating site AU-TTE:
+Hybrid R² (ours) : -1.8302071277457856
+Empirical R²: -6.371802554655099
+Evaluating site CH-Cha:
+Hybrid R² (ours) : 0.6671967706172687
+Empirical R²: 0.48729175745263775
+Evaluating site CG-Tch:
+Hybrid R² (ours) : -0.31248811128598386
+Empirical R²: -3.1365748603061236
+Evaluating site FI-Sod:
+Hybrid R² (ours) : -0.0246899676726986
+Empirical R²: 0.0566947310450171
+---------------------------------------
+evaluating DRY model on test data
+Evaluating site AU-TTE:
+Hybrid R² (ours) : 0.08548965269656472
+Empirical R²: -6.371802554655099
+Evaluating site CH-Cha:
+Hybrid R² (ours) : 0.4751786354612876
+Empirical R²: 0.48729175745263775
+Evaluating site CG-Tch:
+Hybrid R² (ours) : 0.7074820187025428
+Empirical R²: -3.1365748603061236
+Evaluating site FI-Sod:
+Hybrid R² (ours) : 0.3862690893004642
+Empirical R²: 0.0566947310450171
+
+===================================
+
+evaluating COLD model on train data
+Evaluating site CN-Du2:
+Hybrid R² (ours) : 0.6697356137252333
+Empirical R²: -1.218452369560481
+Evaluating site US-Me2:
+Hybrid R² (ours) : 0.46040020162413864
+Empirical R²: 0.373015091103451
+Evaluating site CH-Dav:
+Hybrid R² (ours) : 0.3981822422508322
+Empirical R²: 0.38313733579623477
+Evaluating site ES-Amo:
+Hybrid R² (ours) : -0.7911795568088198
+Empirical R²: -13.750922856690883
+Evaluating site AU-Wac:
+Hybrid R² (ours) : -0.005876079978415216
+Empirical R²: 0.10365089336275857
+Evaluating site AU-Stp:
+Hybrid R² (ours) : 0.37761002881006167
+Empirical R²: -10.30332258556055
+Evaluating site GF-Guy:
+Hybrid R² (ours) : 0.21758697284880046
+Empirical R²: 0.5895627759893516
+---------------------------------------
+evaluating HOT model on train data
+Evaluating site CN-Du2:
+Hybrid R² (ours) : 0.47310800710647816
+Empirical R²: -1.218452369560481
+Evaluating site US-Me2:
+Hybrid R² (ours) : 0.11043218223857354
+Empirical R²: 0.373015091103451
+Evaluating site CH-Dav:
+Hybrid R² (ours) : 0.22793854622913023
+Empirical R²: 0.38313733579623477
+Evaluating site ES-Amo:
+Hybrid R² (ours) : -2.048226044184585
+Empirical R²: -13.750922856690883
+Evaluating site AU-Wac:
+Hybrid R² (ours) : -0.05945153932778546
+Empirical R²: 0.10365089336275857
+Evaluating site AU-Stp:
+Hybrid R² (ours) : 0.629116024012708
+Empirical R²: -10.30332258556055
+Evaluating site GF-Guy:
+Hybrid R² (ours) : 0.7691928683346263
+Empirical R²: 0.5895627759893516
+---------------------------------------
+evaluating WET model on train data
+Evaluating site CN-Du2:
+Hybrid R² (ours) : 0.27671779009506403
+Empirical R²: -1.218452369560481
+Evaluating site US-Me2:
+Hybrid R² (ours) : 0.46266484945509745
+Empirical R²: 0.373015091103451
+Evaluating site CH-Dav:
+Hybrid R² (ours) : 0.46539850203141553
+Empirical R²: 0.38313733579623477
+Evaluating site ES-Amo:
+Hybrid R² (ours) : -7.96881176694807
+Empirical R²: -13.750922856690883
+Evaluating site AU-Wac:
+Hybrid R² (ours) : 0.16062847320399265
+Empirical R²: 0.10365089336275857
+Evaluating site AU-Stp:
+Hybrid R² (ours) : -0.7409733645759924
+Empirical R²: -10.30332258556055
+Evaluating site GF-Guy:
+Hybrid R² (ours) : 0.7788084644695903
+Empirical R²: 0.5895627759893516
+---------------------------------------
+evaluating DRY model on train data
+Evaluating site CN-Du2:
+Hybrid R² (ours) : 0.5668423506068849
+Empirical R²: -1.218452369560481
+Evaluating site US-Me2:
+Hybrid R² (ours) : 0.11547835403010209
+Empirical R²: 0.373015091103451
+Evaluating site CH-Dav:
+Hybrid R² (ours) : 0.19091078683971618
+Empirical R²: 0.38313733579623477
+Evaluating site ES-Amo:
+Hybrid R² (ours) : 0.47820212341666
+Empirical R²: -13.750922856690883
+Evaluating site AU-Wac:
+Hybrid R² (ours) : -0.19268709312453214
+Empirical R²: 0.10365089336275857
+Evaluating site AU-Stp:
+Hybrid R² (ours) : 0.6932012032271275
+Empirical R²: -10.30332258556055
+Evaluating site GF-Guy:
+Hybrid R² (ours) : -0.041839745388982275
+Empirical R²: 0.5895627759893516

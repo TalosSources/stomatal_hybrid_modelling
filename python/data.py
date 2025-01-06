@@ -120,6 +120,7 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
             # NOTE: Add other checks
             #and not predictor_arrays["Cc"][i] == 0 # Filter out values where cc is 0 (for which context???) I guess, it should 0 for all contexts?
             #and not predictor_arrays["IPAR"][i] == 0 # Filter out values where IPAR is 0 (for which context???)
+            and not constants[ctx]['CT'].isnan() # AU-TTE has nan values for L constants
         )
         
     
@@ -196,8 +197,12 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
 
         #print("--------------FINAL FILTERED SHAPES-------------")
 
+        print(f"found constants = {constants}")
+
         print(f"n_points after filter: {len(data) - start_idx}")
-        print(f"first {print_k_points} data points:\n{data[start_idx:start_idx+print_k_points]}")
+        print(f"first {print_k_points} data points:")
+        for p in data[start_idx+1500:start_idx+print_k_points+1500]:
+            print(f"{p}\n-----------------------------------\n")
 
 
 

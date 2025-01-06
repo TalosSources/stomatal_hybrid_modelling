@@ -5,24 +5,19 @@ model:
     activation : 'ReLU'
 
 data: # (does it need to be nested?)
-    #sites : ["CN-Du2", "US-Me2", "CH-Dav", "ES-Amo", "AU-Wac", "AU-Stp", "GF-Guy"] 
-    #sites: ["CN-Du2", "US-Me2", "CH-Dav", "AU-Wac", "GF-Guy"] # Non-degenerate sites
-    #sites: ['AR-Vir', 'AU-TTE', 'CG-Tch']
-    #sites: ['AU-Stp', 'ES-Amo', 'US-Jo2']
-    #sites: ['AU-Wac']
-    sites: ['AU-TTE', 'CH-Cha', 'CG-Tch', 'FI-Sod'] # Testing sites
+    sites : ["CN-Du2", "US-Me2", "CH-Dav", "ES-Amo", "AU-Wac", "AU-Stp", "GF-Guy"]
     base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
-    nPoints : 20000 # -> decide if we want to truncate, what to do in training?
+    nPoints : 50000 # -> decide if we want to truncate, what to do in training?
     exclude_negative : True
 
 pipeline:
     predict_rs: True # If false, we predict gsCO2 instead, and convert it to rs.
 
 train:
-    lr: 1e-4
-    epochs: 1500
+    lr: 4e-4
+    epochs: 4000
     weight_decay: 1e-6
-    batch_size: 1
+    batch_size: 1000
     test_split: 0.2
     random_state: 24 # Assuming the data loading doesn't change, this ensures the test_split will be the same.
     hp_tuning: False # If this is true, hyperparameters are expected to be arrays.
@@ -30,6 +25,6 @@ train:
 wandb:
   use_wandb: False
   project: "change-project"
-  tags: ['default_config']
+  tags: ['best_model_2']
 
-name: default
+name: best_model_2
