@@ -1,0 +1,5 @@
+Eval after training: 44.39285659790039
+Eval after training on train data (to check overfitting): 44.581520080566406
+Eval empirical model: 58.58059310913086
+Coefficient of determination after training: 0.1764047418932274
+Coefficient of determination of empirical model: -0.8204660623447761

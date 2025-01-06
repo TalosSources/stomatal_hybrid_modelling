@@ -48,30 +48,22 @@ def load_ordered_data(config_name):
     for site_name in site_names:
         pred_path = os.path.join(base_path, f"Results_{site_name}.mat")
         obs_path = os.path.join(base_path, f"Res_{site_name}.mat")
-        exclude_negative_outputs = False
+        exclude_negative_outputs = True
         site_data = []
-        n_points = 20000 #1000 corresponds to about 3 weeks NOTE: Where should we choose this?
+        n_points = 10000 #1000 corresponds to about 3 weeks NOTE: Where should we choose this?
         data.load_pipeline_data_dict_single_site(pred_path, obs_path, site_data, 
                                              nPoints=n_points, exclude_negative_outputs=exclude_negative_outputs, verbose=True)
         if len(site_data) > 0:
             combined_site_data.append((site_data, site_name))
     return combined_site_data
     
-# TODO Re-run hp-tuning with the new configs, and choose the new interesting runs to plot
-# TODO: Replace R^2 with the actual coefficients
 # TODO: Latex table with coefficients? or perhaps another tool for the table
 def generate_hp_tuning_loss_plot():
     results_path = "results/lr_wd_tuning"
     filenames = [
-        #"losses_lr-0.01_weight_decay-0_n_hidden-4_hidden_size-128_batch_norm-True_.npy",
-        #"losses_lr-0.001_weight_decay-0_n_hidden-4_hidden_size-128_batch_norm-True_.npy",
-        #"losses_lr-0.0001_weight_decay-0_n_hidden-4_hidden_size-128_batch_norm-True_.npy",
-        "losses_lr-0.01_weight_decay-0.0001_n_hidden-4_hidden_size-128_batch_norm-True_.npy",
-        "losses_lr-0.001_weight_decay-0.0001_n_hidden-4_hidden_size-128_batch_norm-True_.npy",
-        "losses_lr-0.0001_weight_decay-0.0001_n_hidden-4_hidden_size-128_batch_norm-True_.npy",
-        #"losses_lr-0.01_weight_decay-1e-06_n_hidden-4_hidden_size-128_batch_norm-True_.npy",
-        #"losses_lr-0.001_weight_decay-1e-06_n_hidden-4_hidden_size-128_batch_norm-True_.npy",
-        #"losses_lr-0.0001_weight_decay-1e-06_n_hidden-4_hidden_size-128_batch_norm-True_.npy"
+        "losses_lr-0.001_weight_decay-1e-06_n_hidden-4_hidden_size-128_batch_norm-False_.npy",
+        "losses_lr-0.0001_weight_decay-1e-06_n_hidden-4_hidden_size-128_batch_norm-False_.npy",
+        "losses_lr-1e-05_weight_decay-0_n_hidden-4_hidden_size-128_batch_norm-False_.npy",
     ]
 
     losses = [
@@ -79,27 +71,19 @@ def generate_hp_tuning_loss_plot():
     ]
 
     labels = [
-        #"lr=1e-2, lambda=0",
-        #"lr=1e-3, lambda=0",
-        #"lr=1e-4, lambda=0",
-        "lr=1e-2, lambda=1e-4",
-        "lr=1e-3, lambda=1e-4",
-        "lr=1e-4, lambda=1e-4",
-        #"lr=1e-2, lambda=1e-6",
-        #"lr=1e-3, lambda=1e-6",
-        #"lr=1e-4, lambda=1e-6",
+        "lr=1e-3, λ=1e-6",
+        "lr=1e-4, λ=1e-6",
+        "lr=1e-5, λ=0",
     ]
 
     coefficients = [
-        0.25,
-        0.36,
-        0.78
+        0.638,
+        0.622,
+        0.537,
     ]
 
-    plot.plot_losses(losses, labels, coefficients=coefficients, minmax=False, smoothing=0.01)
+    plot.plot_losses(losses, labels, coefficients=coefficients, minmax=False, smoothing=0.03)
 
-# TODO: Choose interesting x_0s
-# TODO: Make a common plot with all chosen variables? plt.subplot... requires factoring everything...
 def generate_rs_slice_plots(rs_model):
     # load specific(s) datapoint(s)
     # as info: predictors = torch.stack([An * 1e2,Pre * 1e-4,Cc * 1e-1,GAM * 1e1,Ds * 1e-1,Do * 1e-2, Ts], dim=-1)
@@ -110,14 +94,26 @@ def generate_rs_slice_plots(rs_model):
     # I'll vary Ds, Ts, Cc, and Pre.
     # An=[-0.2730], Pre=[91887.5000], Cc=[38.0901], GAM=[2.2750], Ds=[393.0414], Do=[1000.], Ts=[14.6980]
     with torch.no_grad():
+        
+        # plots: one in cold, one in hot, one in temperate arid, one in temperate wet
+        # cold/hot: use temperatures, and take cold/hot sites
+        # arid/wet: use vpd. low vpd means transpiration could happen: some notion of "dry"
+        # cold+humid: An=tensor([1.2889]), Pre=tensor([83600.]), Cc=tensor([26.8077]), GAM=tensor([0.8524]), Ds=tensor([185.5382]), Do=tensor([800.]), Ts=tensor([-0.5985]) (CH-Dav)
+        # hot+dry: An=tensor([-1.3149]), Pre=tensor([97125.]), Cc=tensor([51.0093]), GAM=tensor([7.0099]), Ds=tensor([4388.1724]), Do=tensor([1500.]), Ts=tensor([35.5950]) (AU-Stp)
+        # cold+dry An=tensor([-0.2617]), Pre=tensor([101659.5000]), Cc=tensor([42.6090]), GAM=tensor([1.4971]), Ds=tensor([395.3699]), Do=tensor([1000.]), Ts=tensor([5.5390])(ES-Amo)
+        # hot+humid An=tensor([-0.3253]), Pre=tensor([100600.]), Cc=tensor([41.7964]), GAM=tensor([4.0832]), Ds=tensor([222.2412]), Do=tensor([1000.]), Ts=tensor([23.9900]) (GF-Guy)
         x_0s = [
-            torch.tensor([-0.2730, 91887.5000, 38.0901, 2.2750, 393.0414, 1000., 14.6980]),
-            #torch.tensor([2.510115,   84400,   24.540,  2.2750,  898.362,   800.00,  12.1075])
+            torch.tensor([1.2889, 83600., 26.8077, 0.8524, 185.5382, 800.,-0.5985]),
+            torch.tensor([-1.3149, 97125., 51.0093, 7.0099, 4388.1724, 1500.,35.5950]),
+            torch.tensor([-0.2617, 101659.5000, 42.6090, 1.4971, 395.3699, 1000.,5.5390]),
+            torch.tensor([-0.3253, 100600., 41.7964, 4.0832, 222.2412, 1000.,23.9900]),
         ]
 
         x_0_labels = [
-            '', 
-            #''
+            'cold, humid (CH-Dav)', 
+            'hot, dry (AU-Stp)',
+            'cold, dry (ES-Amo)',
+            'hot, humid (GF-Guy)'
         ]
 
         # wrap the rs_model so that it outputs the actual rs
@@ -157,12 +153,16 @@ def generate_rs_slice_plots(rs_model):
         models_list = [wrapper, empirical_model]
 
         # for each of the input variables, make a slice plot
-        for idx, idx_range, idx_label in idx_and_ranges:
-            path = os.path.join('figures', 'rs_slices', f'slice_varying_{idx}.png')
-            plot.plot_univariate_slices(models_list, x_0s, x_0_labels, idx, idx_label, idx_range, 100,
-                                        labels, res_label='rs [s/m]',path=path, show=True)
+        #for idx, idx_range, idx_label in idx_and_ranges:
+        #    path = os.path.join('figures', 'rs_slices', f'slice_varying_{idx}.png')
+        #    plot.plot_univariate_slices(models_list, x_0s, x_0_labels, idx, idx_label, idx_range, 100,
+        #                                labels, res_label='rs [s/m]',path=path, show=True)
+            
+        path = os.path.join('figures', 'rs_slices', f'combined_slices.png')
+        plot.plot_univariate_slices_subplots(models_list, x_0s, x_0_labels, idx_and_ranges, 100, 
+                                             labels, res_label='rs [s/m]', path=path, show=True)
 
-# TODO: Choose interesting x_0s (and datapoint)
+# CONSIDER THIS DONE
 def generate_Q_LE_slice_plots(rs_model):
     # Idea: work with lambda. have a lambda closure that contains 'hardcoded' (using fetched data) predictors for all values except
     # the ones that we vary
@@ -185,8 +185,18 @@ def generate_Q_LE_slice_plots(rs_model):
             t(2.6774)
         )
 
-        x_0s = [torch.tensor([823. , 50.7378, -5.3135])]
-        x_0_labels = ['dummy point']
+        x_0s = [
+            torch.tensor([823. , 200, 5]),
+            torch.tensor([823. , 300, 25]),
+            torch.tensor([823. , 400, 5]),
+            torch.tensor([823. , 2000, 30]),
+        ]
+        x_0_labels = [
+            'cold, humid',
+            'hot, humid',
+            'cold, dry',
+            'hot, dry'
+        ]
         
         pipeline = pipelines.make_pipeline(rs_model, None, None)
         empirical_pipeline = pipelines.make_pipeline(None, None, None)
@@ -221,9 +231,12 @@ def generate_Q_LE_slice_plots(rs_model):
         models_list = [our_wrapper, empirical_wrapper]
 
         # for each of the input variables, make a slice plot
-        for idx, idx_range, idx_label in idx_and_ranges:
-            path = os.path.join('figures', 'Q_LE_slices', f'slice_varying_{idx}.png')
-            plot.plot_univariate_slices(models_list, x_0s, x_0_labels, idx, idx_label, idx_range, steps, labels, res_label='Q_LE [W/m²]', path=path, show=True)
+        #for idx, idx_range, idx_label in idx_and_ranges:
+        #    path = os.path.join('figures', 'Q_LE_slices', f'slice_varying_{idx}.png')
+        #    plot.plot_univariate_slices(models_list, x_0s, x_0_labels, idx, idx_label, idx_range, steps, labels, res_label='Q_LE [W/m²]', path=path, show=True)
+
+        path = os.path.join('figures', 'Q_LE_slices', f'combined_slices.png')
+        plot.plot_univariate_slices_subplots(models_list, x_0s, x_0_labels, idx_and_ranges, steps, labels, res_label='Q_LE [W/m²]', path=path, show=True)
 
 # TODO: Do daily aggregates. Idea: log in global_preds, the i index of the timestep. 
 def generate_scatter_plots(test_data, rs_model):
@@ -313,10 +326,20 @@ def generate_empirical_learning_scatter(config_name):
         plot.fit_plot([rs_model], sample_points, ['our model'], path, f'rs [s/m]',show=True)
 
 # TODO: Do daily aggregates
+# TODO: Find good intervals
 def generate_Q_LE_timeseries(ordered_data, rs_model):
     # Ordered data is a list of list of points.
     # Inner list of points are from a single site and ordered in time.
     # QUEST: What do we do with missing points ? (NaN, negative Q_LE, etc.)?
+
+    # interesting intervals by site:
+    # CN-Du2: 1500-1800
+    # US-Me2: 2400-2700?
+    # CH-Dav: very variable. maybe smtg like 6400-6700 to show different intensities
+    # ES-Amo: Anywhere is good, the empirical model so drastically overestimates
+    # Au-Wac: bad throughout, both the empirical and us underestimate, but we do a little more
+    # Au-Stp: Anywhere is good, same as ES-Amo but even more
+    # Gf-Guy: Most places, empirical underestimates, we do better.
 
     pipeline = pipelines.make_pipeline(rs_model, None, None)
     empirical_pipeline = pipelines.make_pipeline(None, None, None)
@@ -330,6 +353,8 @@ def generate_Q_LE_timeseries(ordered_data, rs_model):
                 ys.append(y)
                 predicted_ys.append(pipeline(x))
                 empirical_ys.append(empirical_pipeline(x))
+                #predicted_ys.append(y)
+                #empirical_ys.append(y)
             timeseries = [ys, predicted_ys, empirical_ys]
             labels = ['ground truth', 'our pipeline', 'empirical pipeline']
             path = os.path.join('figures', 'timeseries_plots', f'best_model_{site_name}.png')
@@ -492,10 +517,12 @@ def generate_site_experiment_plots(test_data):
 
 
 # Objects and data needed for plotting
-#rs_model = load_model('best_model')
+rs_model = load_model('best_model')
+#rs_model = load_model('default')
 #train_data, test_data = load_train_test_data('best_model')
 #train_data, test_data = load_train_test_data('default')
 #ordered_data = load_ordered_data('best_model')
+#ordered_data = load_ordered_data('default')
 multiple_model_config_names = [
     'best_model',
     'cold_sites_only',
@@ -508,12 +535,12 @@ multiple_model_config_names = [
 #generate_hp_tuning_loss_plot()
 #generate_torch_viz_graph()
 #generate_rs_slice_plots(rs_model)
+generate_Q_LE_slice_plots(rs_model)
 #generate_scatter_plots(test_data, rs_model)
 #generate_Q_LE_timeseries(ordered_data, rs_model)
 #generate_empirical_learning_scatter('best_model')
 #generate_Q_LE_rs_sensitivity_plots()
 #generate_multiple_model_plots(multiple_model_config_names)
-#generate_Q_LE_slice_plots(rs_model)
-generate_site_experiment_plots(None)
+#generate_site_experiment_plots(None)
 
 

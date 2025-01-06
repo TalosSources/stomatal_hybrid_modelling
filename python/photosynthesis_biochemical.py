@@ -221,6 +221,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         2. predict gsCO2, and then map it to rs using physical laws.
     """
     if rs_model is not None:
+        print(f"preds: An={An}, Pre={Pre}, Cc={Cc}, GAM={GAM}, Ds={Ds}, Do={Do}, Ts={Ts}")
         predictors = torch.stack([An * 1e2,Pre * 1e-4,Cc * 1e-1,GAM * 1e1,Ds * 1e-1,Do * 1e-2, Ts], dim=-1)
         model_output = rs_model(predictors).squeeze()
 

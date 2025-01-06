@@ -5,21 +5,21 @@
 model:
     n_hidden : 4
     hidden_size : 128 # NOTE: Perhaps replace with an array describing layers?
-    batch_norm : True # NOTE: Can't be True if batch_size==1. We may add an assertion for this
+    batch_norm : False # NOTE: Can't be True if batch_size==1. We may add an assertion for this
     activation : 'ReLU'
 
 data: # (does it need to be nested?)
     sites : ["CN-Du2", "US-Me2", "CH-Dav"] 
     base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
     nPoints : 50000 # -> decide if we want to truncate, what to do in training?
-    exclude_negative : False
+    exclude_negative : True
 
 pipeline:
     predict_rs: True # If false, we predict gsCO2 instead, and convert it to rs.
 
 train:
-    lr: 1e-3
-    epochs: 2500
+    lr: 4e-4
+    epochs: 4000
     weight_decay: 1e-6
     batch_size: 1000
     test_split: 0.2

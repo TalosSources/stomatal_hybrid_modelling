@@ -5,8 +5,7 @@ model:
     activation : 'ReLU'
 
 data: # (does it need to be nested?)
-    #sites : ["CN-Du2", "US-Me2", "CH-Dav", "ES-Amo", "AU-Wac", "AU-Stp", "GF-Guy"]
-    sites: ["CN-Du2", "US-Me2", "CH-Dav", "AU-Wac", "GF-Guy"] # Non-degenerate sites
+    sites : ["CN-Du2", "US-Me2", "CH-Dav", "ES-Amo", "AU-Wac", "AU-Stp", "GF-Guy"]
     base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
     nPoints : 50000 # -> decide if we want to truncate, what to do in training?
     exclude_negative : True
@@ -15,9 +14,9 @@ pipeline:
     predict_rs: True # If false, we predict gsCO2 instead, and convert it to rs.
 
 train:
-    lr: 3e-5
-    epochs: 2000
-    weight_decay: 5e-7
+    lr: 4e-4
+    epochs: 4000
+    weight_decay: 1e-6
     batch_size: 1000
     test_split: 0.2
     random_state: 24 # Assuming the data loading doesn't change, this ensures the test_split will be the same.

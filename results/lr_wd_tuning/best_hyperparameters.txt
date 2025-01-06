@@ -1,5 +1,5 @@
-lr : 0.01
-weight_decay : 0.0001
+lr : 0.001
+weight_decay : 1e-06
 n_hidden : 4
 hidden_size : 128
-batch_norm : True
+batch_norm : False

@@ -46,8 +46,8 @@ def plot_losses(losses, labels, coefficients=None, minmax=True, smoothing=0.5):
 
         if coefficients is not None and i < len(coefficients):
             coefficient = coefficients[i]
-            x_pos = int((0.7 + 0.3*i/len(coefficients))* len(smoothed_loss))  # Position slightly to the left of the rightmost point
-            y_pos = smoothed_loss[x_pos] * (1.15 if i!=0 else 0.85)  # Position slightly above the curve
+            x_pos = int((0.69 + (0. if i==0 else 0.5)/len(coefficients))* len(smoothed_loss))  # Position slightly to the left of the rightmost point
+            y_pos = smoothed_loss[x_pos] * (1.2 if i==2 else (0.81 if i==1 else 0.80))  # Position slightly above the curve
             plt.text(x_pos, y_pos, f"R² = {coefficient:.2f}",
                      color=color, fontsize=12, fontweight='bold', verticalalignment='center')
 
@@ -65,10 +65,57 @@ def plot_losses(losses, labels, coefficients=None, minmax=True, smoothing=0.5):
     #plt.tight_layout()
     plt.show()
 
+def plot_univariate_slices_subplots(models, x_0s, x_0_labels, idxes, steps, model_labels, res_label, path, show=False):
+    plt.close('all')
+    
+    n_idxes = len(idxes)
+    n_x_0s = len(x_0s)
+    fig, axs = plt.subplots(n_idxes, n_x_0s, figsize=(4 * n_x_0s, 3 * n_idxes), squeeze=False)
+
+    for i, (idx, idx_range, idx_label) in enumerate(idxes):
+        # create the values we explore for dimension idx
+        range_start, range_stop = idx_range
+        step = (range_stop - range_start) / steps
+        x_range = torch.arange(range_start, range_stop, step)
+
+        for j, (x_0, x_0_label) in enumerate(zip(x_0s, x_0_labels)):
+            ax = axs[i, j]
+            # create an array of copies of each x_0, where we replace idx's value by one of the explored values
+            x_inputs = torch.tile(x_0, (steps, 1))
+            x_inputs[:, idx] = x_range[:]
+
+            for model, label in zip(models, model_labels):
+                y_range = model(x_inputs)
+                label = label if (x_0_label == "") else f"{label}"
+                ax.plot(x_range, y_range, label=label, linewidth=2)
+
+            #ax.set_title(f"{idx_label}", fontsize=10)  # Dimension label for each subplot
+            ax.set_xlabel(idx_label, fontsize=8)
+            ax.set_ylabel(res_label, fontsize=8)
+            ax.grid(True, linestyle='--', alpha=0.6)
+            ax.set_box_aspect(1)
+
+    for j, x_0_label in enumerate(x_0_labels):
+        fig.text(
+            0.5 / n_x_0s + j / n_x_0s,  # x-coordinate (centered above each column)
+            0.98,  # y-coordinate (just above the subplots)
+            x_0_label,
+            ha='center',
+            fontsize=10,
+        )
+
+    handles, labels = axs[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='lower center', fontsize=10)
+    plt.tight_layout(rect=[0, 0, 1, 1])  # Leave space for legend
+    
+    #plt.ylabel(res_label)
+
+    plt.savefig(path)
+
+    if show:
+        plt.show()
+
 def plot_univariate_slices(models, x_0s, x_0_labels, idx, idx_label, range, steps, model_labels, res_label, path, show=False):
-    # TODO: Make a much more complete and general version. 
-    # Make it beautiful, and potentially containing more information, several slices or several sites/timesteps? (=x0) 
-    # (take inspiration from paper)
     plt.close('all')
     plt.figure(figsize=(10, 6))
 
