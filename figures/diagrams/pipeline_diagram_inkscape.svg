@@ -9,6 +9,9 @@
    id="svg5"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    sodipodi:docname="pipeline_diagram_inkscape.svg"
+   inkscape:export-filename="/home/talos/git_epfl/change_automatic_differentiation/figures/diagrams/pipeline_diagram.png"
+   inkscape:export-xdpi="300"
+   inkscape:export-ydpi="300"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -194,7 +197,7 @@
        inkscape:connection-end="#rect23131" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-mid:url(#Arrow2Lend);marker-end:url(#Arrow2Lend)"
-       d="m 120.88306,18.045339 c -9.1989,97.999821 -23.842634,61.704373 -41.375036,77.17628"
+       d="m 132.25061,18.234565 c 0.0828,37.106701 -14.21887,60.216378 -52.742586,76.987054"
        id="path67995"
        inkscape:connector-type="polyline"
        inkscape:connector-curvature="0"
@@ -203,7 +206,7 @@
        inkscape:connection-start="#rect38583" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker73928)"
-       d="m 147.53857,17.852066 0.2147,148.165084"
+       d="m 157.17693,18.686576 -0.1658,147.867684"
        id="path67997"
        inkscape:connector-type="polyline"
        inkscape:connector-curvature="0"
@@ -231,7 +234,7 @@
        ry="3.5378494" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker73928)"
-       d="m 212.40426,18.234458 0.0974,202.213802"
+       d="m 212.22717,18.080153 0.27452,202.368107"
        id="path71925"
        inkscape:connector-type="polyline"
        inkscape:connector-curvature="0"
@@ -285,34 +288,34 @@
     <text
        xml:space="preserve"
        style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.22287px;line-height:1.25;font-family:'DejaVu Serif';-inkscape-font-specification:'DejaVu Serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.203204"
-       x="102.73518"
-       y="97.114716"
+       x="106.63543"
+       y="88.679993"
        id="text155776"><tspan
          sodipodi:role="line"
          id="tspan155774"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.22287px;font-family:'DejaVu Serif';-inkscape-font-specification:'DejaVu Serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.203204"
-         x="102.73518"
-         y="97.114716">T, Pre, </tspan><tspan
+         x="106.63543"
+         y="88.679993">T, Pre, </tspan><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.22287px;font-family:'DejaVu Serif';-inkscape-font-specification:'DejaVu Serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.203204"
-         x="102.73518"
-         y="107.3933"
+         x="106.63543"
+         y="98.95858"
          id="tspan179784">VPD, Cc, </tspan></text>
     <text
        xml:space="preserve"
        style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.22287px;line-height:1.25;font-family:'DejaVu Serif';-inkscape-font-specification:'DejaVu Serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.206248"
-       x="151.61691"
-       y="122.65795"
+       x="159.17386"
+       y="121.40866"
        id="text187156"><tspan
          sodipodi:role="line"
          id="tspan187154"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.22287px;font-family:'DejaVu Serif';-inkscape-font-specification:'DejaVu Serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.206248"
-         x="151.61691"
-         y="122.65795">Rn, Q_G, </tspan><tspan
+         x="159.17386"
+         y="121.40866">Rn, Q_G, </tspan><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.22287px;font-family:'DejaVu Serif';-inkscape-font-specification:'DejaVu Serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.206248"
-         x="151.61691"
-         y="132.93654"
+         x="159.17386"
+         y="131.68724"
          id="tspan187158">T, VPD</tspan></text>
     <text
        xml:space="preserve"
