@@ -188,7 +188,7 @@ def fit_plot(models, points, labels, path, unit, obs_label='Observed', pred_labe
     plt.figure(figsize=[7, 5])
 
     if colors is None:
-        colors = [None]*len(models)
+        colors = ['#1f77b4']*len(models)
 
     # TODO: crop to valid region, > 500 is broken flux anyway?
 

@@ -23,8 +23,6 @@ import eval
 
 import train
 
-# GENERAL TODO: Be careful with colors. Try to use the same consistent colors for the same things, like rs_model, etc. 
-# Try to use sensible colors, like red for hot, blue for cold  
 
 def load_model(config_name):
     # load the model weights
@@ -253,12 +251,11 @@ def generate_Q_LE_slice_plots(rs_model):
         plot.plot_univariate_slices_subplots(models_list, x_0s, x_0_labels, idx_and_ranges, steps, labels, res_label='Q_LE [W/m²]', path=path, x_0_suppl=True, show=True)
 
 # NOTE: We could do daily aggregates. Idea: log in global_preds, the i index of the timestep. 
-# TODO: Add coefficients of determination on top of the plots
 def generate_scatter_plots(test_data, rs_model):
     # then, write a function that, given data from some site (in sequential order? perhaps not needed),
     # groups the data in  
     
-    test_data = test_data[:5000] # take only a subset of the data. for performances. TODO OPT: Use ctx batches in the plot method (or here?), for better perf because it's so slow now.
+    test_data = test_data[:5000] # take only a subset of the data. for performances. OPT: Use ctx batches in the plot method (or here?), for better perf because it's so slow now.
 
     # make the pipeline
     pipeline = pipelines.make_pipeline(rs_model, None, None)
@@ -273,8 +270,6 @@ def generate_scatter_plots(test_data, rs_model):
     with torch.no_grad():
         plot.fit_plot(models_list, test_data, labels, path, plot_range=(0, 600), unit=f'Q_LE [W/m²]', show=True)
 
-# TODO: Put annotations on the plot I choose. put this one in the appendix
-# TODO: Consider generating a simple schematic for the main text
 def generate_torch_viz_graph():
     # First, decide if I want to keep the model architecture. Perhaps not, it's not the focus
     # Then, give some of the predictors to torchviz, to display the actual Q_LE PM pipeline
@@ -321,12 +316,12 @@ def generate_torch_viz_graph():
     graph.render("torchviz", view=True)
 
 # CONSIDER THIS ONE DONE
-# TODO: Compute and add coefficient of determination for this one
 def generate_empirical_learning_scatter(config_name):
     # QUEST: Do we simply use random samples as we did usually, or do we try to use actual sample points from sites?
     # The second one seems quite more annoying
     config = OmegaConf.load(f"configs/{config_name}.yaml")
     rs_model = train.train_rs(config)
+
 
     rs_sampler = train.rs_sampler()
     with torch.no_grad():
@@ -336,8 +331,10 @@ def generate_empirical_learning_scatter(config_name):
             return (x, y)
         
 
-        sample_points = train.generate_points(point_sampler, 200)
-        path = os.path.join('figures', 'scatter_plots', f'dummy_rs_model_scattering.png')
+        sample_points = train.generate_points(point_sampler, 1000)
+        coeff = eval.simple_coefficient_determination(rs_model, sample_points)
+        print(f"found coeff={coeff}")
+        path = os.path.join('figures', 'scatter_plots', f'dummy_rs_model_scattering.svg')
 
         plot.fit_plot([rs_model], sample_points, ['our model'], path, f'rs [s/m]',show=True)
 
@@ -476,7 +473,6 @@ def generate_site_experiment_plots(hot_rs, cold_rs, dry_rs, wet_rs, balanced_rs,
     # Load data from specific sites
     # NOTE: The idea would be to use sites no model was trained on. To avoid suffering from any kind of overfitting,
     # and to focus on the actual climate conditions
-    # TODO: That's dumb. better to put maps from site names to data. Because they have intersections, we load sites multiple times
     dry_data, _ = test_ordered_data[0]
     wet_data, _ = test_ordered_data[1]
     hot_data, _ = test_ordered_data[2]
@@ -617,13 +613,13 @@ multiple_rs_models = [
 
 #generate_site_experiment_plots(hot_rs_model, cold_rs_model, dry_rs_model, wet_rs_model, best_rs_model, test_ordered_data)
 
-#generate_empirical_learning_scatter('best_model')
+generate_empirical_learning_scatter('best_model')
 #generate_Q_LE_rs_sensitivity_plots()
 #generate_multiple_model_plots(multiple_model_config_names)
 
 #generate_scatter_plots(test_data, best_rs_model)
 
-generate_multiple_model_plots(multiple_rs_models)
+#generate_multiple_model_plots(multiple_rs_models)
 
 # Call some evaluation functions
 #coeff_determination_ordered(test_ordered_data, best_rs_model)

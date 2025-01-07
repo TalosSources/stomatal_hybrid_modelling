@@ -38,3 +38,13 @@ def coefficient_of_determination(model, test_data):
         y_preds = torch.cat([y_preds, y_pred])
 
     return r2_score(ys.detach().numpy(), y_preds.detach().numpy())
+
+def simple_coefficient_determination(model, test_data):
+    # model is callable
+    # test data is a list of pairs (feature, expected)
+    ys = []
+    y_preds = []
+    for x, y in test_data:
+        ys.append(y)
+        y_preds.append(model(x))
+    return r2_score(np.array(ys), np.array(y_preds))
