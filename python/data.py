@@ -68,9 +68,6 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
         global_keys = ["EIn_H", "EIn_L", "EG", "ELitter", "ESN", "ESN_In", 
                        "EWAT", "EICE", "EIn_urb", "EIn_rock"]  
 
-    # sun_condition = if (LAI_L(i) > 0) && (Csno == 0) && (Cice == 0) NOTE: Could use that if ever
-    # TODO: Data points come by 2 because there's 2 types of high vegetation in some sites. 
-    # In this case, either we ignore the site, or we can treat them as 2 separate contexts?
     ctxs =  ["sun_H", "sun_L", "shd_H", "shd_L"]
 
     # Load the predictor arrays: For each ctx, for each pipeline predictor, a tensor
@@ -118,8 +115,8 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
             predictor_arrays[ctx]['ra'][i] != 0. # ra is in the denom of the PM equation: can't be 0.
             and not predictor_arrays[ctx]['IPAR'][i].isnan() # IPAR is used in the pb pipeline.
             # NOTE: Add other checks
-            #and not predictor_arrays["Cc"][i] == 0 # Filter out values where cc is 0 (for which context???) I guess, it should 0 for all contexts?
-            #and not predictor_arrays["IPAR"][i] == 0 # Filter out values where IPAR is 0 (for which context???)
+            #and not predictor_arrays["Cc"][i] == 0 # Uncomment to filter out values where cc is 0 
+            #and not predictor_arrays["IPAR"][i] == 0 # Uncomment to filter out values where IPAR is 0 
             and not constants[ctx]['CT'].isnan() # AU-TTE has nan values for L constants
         )
         
@@ -201,13 +198,12 @@ def load_pipeline_data_dict_single_site(predictor_path, observation_path, data, 
 
         print(f"n_points after filter: {len(data) - start_idx}")
         print(f"first {print_k_points} data points:")
-        for p in data[start_idx+1500:start_idx+print_k_points+1500]:
+        for p in data[start_idx:start_idx+print_k_points]:
             print(f"{p}\n-----------------------------------\n")
 
 
 
 def key_mapping(keys, ctx="sun_H"):
-    # NOTE: We could factorize this ugly code
     if ctx == "sun_H":
         return [sun_h_map[k] for k in keys]
     elif ctx == "sun_L":

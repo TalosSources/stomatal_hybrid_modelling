@@ -33,4 +33,4 @@ wandb:
   project: "change-project"
   tags: ['gsCO2_experiment']
 
-name: gsCO2_experiment_2
+name: gsCO2_experiment

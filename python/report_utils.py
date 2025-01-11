@@ -59,7 +59,6 @@ def load_ordered_data_from_sites(site_names, base_path):
             combined_site_data.append((site_data, site_name))
     return combined_site_data
     
-# TODO: Latex table with coefficients? or perhaps another tool for the table
 def generate_hp_tuning_loss_plot():
     results_path = "results/lr_wd_tuning"
     filenames = [
@@ -155,27 +154,15 @@ def generate_rs_slice_plots(rs_model):
         labels = ['Hybrid model (ours)', 'Empirical model']
         models_list = [wrapper, empirical_model]
 
-        # for each of the input variables, make a slice plot
-        #for idx, idx_range, idx_label in idx_and_ranges:
-        #    path = os.path.join('figures', 'rs_slices', f'slice_varying_{idx}.png')
-        #    plot.plot_univariate_slices(models_list, x_0s, x_0_labels, idx, idx_label, idx_range, 100,
-        #                                labels, res_label='rs [s/m]',path=path, show=True)
-            
         path = os.path.join('figures', 'rs_slices', f'combined_slices.png')
         plot.plot_univariate_slices_subplots(models_list, x_0s, x_0_labels, idx_and_ranges, 100, 
                                              labels, res_label='rs [s/m]', path=path, show=True)
 
 # CONSIDER THIS DONE
 def generate_Q_LE_slice_plots(rs_model):
-    # Idea: work with lambda. have a lambda closure that contains 'hardcoded' (using fetched data) predictors for all values except
-    # the ones that we vary
-    # load specific(s) datapoint(s)
-    # I'll vary Ds, Ts, Cc, and Pre.
-    # An=[-0.2730], Pre=[91887.5000], Cc=[38.0901], GAM=[2.2750], Ds=[393.0414], Do=[1000.], Ts=[14.6980]
     with torch.no_grad():
 
         t = torch.tensor
-        # Some data points
 
         # Hot, Humid (GF-Guy)
         hot_wet_point = (
@@ -241,11 +228,6 @@ def generate_Q_LE_slice_plots(rs_model):
         # we might add more models on the same plot
         labels = ['Hybrid Model (ours)', 'Empirical Model']
         models_list = [our_wrapper, empirical_wrapper]
-
-        # for each of the input variables, make a slice plot
-        #for idx, idx_range, idx_label in idx_and_ranges:
-        #    path = os.path.join('figures', 'Q_LE_slices', f'slice_varying_{idx}.png')
-        #    plot.plot_univariate_slices(models_list, x_0s, x_0_labels, idx, idx_label, idx_range, steps, labels, res_label='Q_LE [W/m²]', path=path, show=True)
 
         path = os.path.join('figures', 'Q_LE_slices', f'combined_slices.png')
         plot.plot_univariate_slices_subplots(models_list, x_0s, x_0_labels, idx_and_ranges, steps, labels, res_label='Q_LE [W/m²]', path=path, x_0_suppl=True, show=True)
@@ -376,28 +358,6 @@ def generate_Q_LE_timeseries(ordered_data, ranges, rs_model):
             path = os.path.join('figures', 'timeseries_plots', f'best_model_{site_name}.svg')
             plot.time_series_plot(timeseries, labels, path, linestyles=linestyles, widths=widths, alphas=alphas, x_label='Timestep', y_label='Q_LE [W/m²]', show=True) 
 
-# NOTE: Perhaps in appendix
-# THIS ONE IS ONE TOO MUCH I THINK
-def generate_Q_LE_rs_sensitivity_plots():
-    rs_range = (10, 3000)
-
-    def Q_LE_Wrapper(x):
-        # rs, ra, Rn, QG, Ds, Ts,        
-        return differentiable_relations.Q_LE(x[:, 0], x[:, 1], x[:, 2], x[:, 3], x[:, 4], x[:,5])
-    
-    x_0s = [
-        torch.tensor([0., 1., 1., 1., 100., 15.,])
-    ]
-
-    x_0_labels = [
-        'dummy data'
-    ]
-
-    path = os.path.join('figures', 'sensitivity_plots', f'Q_LE_sensitivity_plot.png')
-    plot.plot_univariate_slices([Q_LE_Wrapper], x_0s, x_0_labels, 0, 'rs [s/m]', rs_range,
-                                1000, ['PM Equation'], 'Q_LE [W/m²]', path=path, show=True)
-
-# TODO: Also include a table with results for all models (mainly R²?)
 def generate_multiple_model_plots(rs_models):
 
     for rs_model in rs_models:
@@ -445,11 +405,6 @@ def generate_multiple_model_plots(rs_models):
                                                  labels, res_label='rs [s/m]', path=path, show=True)
 
 
-# DONE
-def generate_ctx_decomposition_plots():
-    ...
-    # NOTE: This one might be tedious to make, and perhaps not the most relevant, 
-    # so might drop it if others are enough (or if I run out of time)
 
 # CONSIDER THIS DONE
 def generate_site_experiment_plots(hot_rs, cold_rs, dry_rs, wet_rs, balanced_rs, test_ordered_data, seed=24):
@@ -613,7 +568,7 @@ multiple_rs_models = [
 
 #generate_site_experiment_plots(hot_rs_model, cold_rs_model, dry_rs_model, wet_rs_model, best_rs_model, test_ordered_data)
 
-generate_empirical_learning_scatter('best_model')
+#generate_empirical_learning_scatter('best_model')
 #generate_Q_LE_rs_sensitivity_plots()
 #generate_multiple_model_plots(multiple_model_config_names)
 

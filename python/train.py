@@ -64,7 +64,6 @@ def train_general(
         losses.append(float(loss))
         if printIter:
             loss_average = np.array(losses[-print_every_iter:]).mean()
-            #print(f"Epoch {i}: y={y}, output={output}, loss={loss}, average of last {print_every_iter} losses: {loss_average}")
             print(f"Epoch {i}: loss={loss}, average of last {print_every_iter} losses: {loss_average}")
 
         # compute the loss gradient
@@ -89,19 +88,17 @@ def perform_hp_tuning(config, data):
     # split the data to avoid tuning with the final testing data
     data, _ = train_test_split(data, test_size=config.train.test_split, random_state=config.train.random_state)
 
-    # TODO: Since a lot of this is common to both methods, need to factor it
-
     model_func = models.rs_model if config.pipeline.predict_rs else models.gsCO2_model
     sub_model_producer = lambda hps : model_func(hidden_size=hps['hidden_size'], n_hidden=hps['n_hidden'], 
                                         activation=config.model.activation, batch_norm=hps['batch_norm'])
 
-    # choose a loss TO CONFIG ? maybe, not necessary
+    # choose a loss
     loss_criterion = torch.nn.L1Loss()
 
-    # choose an optimizer TO CONFIG ? maybe, not necessary
+    # choose an optimizer
     opt_producer = lambda parameters, hps : torch.optim.Adam(parameters, lr=hps['lr'], weight_decay=hps['weight_decay'])
 
-    # choose a data iterator TO CONFIG ? maybe, not necessary
+    # choose a data iterator
     iterator_producer = lambda data : batch_ctx_dict_iterator(data, batch_size=config.train.batch_size)
 
     # build the pipeline around the specific models
@@ -114,8 +111,6 @@ def perform_hp_tuning(config, data):
         return pipeline, rs_model.parameters(), lambda: rs_model.eval()
 
     # perform K-Fold for the given set of hp
-    # For now, use the entire data to perform k-fold
-    
     # dict hp_name -> list of values
     param_possible_values = {'lr' : config.train.lr, 'weight_decay' : config.train.weight_decay, 
         'n_hidden' : config.model.n_hidden, 'hidden_size': config.model.hidden_size, 'batch_norm': config.model.batch_norm}
@@ -153,35 +148,32 @@ def train_and_evaluate_pipeline(config, data):
 
     model = models.rs_model_from_config(config.model) if config.pipeline.predict_rs else models.gsCO2_model_from_config(config.model)
 
-    # choose a loss TO CONFIG ? maybe, not necessary
+    # choose a loss
     #loss = torch.nn.MSELoss()
     loss_criterion = torch.nn.L1Loss()
 
-    # choose an optimizer TO CONFIG ? maybe, not necessary
+    # choose an optimizer
     #opt = torch.optim.Adam(gsCO2_model.parameters() + Vmax_model.parameters(), lr=3e-4)
     #opt = torch.optim.SGD(gsCO2_model.parameters(), lr=lr, , weight_decay=weight_decay)
     opt = torch.optim.Adam(model.parameters(), lr=config.train.lr, weight_decay=config.train.weight_decay)
 
-    # choose a data iterator TO CONFIG ? maybe, not necessary
+    # choose a data iterator
     # data_iterator = iter(train_data)
     #data_iterator = random_sample_iterator(train_data)
     data_iterator = batch_ctx_dict_iterator(train_data, batch_size=config.train.batch_size)
 
     # build the pipeline around the specific models
-    # NOTE: Doing it like this is poor nomenclature, it would be better to rename it as something like 'learnable_module'
     if config.pipeline.predict_rs:
         model_wrapper = pipelines.make_pipeline(model, None, None, output_rs=False)
     else:
         model_wrapper = pipelines.make_pipeline(None, model, None, output_rs=False)
 
-    eval_stride = 1 # NOTE: TO CONFIG?
     # eval the model before training
-    model.eval() # NOTE: Would be better for the wrapper to offer this method. perhaps the wrapper should simply inherit from nn.module()
+    model.eval()
     eval_before_training = eval.eval_general(model_wrapper, train_data, loss_criterion)
     print(f"Eval before training: {eval_before_training}")
 
     # Init wandb
-    # NOTE: Consider moving it in the other method, train_pipeline
     run = None
     if config.wandb.use_wandb:
         run = wandb.init(
@@ -199,20 +191,20 @@ def train_and_evaluate_pipeline(config, data):
 
     # eval the model after training
     model.eval()
-    eval_after_training = eval.eval_general(model_wrapper, test_data[::eval_stride], loss_criterion)
+    eval_after_training = eval.eval_general(model_wrapper, test_data, loss_criterion)
     print(f"Eval after training: {eval_after_training}")
 
-    eval_after_training_train = eval.eval_general(model_wrapper, train_data[::eval_stride], loss_criterion)
+    eval_after_training_train = eval.eval_general(model_wrapper, train_data, loss_criterion)
     print(f"Eval after training on train data (to check overfitting): {eval_after_training_train}")
 
     # eval the empirical model (for comparaison)
     empirical_model_wrapper = pipelines.make_pipeline(None, None, None, output_rs=False)
-    eval_empirical_model = eval.eval_general(empirical_model_wrapper, test_data[::eval_stride], loss_criterion)
+    eval_empirical_model = eval.eval_general(empirical_model_wrapper, test_data, loss_criterion)
     print(f"Eval empirical model: {eval_empirical_model}")
 
     # Eval the R² score (for information)
-    model_coeff = eval.coefficient_of_determination(model_wrapper, test_data[::eval_stride])
-    empirical_coeff = eval.coefficient_of_determination(empirical_model_wrapper, test_data[::eval_stride])
+    model_coeff = eval.coefficient_of_determination(model_wrapper, test_data)
+    empirical_coeff = eval.coefficient_of_determination(empirical_model_wrapper, test_data)
     print(f"Coefficient of determination after training: {model_coeff}")
     print(f"Coefficient of determination of empirical model: {empirical_coeff}")
 
@@ -237,7 +229,6 @@ def k_folds(config, data, model_producer, opt_producer, criterion, iterator_prod
     for train_ids, test_ids in kfold.split(data):
         # then they use handy batch methods that I could use elsewhere also
 
-        # simply train the pipeline using data[train_ids] or something NOTE: Need to reset stuff like model, optimizer, etc.
         split_train_data = data[train_ids]
         iterator =  iterator_producer(split_train_data)
         model, parameters, eval_lambda = model_producer(hp_set)
@@ -248,7 +239,7 @@ def k_folds(config, data, model_producer, opt_producer, criterion, iterator_prod
         losses += torch.tensor(losses)
         benchmarks += (end - start)
         with torch.no_grad():
-            eval_lambda() # put the model in eval mode # NOTE: This is very bad practice, would be cleaner to have a class wrapper (decorator?) rather than a lambda
+            eval_lambda() # put the model in eval mode
             test_data_iterator = data[test_ids]
             # evaluate with our eval function the test data
             eval_score = eval.eval_general(model, test_data_iterator, criterion)
@@ -291,7 +282,6 @@ class random_sample_iterator:
     
     def __next__(self):
         idx = random.randint(0, self.n-1)
-        #print(f"(just sampled {idx})")
         return self.data[idx]
 
 
@@ -310,7 +300,6 @@ Of course, the elements must be in the same order in the tensor for each key.
 def ctx_dict_batch(dict_array, batch_size):
 
     # batch is an array of size batch_size containing (x,y) tuples
-    #batch = random.sample(dict_array, batch_size)
     batch_indices = np.random.choice(len(dict_array), batch_size, replace=False)
     batch = dict_array[batch_indices]
 
@@ -338,18 +327,13 @@ def train_rs(config):
     def wrapper(x):
         x = x * torch.tensor([1e2, 1e-4, 1e-1, 1e1, 1e-1, 1e-2, 1]) # Optional: makes the wrapper take the actual predictor values as inputs
         model_output = model(x)
-        #rs_small = torch.nn.functional.softplus(model_output)
         rs_small = model_output
-        #print(f"received x={x}, obtained out={model_output}, small={rs_small}, rs={rs_small*1e2}")
-        #rs = rs_small
         rs = rs_small*1e2
-        #print(f"model_output={model_output}")
         return rs
     loss = torch.nn.L1Loss()
     opt = torch.optim.Adam(model.parameters(), lr=0.005)
     epochs = 10000
     batch_size = 1
-    #data_iterator = rs_dummy_data_generator
     data_iterator = batch_decorator_iterator(rs_dummy_data_generator, batch_size)
 
     losses = train_general(wrapper, loss, opt, epochs, data_iterator)
@@ -359,10 +343,6 @@ def train_rs(config):
     print(f"Average of the last {avg_window} losses: {avg_loss}")
 
     plot.plot_losses([losses], ['dummy training loss'], minmax=False, smoothing=0.5)
-    #plot.plot_univariate_slice(model, gsco2_dummy_data_generator.f, torch.tensor([5, 5, 8, 2, 2, 4], dtype=torch.float32), 2, np.arange(5, 11, 0.1), "gsco2")
-    #plot.plot_univariate_slice(model, gsco2_dummy_data_generator.f, torch.tensor([5, 5, 8, 2, 2, 4], dtype=torch.float32), 1, np.arange(2, 8, 0.1), "gsco2")
-    #plot.plot_univariate_slice(model, gsco2_dummy_data_generator.f, torch.tensor([5, 5, 8, 2, 2, 4], dtype=torch.float32), 0, np.arange(2, 8, 0.1), "gsco2")
-    #plot.fit_plot(model, gsco2_dummy_data_generator.f, generate_points(gsco2_dummy_data_generator.sampler, 100), "gsco2_fcn")
 
     return wrapper
 
@@ -381,7 +361,6 @@ class function_sample_iterator:
     def __next__(self):
         x = self.sampler()
         y = self.f(x)
-        #print(f"sampled x={x}, y={y}")
         return x, y
     
 class batch_decorator_iterator:  
@@ -410,11 +389,6 @@ class batch_decorator_iterator:
 def generate_points(sampler, count = 100, dtype=torch.float64):
     return [sampler() for _ in range(count)]
 
-gsco2_dummy_data_generator = function_sample_iterator(
-    f = lambda x : np.array([x[0]*x[1]/((x[2]-x[3])*(1+x[4]/x[5]))]),
-    sampler = lambda: np.random.normal([5, 5, 8, 2, 2, 4], 1, 6) # NOTE: This could easily be changed
-)
-
 def empirical_model(x):
     a1=5
     go=10000
@@ -426,18 +400,14 @@ def empirical_model(x):
     Do=x[5]
     Ts=x[6]
     gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
-    #gsCO2 = torch.max(gsCO2, torch.tensor(go))
     rsCO2=1/gsCO2 ### [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
     rsH20 = (rsCO2/1.64)*(1e6) ### [ s m^2 / molH20 ] Stomatal resistence or canopy 
     rs = rsH20*(273.15*Pre)/(0.0224*(Ts+273.15)*101325) ## [s/m]  Stomatal resistence or Canopy [convert stomatal resistence in terms of water volumes into another unit]
-    #print(f"sampling gsCo2={gsCO2}, rsCO2={rsCO2}, rsH20={rsH20}, rs={rs}")
     return rs
 
 def rs_sampler():
     lows =  np.array([2, 90000,  25, 1, 10  , 50, 5])
     highs = np.array([5, 95000, 50, 10,  300, 100, 20]) 
-    #lows = np.ones((7)) * 20
-    #highs = np.ones((7)) * 70
 
     return lambda: torch.tensor(np.random.uniform(lows, highs), dtype=torch.float32)
 
@@ -446,34 +416,3 @@ rs_dummy_data_generator = function_sample_iterator(
     sampler = rs_sampler()
 )
 
-def vm_empirical(x):
-    # input in x
-    Ts = torch.tensor(x[0], dtype=torch.float32)
-    Vmax = torch.tensor(x[1], dtype=torch.float32)
-
-    # constants?
-    Ts_k = torch.tensor(Ts + 273.15) ##[K]
-    Tref = torch.tensor(25 + 273.15) ## [K] Reference Temperature
-    Ha = torch.tensor(65.33) ##  [kJ/mol] Activation Energy - Plant Dependent
-    DS = torch.tensor(0.485) ## [kJ / mol K]  entropy factor - Plant Dependent
-    R =   torch.tensor(0.008314) ##  [kJ�/ K mol] Gas Constant
-    Hd =  torch.tensor(200) # [kJ/mol]  Deactivation Energy -- constant
-
-    kT =torch.exp(Ha*(Ts_k-Tref)/(Tref*R*Ts_k))*(1+torch.exp((Tref*DS - Hd)/(Tref*R)))/(1+torch.exp((Ts_k*DS-Hd)/(Ts_k*R)))
-    Vm=Vmax*kT
-
-    return Vm
-    #return Ts + Vmax
-
-    # in some strange case
-    #Vm = Vmax*fT*f1T*f2T
-
-vm_dummy_data_generator = function_sample_iterator(
-    f = vm_empirical,
-    sampler= lambda: np.random.normal(5, 1, 2)
-)
-
-simple_data_generator = function_sample_iterator(
-    f = lambda x : np.array([x[0] * x[1]]),# + x[2] + x[3] + x[4] + x[5]]),
-    sampler = lambda: np.random.normal(0, 2, 2) # data centered around 0
-)

@@ -26,9 +26,6 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
     gsCO2_model = None, rs_model=None, Vmax_model = None):
 
     # CT is a flag (can be a tensor), must be 3 or 4, and the same for all elements
-    if torch.isnan(CT).any():
-        print(f"found NaN CT:")
-        print(f"Cc={Cc},IPAR={IPAR},Csl={Csl},ra={ra},rb={rb},Ts={Ts},Pre={Pre},Ds={Ds},Psi_L={Psi_L},Psi_sto_50={Psi_sto_50},Psi_sto_00={Psi_sto_00}, CT={CT},Vmax={Vmax},DS={DS},Ha={Ha},FI={FI},Oa={Oa},Do={Do},a1={a1},go={go},gmes={gmes},rjv={rjv},")
     CT[torch.isnan(CT)] = 3
     assert (CT == 3).all() or (CT == 4).all()
     if CT.dim() > 0:
@@ -98,10 +95,6 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         Vm = Vmax*fT*f1T*f2T ## [umolCO2/ s m^2 ]
         ke25 = 20000*Vmax 
         ke = ke25*fT 
-
-    if Vmax_model is not None:
-        vm_predictors = ... # TODO
-        Vm = Vmax_model(**vm_predictors)
 
     ANSG = 2 
     if ANSG == 0: 
@@ -225,7 +218,6 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
         2. predict gsCO2, and then map it to rs using physical laws.
     """
     if rs_model is not None:
-        #print(f"preds: An={An}, Pre={Pre}, Cc={Cc}, GAM={GAM}, Ds={Ds}, Do={Do}, Ts={Ts}")
         predictors = torch.stack([An * 1e2,Pre * 1e-4,Cc * 1e-1,GAM * 1e1,Ds * 1e-1,Do * 1e-2, Ts], dim=-1)
         model_output = rs_model(predictors).squeeze()
 
@@ -233,8 +225,6 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
 
         rs_small = torch.nn.functional.softplus(model_output) # 0 at -inf, ~x fo~ large x, analytic 
         rs = rs_small * 1e2
-
-        #print(f"got preds={predictors}, obtained rs={rs}")
 
         return rs
     else:
@@ -247,7 +237,7 @@ def photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,Psi_L,Psi_sto_50,Psi_
             # EMPIRICAL MODEL
             gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)) ###  [umolCO2 / s m^2] -- Stomatal Conductance
         
-        # For differentiability, we should use something like softplus centered on go
+        # For differentiability, we could use something like softplus centered on go
         gsCO2 = torch.max(gsCO2, go)
 
         # Convert the stomatal conductance to the stomatal resistance
