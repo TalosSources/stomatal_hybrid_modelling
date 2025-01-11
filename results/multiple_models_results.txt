@@ -1,0 +1,20 @@
+BEST MODEL 2
+Eval after training: 30.9276180267334
+Eval after training on train data (to check overfitting): 30.877559661865234
+Eval empirical model: 58.58059310913086
+Coefficient of determination after training: 0.6309464243388292
+Coefficient of determination of empirical model: -0.8204660623447761
+--------------------------------------
+BEST MODEL 3
+Eval after training: 32.16449737548828
+Eval after training on train data (to check overfitting): 32.11756134033203
+Eval empirical model: 58.58059310913086
+Coefficient of determination after training: 0.5992803125003032
+Coefficient of determination of empirical model: -0.8204660623447761
+--------------------------------------
+BEST MODEL 4
+Eval after training: 30.811126708984375
+Eval after training on train data (to check overfitting): 30.753570556640625
+Eval empirical model: 58.58059310913086
+Coefficient of determination after training: 0.6374752350065573
+Coefficient of determination of empirical model: -0.8204660623447761

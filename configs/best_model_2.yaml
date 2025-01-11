@@ -1,0 +1,30 @@
+model:
+    n_hidden : 4
+    hidden_size : 128 # NOTE: Perhaps replace with an array describing layers?
+    batch_norm : False # NOTE: Can't be True if batch_size==1. We may add an assertion for this
+    activation : 'ReLU'
+
+data: # (does it need to be nested?)
+    sites : ["CN-Du2", "US-Me2", "CH-Dav", "ES-Amo", "AU-Wac", "AU-Stp", "GF-Guy"]
+    base_path : "~/epfl/semester_project/databases/T_C_PIPELINE_DATA/"
+    nPoints : 50000 # -> decide if we want to truncate, what to do in training?
+    exclude_negative : True
+
+pipeline:
+    predict_rs: True # If false, we predict gsCO2 instead, and convert it to rs.
+
+train:
+    lr: 4e-4
+    epochs: 4000
+    weight_decay: 1e-6
+    batch_size: 1000
+    test_split: 0.2
+    random_state: 24 # Assuming the data loading doesn't change, this ensures the test_split will be the same.
+    hp_tuning: False # If this is true, hyperparameters are expected to be arrays.
+
+wandb:
+  use_wandb: False
+  project: "change-project"
+  tags: ['best_model_2']
+
+name: best_model_2

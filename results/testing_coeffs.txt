@@ -1,0 +1,18 @@
+This evaluates the best model on the testing sites, and compares against the empirical model.
+
+Evaluating site AU-TTE: (dry site)
+Hybrid R² (ours) : -0.013411693253388535
+Empirical R²: -6.371802554655099
+Evaluating site CH-Cha: (humid site)
+Hybrid R² (ours) : 0.6012982293651858
+Empirical R²: 0.48729175745263775
+Evaluating site CG-Tch: (hot site)
+Hybrid R² (ours) : 0.5870757036261756
+Empirical R²: -3.1365748603061236
+Evaluating site FI-Sod: (cold site)
+Hybrid R² (ours) : 0.48741010697619835
+Empirical R²: 0.0566947310450171
+
+and on combined data with the actual split (the same than in the scatter plot):
+Hybrid R² (ours) : 0.5655033202695905
+Empirical R²: -0.8048055133691248
