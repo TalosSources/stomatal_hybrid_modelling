@@ -295,23 +295,37 @@ A = A*fO; %% Gross Assimilation Rate [umolCO2/ s m^2 ]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 An = A - Rdark; % %% Net Assimilation Rate % [umolCO2/ s m^2 ]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+useFCN = true;
 %%%%%% Ball-Woodrow-Berry --> Model  Dewar (2002) -- Correction Tuzet et al., 2003  
 %gsCO2 = go + a1*An*Pre/((Cs-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
-gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
-gsCO2(gsCO2<go)=go; 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rsCO2=1/gsCO2; %%% [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
-%%%%%%%%%
-%CiF = Cs - An*Pre/gsCO2; %%%%% [Pa] 
-%CiF(CiF<0) = 0; 
-CcF = Csl - An*Pre*(rsCO2 + rmes + 1.37*rb +ra); %%%%% [Pa] 
-CcF(CcF<0) = 0; 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%
-rsH20 = (rsCO2/1.64)*(10^6); %%% [ s m^2 / molH20 ] Stomatal resistence or canopy 
-An = (Csl - CcF)/(Pre*(rsCO2 + rmes + 1.37*rb + ra)); %%% Net Assimilation Rate  % [umolCO2/ s m^2 ]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-CcF = CcF/(Pre*10^-6); %% [umolCO2 /molAIR ]
-rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0); %% [s/m]  Stomatal resistence or Canopy 
-%An = An*12*(10^-6) ; %% [gC/ s m^2] Net Assimilation Rate  -
+if useFCN
+    % Problem: since we predicted rs, we get it from a blackbox and can't
+    % directly get the other desired outputs: Ccf, An, gsCO2. either we can
+    % inverse their expression to obtain them from rs, or we can switch to
+    % predicting gsCO2 in the training pipeline (requires re-training
+    % everything). Else, we can just ignore the other outputs hoping
+    % they're not used to compute Q_LE?
+    net = importNetworkFromPytorch("/home/talos/git_epfl/stomatal_hybrid_modelling/results/best_model/model_weights.pt")
+    
+else
+    gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
+    gsCO2(gsCO2<go)=go; 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    rsCO2=1/gsCO2; %%% [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
+    %%%%%%%%%
+    %CiF = Cs - An*Pre/gsCO2; %%%%% [Pa] 
+    %CiF(CiF<0) = 0; 
+    CcF = Csl - An*Pre*(rsCO2 + rmes + 1.37*rb +ra); %%%%% [Pa] 
+    CcF(CcF<0) = 0; 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%
+    rsH20 = (rsCO2/1.64)*(10^6); %%% [ s m^2 / molH20 ] Stomatal resistence or canopy 
+    An = (Csl - CcF)/(Pre*(rsCO2 + rmes + 1.37*rb + ra)); %%% Net Assimilation Rate  % [umolCO2/ s m^2 ]
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    CcF = CcF/(Pre*10^-6); %% [umolCO2 /molAIR ]
+    rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0); %% [s/m]  Stomatal resistence or Canopy 
+    %An = An*12*(10^-6) ; %% [gC/ s m^2] Net Assimilation Rate  -
+end
+disp('FOUND rs [s/m]')
+disp(rs)
 return

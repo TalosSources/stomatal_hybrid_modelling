@@ -35,7 +35,7 @@ for i=1:m %% row
                 Ep=interp2(x,y,DTM,x(j)+xp,y(i)+yp,'nearest');
                 dE=(Ep-Ep(1));
                 mang= 90-atan(dE./SD)*180/pi;
-                HZ(i,j,k)=nanmin(mang);
+                HZ(i,j,k)=min(mang);
                 if sum(isnan(HZ(i,j,:)))>0
                     disp('Error in the Horizon Angle !!!')
                 end
