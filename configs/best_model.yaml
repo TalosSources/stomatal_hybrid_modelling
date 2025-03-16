@@ -1,7 +1,7 @@
 model:
     n_hidden : 4
-    hidden_size : 128 # NOTE: Perhaps replace with an array describing layers?
-    batch_norm : False # NOTE: Can't be True if batch_size==1. We may add an assertion for this
+    hidden_size : 128
+    batch_norm : False # NOTE: Can't be True if batch_size==1.
     activation : 'ReLU'
 
 data: # (does it need to be nested?)

@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import os
+import sys
 from omegaconf import OmegaConf
 
 from photosynthesis_biochemical import photosynthesis_biochemical
@@ -38,26 +39,13 @@ def train_and_eval_pipeline(config):
 
 def main():
 
-    #config = OmegaConf.load("configs/default.yaml") # NOTE: Could be passed as arg, or maybe we can have a list of experiments to perform
-    #config = OmegaConf.load("configs/default_hyperparameter_tuning.yaml")
-    #config = OmegaConf.load("configs/best_model.yaml")
-    #config = OmegaConf.load("configs/model_size_tuning.yaml")
-    #config = OmegaConf.load("configs/lr_wd_tuning.yaml")
-    #config = OmegaConf.load("configs/lr_wd_tuning_fine.yaml")
-    #config = OmegaConf.load("configs/batch_norm_tuning.yaml")
-    #config = OmegaConf.load("configs/dry_sites_only.yaml")
-    #config = OmegaConf.load("configs/wet_sites_only.yaml")
-    #config = OmegaConf.load("configs/hot_sites_only.yaml")
-    #config = OmegaConf.load("configs/cold_sites_only.yaml")
-    #config = OmegaConf.load("configs/gsCO2_experiment.yaml")
+    if len(sys.argv) < 2:
+        config_path = 'configs/best_model.yaml'
+    else:
+        config_path = sys.argv[1]
 
-    #config = OmegaConf.load("configs/best_model_2.yaml")
-    #config = OmegaConf.load("configs/best_model_3.yaml")
-    config = OmegaConf.load("configs/best_model_4.yaml")
-
+    config = OmegaConf.load(config_path)
     train_and_eval_pipeline(config)
-
-
 
 
 

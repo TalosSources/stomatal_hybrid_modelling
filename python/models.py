@@ -18,13 +18,8 @@ class FCN(torch.nn.Module):
         self.layers = torch.nn.ModuleList(module_list)
             
     def forward(self, x):
-        to_print = f"calling forward, x={x}\n"
         for i, layer in enumerate(self.layers):
             x = layer(x)
-            to_print += f"using layer {i}={layer}, getting x={x}\n"
-            #to_print += f"using layer {layer} (matrix={layer.weight}), getting x={x}\n" # with layer debug
-        to_print += f"returning {x}\n"
-        #print(to_print)
         return x
 
 
@@ -32,18 +27,11 @@ def rs_model_from_config(config):
     return rs_model(config.hidden_size, config.n_hidden, config.activation, config.batch_norm)
 
 def rs_model(hidden_size, n_hidden, activation, batch_norm):
-    """
-    Ideas for improvement:
-    * weight decay? normalisation? that kind of stuff
-    * random forest?
-    * proper recurrent network?
-    * read the ML course again
-    """
     input_dim = 7
     output_dim = 1
 
     # Architecture is specified in the config
-    activation_map = {
+    activation_map = { # Can be extended
         "ReLU" : torch.nn.ReLU
     }
     layers = [input_dim] + [hidden_size]*n_hidden + [output_dim]
@@ -69,9 +57,4 @@ def gsCO2_model(hidden_size, n_hidden, activation, batch_norm):
     }
     layers = [input_dim] + [hidden_size]*n_hidden + [output_dim]
     return FCN(layers, activation_map[activation](), batch_norm=batch_norm)
-
-def vm_model():
-    input_dim = 2
-    output_dim = 1
-    return FCN([input_dim, 64, 64, 64, output_dim], torch.nn.ReLU())
 

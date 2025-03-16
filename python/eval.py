@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 from sklearn.metrics import r2_score
-from tqdm import tqdm
 
 import utils
 
@@ -32,9 +31,7 @@ def coefficient_of_determination(model, test_data):
     y_preds = torch.tensor([])
     for x, y in test_data:
         y_pred = model(x)
-        # ys.append(y)
         ys = torch.cat([ys, y])
-        # y_preds.append(y_pred)
         y_preds = torch.cat([y_preds, y_pred])
 
     return r2_score(ys.detach().numpy(), y_preds.detach().numpy())

@@ -6,8 +6,6 @@ from scipy.stats import multivariate_normal
 
 import utils
 
-# TODO: make more beautiful, give more options (legend etc.), make shaded min-high values, smoothing?
-# or perhaps just use wandb for this one?
 def plot_losses(losses, labels, coefficients=None, minmax=True, smoothing=0.5):
     plt.close('all')
 
@@ -150,9 +148,6 @@ def plot_univariate_slices(models, x_0s, x_0_labels, idx, idx_label, range, step
         plt.show()
 
 def plot_univariate_slice(model, f, x_0, idx, x_idx_range, model_name, show=False):
-    # TODO: Make a much more complete and general version. 
-    # Make it beautiful, and potentially containing more information, several slices or several sites/timesteps? (=x0) 
-    # (take inspiration from paper)
     plt.close('all')
 
     y_range_f = np.zeros_like(x_idx_range)
@@ -181,16 +176,11 @@ If the functions evaluate to the same values for a point, it should lie
 on the x = y line. 
 """
 def fit_plot(models, points, labels, path, unit, obs_label='Observed', pred_label='Predicted', plot_range=None, pointsize=10, alpha=0.3, colors=None, show=False):
-    # TODO: Make more beautiful, legible (add colors and shapes), 
-    # to help distiguish several different scatters (add option for that),
-    # and add many eloquent legend options 
     plt.close('all')
     plt.figure(figsize=[7, 5])
 
     if colors is None:
         colors = ['#1f77b4']*len(models)
-
-    # TODO: crop to valid region, > 500 is broken flux anyway?
 
     use_grouped = False
 
@@ -264,9 +254,6 @@ def fit_plot(models, points, labels, path, unit, obs_label='Observed', pred_labe
         plt.show()
 
 def time_series_plot(timeseries, labels, path, linestyles, widths=None, alphas=None, x_label=None, y_label=None, ranges=None, show=False):
-    # TODO: like all others. more beautiful, more options, several timeseries,
-    # legend options, other cool stuff
-    # include: a way to do the 13. figure idea, namely a breakdown of the Q_LE time-serie among contexts.
     plt.close('all')
     plt.figure(figsize=(10, 4))
     n = len(timeseries[0])
@@ -290,11 +277,5 @@ def time_series_plot(timeseries, labels, path, linestyles, widths=None, alphas=N
     if show:
         plt.show()
 
-"""
-Might be quite similar to a univariate_slice plot.
-"""
-def sensitivity_plot():
-    # TODO
-    ...
         
     

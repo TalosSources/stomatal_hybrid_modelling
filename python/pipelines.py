@@ -34,9 +34,9 @@ def make_pipeline(rs_model, gsco2_model, Vmax_model, output_rs=False):
 
         return (Q_LE, rs) if output_rs else Q_LE
     
-    # NOTE: this 2 methods as well as the global calculation could be moved to differentiable_relations.py
+    # NOTE: these 2 methods as well as the global calculation could be moved to differentiable_relations.py
     def W_on_m2_to_mm_on_H(Q):
-        # For now simply divide by 684 NOTE: Not 100% sure it's the way to go
+        # For now simply divide by 684
         return Q / 684
     
     def mm_on_H_to_W_on_m2(Q):
@@ -64,16 +64,12 @@ def make_pipeline(rs_model, gsco2_model, Vmax_model, output_rs=False):
         # Sum all the relevant results
         rs_values = []
         for _, preds in ctx_to_predictors.items():
-            # TODO: All ctxs as a batch
+            # PERF: All ctxs as a batch
             ctx_res = subpipeline(preds)
             if output_rs:
                 ctx_res, rs = ctx_res
                 rs_values.append(rs)
 
-            # put nan values to 0
-            #ctx_res[torch.isnan(ctx_res)] = 0.
-            #ctx_res = torch.where(torch.isnan(ctx_res), torch.tensor(0.0), ctx_res).detach()
-            #ctx_res.requires_grad_()  # Re-enable gradient tracking for the modified tensor
             Q_LE_wm2 = Q_LE_wm2 + ctx_res 
 
         # Convert the result to mm/H, to perform the computation below

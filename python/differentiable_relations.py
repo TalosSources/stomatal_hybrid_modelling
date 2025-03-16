@@ -58,12 +58,11 @@ def compute_missing_variables(Ts, Ds):
 
     return sc_kPa, roa, Ds_kPa, gamma
 
-# Taken from https://edis.ifas.ufl.edu/publication/AE459
 # Ts is in Celsius °C
 # Outputs sc in Pa/°C
 def compute_sc(Ts):
     b0, b1, b2 = 0.6108, 17.27, 237.3  # empirical coefficients
     saturated_vapour_pressure = 1e3 * b0 * np.exp(b1 * Ts / (b2 + Ts))  # Pa
 
-    return b1 * b2 * saturated_vapour_pressure / np.power(b2 + Ts, 2) # NOTE: remplace np by torch?
+    return b1 * b2 * saturated_vapour_pressure / np.power(b2 + Ts, 2)
 
