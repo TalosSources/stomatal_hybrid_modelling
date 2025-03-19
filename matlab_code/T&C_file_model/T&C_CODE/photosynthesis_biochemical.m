@@ -18,12 +18,12 @@ function[CcF,An,rs,Rdark,F755nm,GAM,gsCO2]= photosynthesis_biochemical(Cc,IPAR,C
 %%% Ca [ppm]-[umolCO2/molAIR] Atmospheric CO2 concentration
 %%% ra =[s/m]
 %%% rb =[s/m]
-%%% Ts = Leaf temperature [°C]
-%%% Ta  air temperature [°C]
+%%% Ts = Leaf temperature [ï¿½C]
+%%% Ta  air temperature [ï¿½C]
 %%% Pre = Atmospheric Pressure [mbar]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% TP  --> 'CT' == 3  'CT' ==  4  %% Photosyntesis Typology for Plants   
-%%% Vmax [umolCO2/ s m^2 ] Maximum Rubisco Capacity at 25°C 
+%%% Vmax [umolCO2/ s m^2 ] Maximum Rubisco Capacity at 25ï¿½C 
 %%% Ha =  [kJ/mol] Activation Energy of Vmax Plant Dependent 
 %%% DS = [kJ / mol K]  entropy factor of Vmax Plant Dependent 
 %%% FI Intrinsec quantum Efficiency [umolCO2/umolPhotons]
@@ -71,7 +71,7 @@ go = go*10^6; %%%  [umolCO2 / s m^2]
 %%%%%%%%%% Temperature stress %%% Bonan et al., 2011; Kattge and Knorr 2007
 Ts_k = Ts + 273.15; %%[K]
 Tref = 25 + 273.15; %% [K] Reference Temperature
-R =   0.008314; %%  [kJ·/ K mol] Gas Constant
+R =   0.008314; %%  [kJï¿½/ K mol] Gas Constant
 %%%
 ANS_TEMP=1; 
 if  ANS_TEMP == 1 %% Kattge and Knorr 2007
@@ -122,9 +122,9 @@ if CT==4
     %%%%% Temperature Dai et al 2004  - Sellers 1996b  - Bonan et al 2011 
     s1=0.3; %% [1/K] 
     s3=0.2; % [1/K] %% 0.3 Cox2001
-    Tup = 40; %[°C]
-    Tlow = 15; %%[°C]
-    %%% Tup = 30-40 °C %%  Tlow = 5-15 °C (-inf)for C3  Sellers 1996b 
+    Tup = 40; %[ï¿½C]
+    Tlow = 15; %%[ï¿½C]
+    %%% Tup = 30-40 ï¿½C %%  Tlow = 5-15 ï¿½C (-inf)for C3  Sellers 1996b 
     f1T= 1/(1 +exp(s1*(Ts - Tup))); %%% Temperaure Function 1 for Maximum Rubisco Capacity
     f2T= 1/(1 +exp(s3*(Tlow - Ts)));%%% Temperaure Function 2 for Maximum Rubisco Capacity
     fT = 2.0^(0.1*(Ts-25)); 
@@ -302,10 +302,20 @@ if useFCN
     % Problem: since we predicted rs, we get it from a blackbox and can't
     % directly get the other desired outputs: Ccf, An, gsCO2. either we can
     % inverse their expression to obtain them from rs, or we can switch to
-    % predicting gsCO2 in the training pipeline (requires re-training
+    % predicting gsCO2 in the training pipeline (requires re-trainingz
     % everything). Else, we can just ignore the other outputs hoping
     % they're not used to compute Q_LE?
-    net = importNetworkFromPytorch("/home/talos/git_epfl/stomatal_hybrid_modelling/results/best_model/model_weights.pt")
+    net = importNetworkFromPyTorch("/home/talos/git_epfl/stomatal_hybrid_modelling/traced_models/traced_best_rs_model.pt", PyTorchInputSizes=[NaN, 7]);
+    whos net;
+    X = dlarray(rand(7, 1)', "CB");
+    disp("got here 1");
+    net = initialize(net, X);
+    disp("got here 2");
+    
+    output = predict(net, X);
+    disp('Output:');
+    disp(output);
+    %analyzeNetwork(net);
     
 else
     gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
