@@ -49,6 +49,17 @@ def save_best_model_trace():
     utils.trace_model(rs_model, "best_rs_model")
 
 
+def export_best_model_as_onnx():
+    rs_model = utils.load_model("best_model")
+    utils.export_as_onnx(rs_model, "best_rs_model")
+
+
+def test_values():
+    rs_model = utils.load_model("best_model")
+    X = torch.tensor([0.1280, 0.9991, 0.1711, 0.0326, 0.5612, 0.8819, 0.6692])
+    print(f"output: {rs_model(X)}")
+
+
 def main():
     if len(sys.argv) < 2:
         config_path = "configs/best_model.yaml"
@@ -57,7 +68,8 @@ def main():
 
     # config = OmegaConf.load(config_path)
     # train_and_eval_pipeline(config)
-    save_best_model_trace()
+    # export_best_model_as_onnx()
+    test_values()
 
 
 if __name__ == "__main__":

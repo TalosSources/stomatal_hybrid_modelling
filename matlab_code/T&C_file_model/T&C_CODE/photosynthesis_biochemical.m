@@ -305,18 +305,15 @@ if useFCN
     % predicting gsCO2 in the training pipeline (requires re-trainingz
     % everything). Else, we can just ignore the other outputs hoping
     % they're not used to compute Q_LE?
-    net = importNetworkFromPyTorch("/home/talos/git_epfl/stomatal_hybrid_modelling/traced_models/traced_best_rs_model.pt", PyTorchInputSizes=[NaN, 7]);
-    whos net;
-    X = dlarray(rand(7, 1)', "CB");
-    disp("got here 1");
+    net = importNetworkFromONNX("/home/talos/git_epfl/stomatal_hybrid_modelling/traced_models/best_rs_model.onnx");
+    disp(net);
+    plot(net);
+    X = dlarray(rand(7, 1), "CB");
+    disp('X:')
+    disp(X)
     net = initialize(net, X);
-    disp("got here 2");
-    
-    output = predict(net, X);
-    disp('Output:');
-    disp(output);
-    %analyzeNetwork(net);
-    
+    out = predict(net, X);
+    disp(out);
 else
     gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
     gsCO2(gsCO2<go)=go; 
@@ -336,6 +333,6 @@ else
     rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0); %% [s/m]  Stomatal resistence or Canopy 
     %An = An*12*(10^-6) ; %% [gC/ s m^2] Net Assimilation Rate  -
 end
-disp('FOUND rs [s/m]')
-disp(rs)
+%disp('FOUND rs [s/m]')
+%disp(rs)
 return

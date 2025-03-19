@@ -1,6 +1,7 @@
 from itertools import product
 import numpy as np
 import torch
+import torch.onnx
 import os
 from omegaconf import OmegaConf
 
@@ -168,7 +169,7 @@ def load_model(config_name):
     return rs_model
 
 
-def trace_model(model, model_name):
+def traced_model(model, model_name):
     # put model in inference mode
     model.eval()
 
@@ -179,3 +180,24 @@ def trace_model(model, model_name):
     X = torch.rand(1, 7)
     traced_model = torch.jit.trace(model.forward, X)
     traced_model.save(f"traced_models/traced_{model_name}.pt")
+
+
+def export_as_onnx(model, model_name):
+    model.eval()
+    model.to("cpu")
+    X = torch.rand(1, 7)
+    out = model(X)
+    torch.onnx.export(
+        model,
+        X,
+        f"traced_models/{model_name}.onnx",
+        export_params=True,
+        opset_version=10,
+        do_constant_folding=False,
+        # input_names=["input"],
+        # output_names=["output"],
+        # dynamic_axes={
+        #    "input": {0: "batch_size"},  # variable length axes
+        #    "output": {0: "batch_size"},
+        # },
+    )
