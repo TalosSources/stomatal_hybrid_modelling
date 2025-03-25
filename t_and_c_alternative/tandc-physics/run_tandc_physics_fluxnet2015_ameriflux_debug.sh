@@ -10,20 +10,22 @@
 #set -e
 
 # user defined configuration
-directory_main="/Users/koppa/Documents/stomata/tandc-physics"
-directory_with_model="/Users/koppa/Documents/stomata/tandc-physics/tandc-model"
-directory_with_src="/Users/koppa/Documents/stomata/tandc-physics/tandc-model/src"
-directory_with_mod_param="/Users/koppa/Documents/stomata/tandc-calibrated-parameters/fatichi_final/mod_param_files"
-directory_with_prova="/Users/koppa/Documents/stomata/tandc-calibrated-parameters/fatichi_final/prova_files"
-directory_with_input_mat="/Users/koppa/Documents/stomata/tandc-forcing"
-directory_with_output_mat="/Users/koppa/Documents/stomata/tandc-physics-output/fatichi_parameters_ismail"
-file_ca="/Users/koppa/Documents/stomata/CO2_Data/Ca_Data.mat"
-file_site_list="/Users/koppa/Documents/stomata/tandc-physics/site_tandc_fluxnet2015_ameriflux_final_v2.csv"
+root_directory="/home/talos/git_epfl/stomatal_hybrid_modelling/t_and_c_alternative" # user-specific path: should be specified outside?
+physics_directory="$root_directory/tandc-physics"
+directory_with_model="$physics_directory/tandc-model"
+directory_with_src="$directory_with_model/src"
+param_directory="$root_directory/tandc-calibrated-parameters/fatichi_final"
+directory_with_mod_param="$param_directory/mod_param_files"
+directory_with_prova="$param_directory/prova_files"
+directory_with_input_mat="$root_directory/tandc-forcing"
+directory_with_output_mat="$root_directory/tandc-physics-output/fatichi_parameters_ismail"
+file_ca="$root_directory/CO2_Data/Ca_Data.mat"
+file_site_list="$physics_directory/site_tandc_fluxnet2015_ameriflux_final_v2.csv"
 
 while IFS=, read -r siteid sitename mod_param_name prova_name lat lon elev igbp
 do
 
-    cd ${directory_main}
+    cd ${physics_directory}
 
     echo ">>>> Station Under Process: ${siteid} <<<<"
 
@@ -52,7 +54,17 @@ do
     # comment out all lines starting with 'load' so that they can be 
     # replaced by actual paths
     echo "---- commenting out load statements ----"
-    LC_ALL=C sed -i '' "/[[:<:]]load[[:>:]]/s/^/%/g" "${directory_with_model}/prova.m"
+    #LC_ALL=C sed -i '' "/[[:<:]]load[[:>:]]/s/^/%/g" "${directory_with_model}/prova.m"
+    LC_ALL=C sed -i "/\bload\b/s/^/%/" "${directory_with_model}/prova.m"
+
+    # proposition from GPT: to make it cross-platform
+    # if [[ "$OSTYPE" == "darwin"* ]]; then
+    #     # macOS (BSD sed)
+    #     LC_ALL=C sed -i '' "/\<load\>/s/^/%/" "${directory_with_model}/prova.m"
+    # else
+    #     # Linux (GNU sed)
+    #     LC_ALL=C sed -i "/\<load\>/s/^/%/" "${directory_with_model}/prova.m"
+    # fi
 
     # input data
     echo "----- replacing input path ----"
@@ -88,7 +100,7 @@ save('${path_output_mat//\//\\/}')" ""${directory_with_model}/prova.m""
     cd ${directory_with_model}
     matlab -batch "prova"
 
-    cd ${directory_main}
+    cd ${physics_directory}
 
     # remove temporary mod_param and prova files
     rm ${directory_with_model}/mod_param.m

@@ -7,7 +7,7 @@ function [SLO,ASP]=Slope_Aspect_indexes(DTM,cellsize,ANSW)
 %%% OUTPUT -->
 %%% SLO [fraction]
 %%% ASP [angular degree from North]
-%%% SLOPE from GIS in Angular degree [°] --> method of gradient -- NOTE !!!
+%%% SLOPE from GIS in Angular degree [ï¿½] --> method of gradient -- NOTE !!!
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 [m,n]=size(DTM);
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -23,7 +23,7 @@ if strcmp(ANSW,'mste')
         for j=2:(n+1)
             if not(isnan(DTMf(i,j)))
                 Z= (DTMf(i-1:i+1,j-1:j+1)-DTMf(i,j))./d;
-                %s=nanmin(nanmin(Z)); %%% maximum slope
+                %s=min(min(Z)); %%% maximum slope
                 s=min(min(Z(not(isnan(Z))))); %% 
                 SLO(i,j)=-s;
             end
@@ -50,9 +50,9 @@ for i=1:m
 end
 %%%%%%%%%%%%%%%
 if strcmp(ANSW,'grad')
-    %%SLO = 180*grad/pi; %%% Slope in angular degree [°]
+    %%SLO = 180*grad/pi; %%% Slope in angular degree [ï¿½]
     SLO = tan(grad);%% Slope in fraction []
 end
-ASP =  180*asp/pi; %%% Aspect in angular degree [°]
+ASP =  180*asp/pi; %%% Aspect in angular degree [ï¿½]
 %%%%%%%%%%%
 end

@@ -1,3 +1,6 @@
 # Directories containing actual data: heavy volume
 tandc-forcing
 tandc-physics-output
+*.bak
+*.asv
++*

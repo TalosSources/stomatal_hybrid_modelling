@@ -20,7 +20,7 @@ for i=1:m
             dE=(Ep-Ep(1));
             dL=cellsize:cellsize:cellsize*length(Ep);
             mang= 90-atan(dE./dL')*180/pi;
-            H_z(1)=nanmin(mang);
+            H_z(1)=min(mang);
             %%% Direction North -East
             r=min(length(i:m),length(j:n));
             for k=0:r-1
@@ -31,13 +31,13 @@ for i=1:m
             dE=(Ep-Ep(1));
             dL=cellsize:sqrt(2)*cellsize:sqrt(2)*cellsize*length(Ep);
             mang= 90-atan(dE./dL')*180/pi;
-            H_z(2)=nanmin(mang);
+            H_z(2)=min(mang);
             %%%% Direction East 
             Ep = DTM(i,j:n);
             dE=(Ep-Ep(1));
             dL=cellsize:cellsize:cellsize*length(Ep);
             mang= 90-atan(dE./dL)*180/pi;
-            H_z(3)=nanmin(mang);
+            H_z(3)=min(mang);
             %%%%%%% Direction South - East 
             r=min(length(1:i),length(j:n));
             for k=0:r-1
@@ -46,13 +46,13 @@ for i=1:m
             dE=(Ep-Ep(1));
             dL=cellsize:sqrt(2)*cellsize:sqrt(2)*cellsize*length(Ep);
             mang= 90-atan(dE./dL)*180/pi;
-            H_z(4)=nanmin(mang);
+            H_z(4)=min(mang);
             %%%%%% Direction South 
             Ep = DTM([i:-1:1],j);
             dE=(Ep-Ep(1));
             dL=cellsize:cellsize:cellsize*length(Ep);
             mang= 90-atan(dE./dL')*180/pi;
-            H_z(5)=nanmin(mang);
+            H_z(5)=min(mang);
             %%%%%%%%% Direction South - West 
             r=min(length(1:i),length(1:j));
             for k=0:r-1
@@ -61,13 +61,13 @@ for i=1:m
             dE=(Ep-Ep(1));
             dL=cellsize:sqrt(2)*cellsize:sqrt(2)*cellsize*length(Ep);
             mang= 90-atan(dE./dL')*180/pi;
-            H_z(6)=nanmin(mang);
+            H_z(6)=min(mang);
             %%%%%%%%% Direction West 
             Ep = DTM(i,[j:-1:1]);
             dE=(Ep-Ep(1));
             dL=cellsize:cellsize:cellsize*length(Ep);
             mang= 90-atan(dE./dL)*180/pi;
-            H_z(7)=nanmin(mang);
+            H_z(7)=min(mang);
             %%%%%%% Direction North-West 
             r=min(length(i:m),length(1:j));
             for k=0:r-1
@@ -76,7 +76,7 @@ for i=1:m
             dE=(Ep-Ep(1));
             dL=cellsize:sqrt(2)*cellsize:sqrt(2)*cellsize*length(Ep);
             mang= 90-atan(dE./dL)*180/pi;
-            H_z(8)=nanmin(mang);
+            H_z(8)=min(mang);
         else
            H_z=NaN*ones(1,8);  
         end
