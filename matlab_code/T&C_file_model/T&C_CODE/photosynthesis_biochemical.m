@@ -296,24 +296,38 @@ A = A*fO; %% Gross Assimilation Rate [umolCO2/ s m^2 ]
 An = A - Rdark; % %% Net Assimilation Rate % [umolCO2/ s m^2 ]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 useFCN = true;
+
+persistent model;
+if isempty(model)
+    disp('Loading model...');
+    net = importNetworkFromONNX("/home/talos/git_epfl/stomatal_hybrid_modelling/traced_models/best_rs_model.onnx");
+    X = dlarray(rand(7, 1), "CB");
+    %disp('X:')
+    %disp(X)
+    net = initialize(net, X);
+    %out = predict(net, X);
+    %disp(out);
+    model = net;
+end
+
 %%%%%% Ball-Woodrow-Berry --> Model  Dewar (2002) -- Correction Tuzet et al., 2003  
 %gsCO2 = go + a1*An*Pre/((Cs-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
 if useFCN
+    disp("got here 1");
+    predictors = dlarray(single([An * 1e2; Pre * 1e-4; Cc * 1e-1; GAM * 1e1; Ds * 1e-1; Do * 1e-2; Ts]), "CB");
+    disp("got here 2");
+    rs = predict(model, predictors);
+    disp("Predictors:");
+    disp(predictors);
+    disp("output rs:");
+    disp(rs);
     % Problem: since we predicted rs, we get it from a blackbox and can't
     % directly get the other desired outputs: Ccf, An, gsCO2. either we can
     % inverse their expression to obtain them from rs, or we can switch to
     % predicting gsCO2 in the training pipeline (requires re-trainingz
     % everything). Else, we can just ignore the other outputs hoping
     % they're not used to compute Q_LE?
-    net = importNetworkFromONNX("/home/talos/git_epfl/stomatal_hybrid_modelling/traced_models/best_rs_model.onnx");
-    disp(net);
-    plot(net);
-    X = dlarray(rand(7, 1), "CB");
-    disp('X:')
-    disp(X)
-    net = initialize(net, X);
-    out = predict(net, X);
-    disp(out);
+    
 else
     gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
     gsCO2(gsCO2<go)=go; 
@@ -335,4 +349,5 @@ else
 end
 %disp('FOUND rs [s/m]')
 %disp(rs)
-return
+%return
+end
