@@ -1,0 +1,75 @@
+SITE_ID,SITE_NAME,MOD_PARAM_FILE,PROVA_FILE,LOCATION_LAT,LOCATION_LONG,LOCATION_ELEV,IGBP
+AR-Vir,Virasoro,Virasoro,502_Virasoro,-28.2395,-56.1886,105,ENF
+AU-Ade,Adelaide River,Adelaide_River,487_Adelaide_River,-13.0769,131.1178,76,WSA
+AU-ASM,Alice Springs,AliceSprings,500_Alice_Springs,-22.283,133.249,607,SAV
+AU-DaP,Daly River Savanna,Daly_River_Savanna,498_DalySavanna,-14.0633,131.3181,70,GRA
+AU-DaS,Daly River Cleared,Daly_River_Pasture,497_DalyPasture,-14.1593,131.3881,75,SAV
+AU-Dry,Dry River,Dry_River,488_Dry_River,-15.2588,132.3706,177,SAV
+AU-How,Howard Springs,Howard_Springs,486_Howard_Springs,-12.4943,131.1523,40,WSA
+AU-Stp,Sturt Plains,Sturt_Plain,493_Sturt_Plain,-17.1507,133.3502,224,GRA
+AU-TTE,Ti Tree East,TiTree,503_TiTree,-22.287,133.64,552,GRA
+AU-Wac,Wallaby Creek,Wallaby,491_Wallaby,-37.4259,145.1878,753,EBF
+BE-Bra,Brasschaat,Brasschaat,466_Brasschaat,51.3076,4.5198,16,MF
+BE-Vie,Vielsalm,Vielsalm,458_Vielsalm,50.3049,5.9981,493,MF
+CA-Qfo,Quebec-Eastern Boreal-Mature Black Spruce,CA_Qfo,548_CA_Qfo,49.6925,-74.3421,382,ENF
+CG-Tch,Tchizalamou,Tchizalamou,513_Tchizalamou,-4.2892,11.6564,82,SAV
+CH-Cha,Chamau,CHAMAU,408_Chamau,47.2102,8.4104,393,GRA
+CH-Dav,Davos,DAVOS,414_Davos,46.8153,9.8559,1639,ENF
+CH-Dav,Davos,DAVOS,414_Davos,46.8153,9.8559,1639,ENF
+CH-Fru,Fruebuel,FRUEBUEL,409_Fruebuel,47.1158,8.5378,982,GRA
+CH-Lae,Laegern,LAENGERN,410_Laengern,47.4783,8.3644,689,MF
+CH-Oe1,Oensingen grassland,OENSINGEN1,411_Oensingen1,47.2858,7.7319,450,GRA
+CH-Oe2,Oensingen crop,CH_OE2,539_Oe2,47.2864,7.7337,452,CRO
+CN-Cng,Changling,Changling,531_Changling,44.5934,123.5092,129,GRA
+CN-Dan,Dangxiong,Dangxiong,524_Dangxiong,30.4978,91.0664,4319,GRA
+CN-Din,Dinghushan,Dinghushan,520_Dinghushan,23.1733,112.5361,290,EBF
+CN-Du2,Duolun_grassland (D01),Duolun,521_Duolun,42.0467,116.2836,1320,GRA
+CN-Ha2,Haibei Shrubland,Haibei_Meadow,532_Haibei_Meadow,37.6086,101.3269,3201,WET
+CN-HaM,Haibei Alpine Tibet site,Haibei_2,532_Haibei_2,37.37,101.18,4006,GRA
+CN-Qia,Qianyanzhou,Qianyanzhou,530_Qianyanzhou,26.7414,115.0581,109,ENF
+CN-Sw2,Siziwang Grazed (SZWG),Siziwang_Grazed,504_SiziwangGrazed,41.7902,111.8971,1445,GRA
+DE-Hai,Hainich,Hainich,440_Hainich,51.0792,10.4522,430,DBF
+DE-Spw,Spreewald,Spreewald,522_Spreewald,51.8922,14.0337,61,WET
+DE-Tha,Tharandt,Tharandt,436_Tharandt,50.9626,13.5651,385,ENF
+DK-Sor,Soroe,Soroe,459_Soroe,55.4859,11.6446,40,DBF
+ES-Amo,Amoladeras,Amoladeras,474_Amoladeras,36.8336,-2.2523,58,OSH
+FI-Sod,Sodankyla,Sodankyla,452_Sodankyla,67.3624,26.6386,180,ENF
+FR-LBr,Le Bray,LeBray,453_LeBray,44.7171,-0.7693,61,ENF
+FR-Pue,Puechabon,Puechabon,462_Puechabon,43.7413,3.5957,270,EBF
+GF-Guy,Guyaflux (French Guiana),Guyflux,511_Guyflux,5.2788,-52.9249,48,EBF
+GH-Ank,Ankasa,Ankasa,547_Ankasa,5.2685,-2.6942,124,EBF
+GL-NuF,Nuuk Fen,Nuuk_Fen,541_Nuuk_Fen,64.1308,-51.3861,50,WET
+GL-ZaF,Zackenberg Fen,Zackenberg_Fen,518_Zackenberg_Fen,74.4814,-20.5545,38,WET
+GL-ZaH,Zackenberg Heath,Zackenberg_Heath,518_Zackenberg_Heath,74.4733,-20.5503,38,GRA
+IT-Col,Collelongo,Collelongo,505_Collelongo,41.8494,13.5881,1560,DBF
+IT-Cpz,Castelporziano,Castelporziano,450_Castelporziano,41.7052,12.3761,68,EBF
+IT-Lav,Lavarone,Lavarone,510_Lavarone,45.9562,11.2813,1353,ENF
+IT-MBo,Monte Bondone,Monte_Bondone,512_Monte_Bondone,46.0147,11.0458,1550,GRA
+IT-Noe,Arca di Noe - Le Prigionette,Noe,476_Noe,40.6062,8.1517,25,CSH
+IT-Ren,Renon,Renon,431_Renon,46.5869,11.4337,1730,ENF
+IT-Ro2,Roccarespampani 2,Ro2,538_Ro2,42.3903,11.9209,160,DBF
+IT-SRo,San Rossore,SRO,404_SRO,43.7279,10.2844,6,ENF
+IT-Tor,Torgnon,Torgnon,509_Torgnon,45.8444,7.5781,2160,GRA
+JP-MBF,Moshiri Birch Forest Site,Moshiri_Birch_Forest,537_Moshiri_Birch_Forest,44.3869,142.3186,571,DBF
+NL-Loo,Loobos,Loobos,463_Loobos,52.1666,5.7436,25,ENF
+PA-SPs,Sardinilla-Pasture,Sardinilla,492_Sardinilla,9.3138,-79.6314,68,GRA
+RU-Fyo,Fyodorovskoye,Fyodorovskoje,454_Fyodorovskoye,56.4615,32.9221,265,ENF
+RU-Ha1,Hakasia steppe,Hakasia,499_Hakasia,54.7252,90.0022,446,GRA
+RU-SkP,Yakutsk Spasskaya Pad larch,Yakutsk_Spasskaya,525_Yakutsk_Spasskaya,62.255,129.168,246,DNF
+SD-Dem,Demokeya,Demokeya,515_Demokeya,13.2829,30.4783,500,SAV
+SJ-Adv,Adventdalen,Adventdalen,540_Adventdalen,78.186,15.923,17,WET
+SN-Dhr,Dahra,Dahra,514_Dahra,15.4028,-15.4322,40,SAV
+US-Bar,Bartlett Experimental Forest,Bartlett,464_Bartlett,44.0646,-71.2881,272,DBF
+US-Blo,Blodgett Forest,Blodgett,444_Blodgett,38.8953,-120.6328,1315,ENF
+US-Ivo,Ivotuk,Ivotuk,437_Ivotuk,68.4865,-155.7503,568,WET
+US-Jo2,Jornada Experimental Range Mixed Shrubland,Jornada,435_Jornada,32.5849,-106.6032,1469,OSH
+US-Me2,Metolius mature ponderosa pine,Metolius,484_Metolius,44.4526,-121.5589,1253,ENF
+US-MOz,Missouri Ozark Site,Missouri_Ozark,536_Missouri_Ozark,38.7441,-92.2,219.4,DBF
+US-NR1,Niwot Ridge Forest (LTER NWT1),NiwotRidge,443_NiwotRidge,40.0329,-105.5464,3050,ENF
+US-Prr,Poker Flat Research Range Black Spruce Forest,US_Prr,542_US_Prr,65.1237,-147.4876,210,ENF
+US-Tw1,Twitchell Wetland West Pond,Twitchell_Wetland_West_Pond,506_Twitchell_WestPond,38.1074,-121.6469,-5,WET
+US-Twt,Twitchell Island,Twitchell_Island,506_Twitchell_Island,38.1087,-121.6531,-7,CRO
+US-UMB,Univ. of Mich. Biological Station,UMBS,407_UMBS,45.5598,-84.7138,234,DBF
+US-Vcm,Valles Caldera Mixed Conifer,ValCalMix,433_ValCalMix,35.8884,-106.5321,3030,ENF
+US-WCr,Willow Creek,Willow_Creek,457_Willow_Creek,45.8059,-90.0799,520,DBF
+ZM-Mon,Mongu,Mongu,489_Mongu,-15.4391,23.2525,1053,DBF
