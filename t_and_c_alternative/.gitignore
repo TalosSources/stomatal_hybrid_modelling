@@ -1,6 +1,9 @@
 # Directories containing actual data: heavy volume
 tandc-forcing
 tandc-physics-output
+
+# Matlab generated files: shouldn't be tracked
 *.bak
 *.asv
-+*
+# this one needs to be more general
++* 

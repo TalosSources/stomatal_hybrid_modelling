@@ -66,10 +66,13 @@ def main():
     else:
         config_path = sys.argv[1]
 
-    # config = OmegaConf.load(config_path)
+    config = OmegaConf.load(config_path)
+    pipeline_data = data.load_pipeline_data_dict_from_all_sites(
+        config.data, output_keys=["LE"], verbose=True
+    )
     # train_and_eval_pipeline(config)
     # export_best_model_as_onnx()
-    test_values()
+    # test_values()
 
 
 if __name__ == "__main__":

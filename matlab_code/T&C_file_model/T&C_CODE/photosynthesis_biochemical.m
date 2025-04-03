@@ -295,7 +295,7 @@ A = A*fO; %% Gross Assimilation Rate [umolCO2/ s m^2 ]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 An = A - Rdark; % %% Net Assimilation Rate % [umolCO2/ s m^2 ]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-useFCN = true;
+useFCN = false;
 
 persistent model;
 if isempty(model)
@@ -313,20 +313,31 @@ end
 %%%%%% Ball-Woodrow-Berry --> Model  Dewar (2002) -- Correction Tuzet et al., 2003  
 %gsCO2 = go + a1*An*Pre/((Cs-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
 if useFCN
-    disp("got here 1");
     predictors = dlarray(single([An * 1e2; Pre * 1e-4; Cc * 1e-1; GAM * 1e1; Ds * 1e-1; Do * 1e-2; Ts]), "CB");
-    disp("got here 2");
     rs = predict(model, predictors);
-    disp("Predictors:");
-    disp(predictors);
-    disp("output rs:");
-    disp(rs);
+    rs = extractdata(rs);
+    %disp("Predictors:");
+    %disp(predictors);
+    %disp("output rs:");
+    %disp(rs);
+    %disp(class(rs))
     % Problem: since we predicted rs, we get it from a blackbox and can't
     % directly get the other desired outputs: Ccf, An, gsCO2. either we can
     % inverse their expression to obtain them from rs, or we can switch to
     % predicting gsCO2 in the training pipeline (requires re-trainingz
     % everything). Else, we can just ignore the other outputs hoping
     % they're not used to compute Q_LE?
+    % compute the other outputs from rs
+    rsH20 = rs * (0.0224*(Ts+273.15)*Pre0) / (Tf*Pre);
+    rsCO2 = rsH20 * 1.64 / (10^6);
+    gsCO2 = 1/rsCO2; % What do we do about the clamping operations?
+
+    CcF_int = Csl - An*Pre*(rsCO2 + rmes + 1.37*rb +ra); % NOTE: the 4-element sum could be named/reused?
+    CcF_int(CcF_int<0) = 0;
+    An = (Csl - CcF_int)/(Pre*(rsCO2 + rmes + 1.37*rb + ra));
+    CcF = CcF_int/(Pre*10^-6);
+    % TODO: verify that this inverse derivation is correct
+
     
 else
     gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
