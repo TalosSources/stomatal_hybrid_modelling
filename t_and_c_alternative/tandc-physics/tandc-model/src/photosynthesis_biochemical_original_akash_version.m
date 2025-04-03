@@ -3,7 +3,56 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function[CcF,An,rs,Rdark,F755nm,GAM,gsCO2]= photosynthesis_biochemical(Cc,IPAR,Csl,ra,rb,Ts,Pre,Ds,...
      Psi_L,Psi_sto_50,Psi_sto_00,...
-    CT,Vmax,DS,Ha,FI,Oa,Do,a1,go,gmes,rjv, flag) % Flag is not used now
+    CT,Vmax,DS,Ha,FI,Oa,Do,a1,go,gmes,rjv,flag)
+
+%Cc_init = Cc;
+%IPAR_init = IPAR;
+%Csl_init = Csl;
+%ra_init = ra;
+%rb_init = rb;
+%Ts_init = Ts;
+%Pre_init = Pre;
+%Ds_init = Ds;
+%Psi_L_init = Psi_L;
+%Psi_sto_50_init = Psi_sto_50;
+%Psi_sto_00_init = Psi_sto_00;
+%CT_init = CT;
+%Vmax_init = Vmax;
+%DS_init = DS;
+%Ha_init = Ha;
+%FI_init = FI;
+%Oa_init = Oa;
+%Do_init = Do;
+%a1_init = a1;
+%go_init = go;
+%gmes_init = gmes;
+%rjv_init = rjv;
+
+%if flag == "sunH"
+%    disp('---------New Iteration---------')
+%    disp(Cc)
+    %disp(IPAR)
+    %disp(Csl)
+    %disp(ra)
+    %disp(rb)
+    %disp(Ts)
+    %disp(Pre)
+    %disp(Ds)
+    %disp(Psi_L)
+    %disp(Psi_sto_50)
+    %disp(Psi_sto_00)
+    %disp(CT)
+    %disp(Vmax)
+    %disp(DS)
+    %disp(Ha)
+    %disp(FI)
+    %disp(Oa)
+    %disp(Do)
+    %disp(a1)
+    %disp(go)
+    %disp(gmes)
+    %disp(rjv)
+%end
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% Leaf unit m^2 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -18,12 +67,12 @@ function[CcF,An,rs,Rdark,F755nm,GAM,gsCO2]= photosynthesis_biochemical(Cc,IPAR,C
 %%% Ca [ppm]-[umolCO2/molAIR] Atmospheric CO2 concentration
 %%% ra =[s/m]
 %%% rb =[s/m]
-%%% Ts = Leaf temperature [ï¿½C]
-%%% Ta  air temperature [ï¿½C]
+%%% Ts = Leaf temperature [°C]
+%%% Ta  air temperature [°C]
 %%% Pre = Atmospheric Pressure [mbar]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% TP  --> 'CT' == 3  'CT' ==  4  %% Photosyntesis Typology for Plants   
-%%% Vmax [umolCO2/ s m^2 ] Maximum Rubisco Capacity at 25ï¿½C 
+%%% Vmax [umolCO2/ s m^2 ] Maximum Rubisco Capacity at 25°C 
 %%% Ha =  [kJ/mol] Activation Energy of Vmax Plant Dependent 
 %%% DS = [kJ / mol K]  entropy factor of Vmax Plant Dependent 
 %%% FI Intrinsec quantum Efficiency [umolCO2/umolPhotons]
@@ -71,7 +120,7 @@ go = go*10^6; %%%  [umolCO2 / s m^2]
 %%%%%%%%%% Temperature stress %%% Bonan et al., 2011; Kattge and Knorr 2007
 Ts_k = Ts + 273.15; %%[K]
 Tref = 25 + 273.15; %% [K] Reference Temperature
-R =   0.008314; %%  [kJï¿½/ K mol] Gas Constant
+R =   0.008314; %%  [kJ·/ K mol] Gas Constant
 %%%
 ANS_TEMP=1; 
 if  ANS_TEMP == 1 %% Kattge and Knorr 2007
@@ -122,9 +171,9 @@ if CT==4
     %%%%% Temperature Dai et al 2004  - Sellers 1996b  - Bonan et al 2011 
     s1=0.3; %% [1/K] 
     s3=0.2; % [1/K] %% 0.3 Cox2001
-    Tup = 40; %[ï¿½C]
-    Tlow = 15; %%[ï¿½C]
-    %%% Tup = 30-40 ï¿½C %%  Tlow = 5-15 ï¿½C (-inf)for C3  Sellers 1996b 
+    Tup = 40; %[°C]
+    Tlow = 15; %%[°C]
+    %%% Tup = 30-40 °C %%  Tlow = 5-15 °C (-inf)for C3  Sellers 1996b 
     f1T= 1/(1 +exp(s1*(Ts - Tup))); %%% Temperaure Function 1 for Maximum Rubisco Capacity
     f2T= 1/(1 +exp(s3*(Tlow - Ts)));%%% Temperaure Function 2 for Maximum Rubisco Capacity
     fT = 2.0^(0.1*(Ts-25)); 
@@ -295,64 +344,49 @@ A = A*fO; %% Gross Assimilation Rate [umolCO2/ s m^2 ]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 An = A - Rdark; % %% Net Assimilation Rate % [umolCO2/ s m^2 ]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-useFCN = true;
-
-persistent model;
-if isempty(model)
-    disp('Loading model...');
-    net = importNetworkFromONNX("/home/talos/git_epfl/stomatal_hybrid_modelling/traced_models/best_rs_model.onnx");
-    X = dlarray(rand(7, 1), "CB");
-    net = initialize(net, X);
-    model = net;
-end
-
 %%%%%% Ball-Woodrow-Berry --> Model  Dewar (2002) -- Correction Tuzet et al., 2003  
 %gsCO2 = go + a1*An*Pre/((Cs-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
-if useFCN
-    predictors = dlarray(single([An * 1e2; Pre * 1e-4; Cc * 1e-1; GAM * 1e1; Ds * 1e-1; Do * 1e-2; Ts]), "CB");
-    rs = predict(model, predictors);
-    rs = extractdata(rs);
-    %disp("Predictors:");
-    %disp(predictors);
-    %disp("output rs:");
-    % Problem: since we predicted rs, we get it from a blackbox and can't
-    % directly get the other desired outputs: Ccf, An, gsCO2. either we can
-    % inverse their expression to obtain them from rs, or we can switch to
-    % predicting gsCO2 in the training pipeline (requires re-trainingz
-    % everything). Else, we can just ignore the other outputs hoping
-    % they're not used to compute Q_LE?
-    % compute the other outputs from rs
-    rsH20 = rs * (0.0224*(Ts+273.15)*Pre0) / (Tf*Pre);
-    rsCO2 = rsH20 * 1.64 / (10^6);
-    gsCO2 = 1/rsCO2; % What do we do about the clamping operations?
-
-    CcF_int = Csl - An*Pre*(rsCO2 + rmes + 1.37*rb +ra); % NOTE: the 4-element sum could be named/reused?
-    CcF_int(CcF_int<0) = 0;
-    An = (Csl - CcF_int)/(Pre*(rsCO2 + rmes + 1.37*rb + ra));
-    CcF = CcF_int/(Pre*10^-6);
-    % TODO: verify that this inverse derivation is correct
-
-    
-else
-    gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
-    gsCO2(gsCO2<go)=go; 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    rsCO2=1/gsCO2; %%% [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
-    %%%%%%%%%
-    %CiF = Cs - An*Pre/gsCO2; %%%%% [Pa] 
-    %CiF(CiF<0) = 0; 
-    CcF = Csl - An*Pre*(rsCO2 + rmes + 1.37*rb +ra); %%%%% [Pa] 
-    CcF(CcF<0) = 0; 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%
-    rsH20 = (rsCO2/1.64)*(10^6); %%% [ s m^2 / molH20 ] Stomatal resistence or canopy 
-    An = (Csl - CcF)/(Pre*(rsCO2 + rmes + 1.37*rb + ra)); %%% Net Assimilation Rate  % [umolCO2/ s m^2 ]
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    CcF = CcF/(Pre*10^-6); %% [umolCO2 /molAIR ]
-    rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0); %% [s/m]  Stomatal resistence or Canopy 
-    %An = An*12*(10^-6) ; %% [gC/ s m^2] Net Assimilation Rate  -
-end
-%disp('FOUND rs [s/m]')
-%disp(rs)
-%return
-end
+gsCO2 = go + a1*An*Pre/((Cc-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
+gsCO2(gsCO2<go)=go; 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+rsCO2=1/gsCO2; %%% [ s m^2 / umolCO2 ] Stomatal resistence or Canopy 
+%%%%%%%%%
+%CiF = Cs - An*Pre/gsCO2; %%%%% [Pa] 
+%CiF(CiF<0) = 0; 
+CcF = Csl - An*Pre*(rsCO2 + rmes + 1.37*rb +ra); %%%%% [Pa] 
+CcF(CcF<0) = 0; 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+rsH20 = (rsCO2/1.64)*(10^6); %%% [ s m^2 / molH20 ] Stomatal resistence or canopy 
+An = (Csl - CcF)/(Pre*(rsCO2 + rmes + 1.37*rb + ra)); %%% Net Assimilation Rate  % [umolCO2/ s m^2 ]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+CcF = CcF/(Pre*10^-6); %% [umolCO2 /molAIR ]
+rs = rsH20*(Tf*Pre)/(0.0224*(Ts+273.15)*Pre0); %% [s/m]  Stomatal resistence or Canopy 
+%if (rs > 1800) && (rs < 1802)
+%    disp('---------New Iteration---------')
+%    disp(rs)
+%    disp(Cc_init)
+%    disp(IPAR_init)
+%    disp(Csl_init)
+%    disp(ra_init)
+%    disp(rb_init)
+%    disp(Ts_init)
+%    disp(Pre_init)
+%    disp(Ds_init)
+%    disp(Psi_L_init)
+%    disp(Psi_sto_50_init)
+%    disp(Psi_sto_00_init)
+%    disp(CT_init)
+%    disp(Vmax_init)
+%    disp(DS_init)
+%    disp(Ha_init)
+%    disp(FI_init)
+%    disp(Oa_init)
+%    disp(Do_init)
+%    disp(a1_init)
+%    disp(go_init)
+%    disp(gmes_init)
+%    disp(rjv_init)
+%end
+%An = An*12*(10^-6) ; %% [gC/ s m^2] Net Assimilation Rate  -
+return
