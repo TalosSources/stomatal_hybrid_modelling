@@ -43,6 +43,9 @@ def train_and_eval_pipeline(config):
             rs_model.state_dict(), os.path.join(results_path, "model_weights.pt")
         )
 
+        # saved the onnx version as well
+        utils.export_as_onnx(rs_model, config.name)
+
 
 def save_best_model_trace():
     rs_model = utils.load_model("best_model")
@@ -67,12 +70,7 @@ def main():
         config_path = sys.argv[1]
 
     config = OmegaConf.load(config_path)
-    pipeline_data = data.load_pipeline_data_dict_from_all_sites(
-        config.data, output_keys=["LE"], verbose=True
-    )
     # train_and_eval_pipeline(config)
-    # export_best_model_as_onnx()
-    # test_values()
 
 
 if __name__ == "__main__":

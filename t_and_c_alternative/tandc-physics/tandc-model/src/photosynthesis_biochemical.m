@@ -300,7 +300,7 @@ useFCN = true;
 persistent model;
 if isempty(model)
     disp('Loading model...');
-    net = importNetworkFromONNX("/home/talos/git_epfl/stomatal_hybrid_modelling/traced_models/best_rs_model.onnx");
+    net = importNetworkFromONNX("/home/talos/git_epfl/stomatal_hybrid_modelling/traced_models/best_rs_model.onnx"); % TODO: better file structure, more modularized/parametrized
     X = dlarray(rand(7, 1), "CB");
     net = initialize(net, X);
     model = net;
@@ -310,8 +310,10 @@ end
 %gsCO2 = go + a1*An*Pre/((Cs-GAM)*(1+Ds/Do)); %%%  [umolCO2 / s m^2] -- Stomatal Conductance
 if useFCN
     predictors = dlarray(single([An * 1e2; Pre * 1e-4; Cc * 1e-1; GAM * 1e1; Ds * 1e-1; Do * 1e-2; Ts]), "CB");
-    rs = predict(model, predictors);
-    rs = extractdata(rs);
+    model_output = predict(model, predictors);
+    model_output = extractdata(model_output);
+    rs_small = log(1 + exp(model_output)); % 0 at -inf, ~x fo~ large x, analytic 
+    rs = rs_small * 1e2;
     %disp("Predictors:");
     %disp(predictors);
     %disp("output rs:");
@@ -330,7 +332,7 @@ if useFCN
     CcF_int(CcF_int<0) = 0;
     An = (Csl - CcF_int)/(Pre*(rsCO2 + rmes + 1.37*rb + ra));
     CcF = CcF_int/(Pre*10^-6);
-    % TODO: verify that this inverse derivation is correct
+    % TODO: verify that this inverse derivation is correct (unit testing)
 
     
 else
