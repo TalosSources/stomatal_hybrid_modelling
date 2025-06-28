@@ -65,12 +65,12 @@ def test_values():
 
 def main():
     if len(sys.argv) < 2:
-        config_path = "configs/best_model.yaml"
+        config_path = "configs/iterative_training.yaml"
     else:
         config_path = sys.argv[1]
 
     config = OmegaConf.load(config_path)
-    # train_and_eval_pipeline(config)
+    train_and_eval_pipeline(config)
 
 
 if __name__ == "__main__":

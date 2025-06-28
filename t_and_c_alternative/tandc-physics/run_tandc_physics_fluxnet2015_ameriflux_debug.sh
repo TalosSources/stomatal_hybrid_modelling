@@ -20,7 +20,7 @@ directory_with_prova="$param_directory/prova_files"
 directory_with_input_mat="$root_directory/tandc-forcing"
 directory_with_output_mat="$root_directory/tandc-physics-output/fatichi_parameters_ismail"
 file_ca="$root_directory/CO2_Data/Ca_Data.mat"
-file_site_list="$physics_directory/site_tandc_fluxnet2015_ameriflux_final_v2.csv"
+file_site_list="$physics_directory/site_tandc_fluxnet2015_ameriflux_final_v2_debug.csv" # TODO: Parameter?
 
 while IFS=, read -r siteid sitename mod_param_name prova_name lat lon elev igbp
 do

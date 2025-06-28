@@ -29,11 +29,18 @@ def load_pipeline_data_dict_from_all_sites(
     verbose=False,
 ):
     # prepare paths
-    base_path = os.path.expanduser(config.base_path)
+    if "base_path" in config:
+        pred_base_path = config.base_path
+        obs_base_path = config.base_path
+    else:
+        pred_base_path = config.pred_base_path
+        obs_base_path = config.obs_base_path
+    pred_base_path = os.path.expanduser(pred_base_path)
+    obs_base_path = os.path.expanduser(obs_base_path)
     data = []
     for site_name in config.sites:
-        predictor_path = os.path.join(base_path, f"Results_{site_name}.mat")
-        observation_path = os.path.join(base_path, f"Res_{site_name}.mat")
+        predictor_path = os.path.join(pred_base_path, f"Results_{site_name}.mat")
+        observation_path = os.path.join(obs_base_path, f"Res_{site_name}.mat")
 
         load_pipeline_data_dict_single_site(
             predictor_path,

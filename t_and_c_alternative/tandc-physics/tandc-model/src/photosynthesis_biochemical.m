@@ -300,10 +300,11 @@ useFCN = true;
 persistent model;
 if isempty(model)
     disp('Loading model...');
-    net = importNetworkFromONNX("/home/talos/git_epfl/stomatal_hybrid_modelling/traced_models/best_rs_model.onnx"); % TODO: better file structure, more modularized/parametrized
+    net = importNetworkFromONNX("/home/talos/git_epfl/stomatal_hybrid_modelling/traced_models/iterative_training.onnx"); % TODO: better file structure, more modularized/parametrized
     X = dlarray(rand(7, 1), "CB");
     net = initialize(net, X);
     model = net;
+    disp('Finished loading model')
 end
 
 %%%%%% Ball-Woodrow-Berry --> Model  Dewar (2002) -- Correction Tuzet et al., 2003  
@@ -312,11 +313,16 @@ if useFCN
     predictors = dlarray(single([An * 1e2; Pre * 1e-4; Cc * 1e-1; GAM * 1e1; Ds * 1e-1; Do * 1e-2; Ts]), "CB");
     model_output = predict(model, predictors);
     model_output = extractdata(model_output);
-    rs_small = log(1 + exp(model_output)); % 0 at -inf, ~x fo~ large x, analytic 
+    rs_small = softplus(model_output); % 0 at -inf, ~x fo~ large x, analytic 
     rs = rs_small * 1e2;
-    %disp("Predictors:");
-    %disp(predictors);
-    %disp("output rs:");
+    % disp("Predictors:");
+    % disp(predictors);
+    % disp("model_output:");
+    % disp(model_output)
+    % disp("rs_small:");
+    % disp(rs_small)
+    % disp("output rs:");
+    % disp(rs)
     % Problem: since we predicted rs, we get it from a blackbox and can't
     % directly get the other desired outputs: Ccf, An, gsCO2. either we can
     % inverse their expression to obtain them from rs, or we can switch to
@@ -357,4 +363,12 @@ end
 %disp('FOUND rs [s/m]')
 %disp(rs)
 %return
+end
+
+
+function y = softplus(x)
+    y = zeros(size(x));
+    idx = x > 0;
+    y(idx) = x(idx) + log1p(exp(-x(idx))); % for x > 0, avoids overflow
+    y(~idx) = log1p(exp(x(~idx)));         % for x <= 0, fine as exp(x) is small
 end

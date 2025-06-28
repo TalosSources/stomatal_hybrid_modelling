@@ -14,3 +14,32 @@ And to perform the actual check, it would be more convenient to do it in python,
 
 ## Convergence
 Can be defined in terms of model weights convergence, or predictions convergence. It seems the former always has significant stochasticity even when training goes well, so latter might make more sense.
+
+# Roadmap
+* add a better site support. Need to answer some questions:
+    1. do we train on all sites? a selection?
+    2. do we predict on all sites? a selection? makes sense to predict only on sites we use to train (otherwise we see no progress?)
+    3. do we evaluate on all sites?
+    In fact, we need, when we train in python, to use sites that were predicted using the most recent version of rs_model. Otherwise, we're not making the most progress we can. Then, to evaluate the progress, we need to 
+* perhaps make the script more parametrizable-ed. For example, the rs model path in matlab shouldn't ideally be hard-coded
+## Then
+* hyperparams again?
+
+## Goal
+* do the above (technical), and check everything works
+* select sites
+* In meeting, present the running pipeline. Find a way to run it (cluster? on my own computer? but takes a while. GPU?)
+* ask what results we want (what plots, what metrics, etc.). What do we have more using T&C? new variables can be plotted? or just more accurate results?
+* run the iterative training calibration
+* make some technical report with the outputs
+* clean the code and repo for Son
+
+# Perf
+## Knobs
+* python: data size, epochs, batch size, network size
+* matlab: iters, perhaps also data size
+* sites count
+## modified
+* removed the python part
+* changed iters and data size in python
+* changed iters in matlab
