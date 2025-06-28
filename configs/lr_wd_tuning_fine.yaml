@@ -20,7 +20,7 @@ train:
     k_folds: 3
     k_folds_epochs: 2500 # may be less than the large train epochs to save time
     test_split: 0.2
-    random_state: 24 # Assuming the data loading doesn't change, this ensures the test_split will be the same.
+    seed: 24 # Assuming the data loading doesn't change, this ensures the test_split will be the same.
     hp_tuning: True # If this is true, hyperparameters are expected to be arrays.
 
 wandb:
