@@ -3,9 +3,6 @@
 # This file contains a bash script that iteratively trains a stomatal resistance model, 
 # and use it to run the T&C model and generate new training data until convergence.
 
-# TODO: Make paths general?
-
-# git_dir="/home/talos/git_epfl/stomatal_hybrid_modelling/"
 git_dir=$PWD"/"
 t_and_c_dir=$git_dir"tandc/"
 t_and_c_physics_dir=$t_and_c_dir"tandc-physics/"
@@ -15,8 +12,14 @@ mkdir $comparison_path -p
 
 comparison_sites_path=$t_and_c_physics_dir"/site_tandc_fluxnet2015_ameriflux_final_v2_iterative_training_selection.csv"
 
-# 2 options for the loop: train then predict, or vice-versa. start simple
-# for i in $(seq 1 10); # inclusive range
+run_tandc_first=false # Set to true if you want to overwrite existing T&C outputs
+if [ "$run_tandc_first" = true ] || [ -z "$(find "$results_dir" -mindepth 1 -print -quit)" ]; then
+    echo "Initial run of T&C!"
+    $t_and_c_physics_dir"run_tandc_physics_fluxnet2015_ameriflux_debug.sh" $git_dir
+    [ $? -eq  0 ] || exit 1 # Exit if the matlab predictions failed
+fi
+
+
 echo "Starting iterative training!"
 
 max_iter=5 # stop iterative training after some time if no convergence 
@@ -38,12 +41,10 @@ do
     do
         site_file_name="Results_"${site_id}".mat"
         fresh_output_site_path=$results_dir$site_file_name
-        cp $fresh_output_site_path $comparison_path # TODO: rearrange file structure 
+        cp $fresh_output_site_path $comparison_path
     done < <(tail -n +2 ${comparison_sites_path})
 
     # run T&C to generate predictions
-    # cd $t_and_c_physics_dir
-    # ./run_tandc_physics_fluxnet2015_ameriflux_debug.sh
     $t_and_c_physics_dir"run_tandc_physics_fluxnet2015_ameriflux_debug.sh" $git_dir
     [ $? -eq  0 ] || exit 1 # Exit if the matlab predictions failed
 

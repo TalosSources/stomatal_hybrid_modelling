@@ -295,12 +295,13 @@ A = A*fO; %% Gross Assimilation Rate [umolCO2/ s m^2 ]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 An = A - Rdark; % %% Net Assimilation Rate % [umolCO2/ s m^2 ]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-useFCN = true;
+rs_model_weights_path = "../../../../traced_models/iterative_training.onnx";
+useFCN = isfile(rs_model_weights_path);
 
 persistent model;
-if isempty(model)
+if isempty(model) && useFCN
     disp('Loading model...');
-    net = importNetworkFromONNX("../../../../traced_models/iterative_training.onnx"); % TODO: better file structure, more modularized/parametrized
+    net = importNetworkFromONNX(rs_model_weights_path); % TODO: better file structure, more modularized/parametrized
     X = dlarray(rand(7, 1), "CB");
     net = initialize(net, X);
     model = net;

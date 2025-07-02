@@ -16,13 +16,8 @@ And to perform the actual check, it would be more convenient to do it in python,
 Can be defined in terms of model weights convergence, or predictions convergence. It seems the former always has significant stochasticity even when training goes well, so latter might make more sense.
 
 # Roadmap
-~* add a better site support. Need to answer some questions:
-    1. do we train on all sites? a selection?
-    2. do we predict on all sites? a selection? makes sense to predict only on sites we use to train (otherwise we see no progress?)
-    3. do we evaluate on all sites?
-    In fact, we need, when we train in python, to use sites that were predicted using the most recent version of rs_model. Otherwise, we're not making the most progress we can. Then, to evaluate the progress, we need to evaluate on the same as well.
-    In fact, to hope to guarantee any progression, we need to fix the site list over the whole iterative training procedure.~
-* perhaps make the script more parametrizable-ed. For example, the rs model path in matlab shouldn't ideally be hard-coded
+* remove prints, make the training understandable
+* perhaps show some "convergence error" values, even a plot?
 
 ## Then
 * hyperparams again?
@@ -31,13 +26,13 @@ Can be defined in terms of model weights convergence, or predictions convergence
 * do the above (technical), and check everything works
 * ensure MAE is going down (otherwise a bit strange...)
 * select sites
-* In meeting, present the running pipeline. Find a way to run it (cluster? on my own computer? but takes a while. GPU?)
-* ask what results we want (what plots, what metrics, etc.). What do we have more using T&C? new variables can be plotted? or just more accurate results?
-* run the iterative training calibration
-* make some technical report with the outputs
 * clean the code and repo for Son
+    * an inference script? for T&C, that's quite automatic
     * refactor -> change/fix the t_and_c path, make sure everything is a parameter
     * write README, check requirements.txt is complete
+    * readme should be usable by Sara and Akash as well, so that they can make modifications, change sites etc., make plots and analysis.
+* check the installation and script works for a fresh system 
+* run the iterative training calibration with the chosen sites
 
 # Perf
 ## Knobs

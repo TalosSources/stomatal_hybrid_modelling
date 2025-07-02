@@ -24,4 +24,9 @@ Prerequisites must be installed, preferably in a python environment like conda:
 To run a configuration, e.g. ```best_model.yaml```, from the root of the repository, use command:
 ```python python/main.py best_model.yaml```
 
-
+# TODO:
+* create conda environment using requirements
+* where the T&C files are (need to download?)
+* say that they need to run once T&C with the base model ??
+* explain how to choose the files
+* explain how to run training (+ some infos about perf?)
