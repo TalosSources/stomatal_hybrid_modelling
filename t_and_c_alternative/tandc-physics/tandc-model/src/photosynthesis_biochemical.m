@@ -300,7 +300,7 @@ useFCN = true;
 persistent model;
 if isempty(model)
     disp('Loading model...');
-    net = importNetworkFromONNX("/home/talos/git_epfl/stomatal_hybrid_modelling/traced_models/iterative_training.onnx"); % TODO: better file structure, more modularized/parametrized
+    net = importNetworkFromONNX("../../../../traced_models/iterative_training.onnx"); % TODO: better file structure, more modularized/parametrized
     X = dlarray(rand(7, 1), "CB");
     net = initialize(net, X);
     model = net;

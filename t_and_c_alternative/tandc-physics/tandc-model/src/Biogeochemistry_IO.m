@@ -45,7 +45,7 @@ return
 function[DepN,DepP,DepK,FertN,FertP,FertK,ManF,N_Man,P_Man,K_Man,Lig_fr_Man]=Biogeochemistry_IP(Lat,Lon,HIST)
 %%%%%%%%%%%%%%
 %%%% External Inputs [gX/m2 day]
-load('/home/talos/git_epfl/stomatal_hybrid_modelling/t_and_c_alternative/Biogeo_Data/All_deposition_data.mat') % NOTE: needs to be changed. currently hardcoded
+load('../../../t_and_c_alternative/Biogeo_Data/All_deposition_data.mat');
 if HIST == 1 %%%% historical pre-industrial depositions
     DepN = griddata(LonN_Gl,LatN_Gl,Ndep1860',Lon,Lat,'nearest'); DepN=DepN/1000/365;
     DepP = interp2((LonP),(LatP),(DepP_hist'),Lon,Lat,'nearest'); DepP=DepP/1000/365;

@@ -2,6 +2,7 @@ import scipy.io
 import numpy as np
 import torch
 import os
+import csv
 
 """
 This module offers methods to load T&C matlab files res.mat and results.mat,
@@ -38,6 +39,21 @@ def load_pipeline_data_dict_from_all_sites(
     pred_base_path = os.path.expanduser(pred_base_path)
     obs_base_path = os.path.expanduser(obs_base_path)
     data = []
+
+    if "sites" not in config:
+        assert "sites_path" in config
+        with open(os.path.expanduser(config.sites_path), newline="") as sites_csv_file:
+            reader = csv.reader(sites_csv_file)
+            sites = []
+            first = True
+            for line in reader:
+                if first:
+                    first = False
+                    continue
+                else:
+                    sites.append(line[0])
+            config.sites = sites
+
     for site_name in config.sites:
         predictor_path = os.path.join(pred_base_path, f"Results_{site_name}.mat")
         observation_path = os.path.join(obs_base_path, f"Res_{site_name}.mat")
@@ -307,17 +323,21 @@ def key_mapping(keys, ctx="sun_H"):
 sun_h_map = {
     "Cc": "Ci_sunH",
     "IPAR": "PAR_sun_H_final",
+    # "IPAR": "PAR_sun_H",
     "Csl": "Ca",
     "ra": "ran_H_final",
+    # "ra": "ran_H",
     "rb": "rb_H",
     "Ts": "Ta",
     "Pre": "Pre",
     "Ds": "Ds",
     "Psi_L": "Psi_sun_H_final",
+    # "Psi_L": "Psi_sun_H",
     "Psi_sto_50": "Psi_sto_50_H",
     "Psi_sto_00": "Psi_sto_00_H",
     "CT": "CT_H",
     "Vmax": "Vmax_sun_H_final",
+    # "Vmax": "Vmax_sun_H",
     "Ha": "Ha_H",
     "FI": "FI_H",
     "Oa": "Oa",
@@ -335,6 +355,7 @@ sun_h_map = {
 sun_l_map = {
     "Cc": "Ci_sunL",
     "IPAR": "PAR_sun_L_final",
+    # "IPAR": "PAR_sun_L",
     "Csl": "Ca",
     "ra": "ran_L_final",
     "rb": "rb_L",
@@ -342,10 +363,12 @@ sun_l_map = {
     "Pre": "Pre",
     "Ds": "Ds",
     "Psi_L": "Psi_sun_L_final",
+    # "Psi_L": "Psi_sun_L",
     "Psi_sto_50": "Psi_sto_50_L",
     "Psi_sto_00": "Psi_sto_00_L",
     "CT": "CT_L",
     "Vmax": "Vmax_sun_L_final",
+    # "Vmax": "Vmax_sun_L",
     "Ha": "Ha_L",
     "FI": "FI_L",
     "Oa": "Oa",
@@ -363,6 +386,7 @@ sun_l_map = {
 shd_h_map = {
     "Cc": "Ci_shdH",
     "IPAR": "PAR_shd_H_final",
+    # "IPAR": "PAR_shd_H",
     "Csl": "Ca",
     "ra": "ran_H_final",
     "rb": "rb_H",
@@ -370,10 +394,12 @@ shd_h_map = {
     "Pre": "Pre",
     "Ds": "Ds",
     "Psi_L": "Psi_sun_H_final",
+    # "Psi_L": "Psi_sun_H",
     "Psi_sto_50": "Psi_sto_50_H",
     "Psi_sto_00": "Psi_sto_00_H",
     "CT": "CT_H",
     "Vmax": "Vmax_shd_H_final",
+    # "Vmax": "Vmax_shd_H",
     "Ha": "Ha_H",
     "FI": "FI_H",
     "Oa": "Oa",
@@ -391,6 +417,7 @@ shd_h_map = {
 shd_l_map = {
     "Cc": "Ci_shdL",
     "IPAR": "PAR_shd_L_final",
+    # "IPAR": "PAR_shd_L",
     "Csl": "Ca",
     "ra": "ran_L_final",
     "rb": "rb_L",
@@ -398,10 +425,12 @@ shd_l_map = {
     "Pre": "Pre",
     "Ds": "Ds",
     "Psi_L": "Psi_sun_L_final",
+    # "Psi_L": "Psi_sun_L",
     "Psi_sto_50": "Psi_sto_50_L",
     "Psi_sto_00": "Psi_sto_00_L",
     "CT": "CT_L",
     "Vmax": "Vmax_shd_L_final",
+    # "Vmax": "Vmax_shd_L",
     "Ha": "Ha_L",
     "FI": "FI_L",
     "Oa": "Oa",

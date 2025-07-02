@@ -7,20 +7,20 @@
 # Date: 29.05.2024
 #
 #
-#set -e
 
 # user defined configuration
-root_directory="/home/talos/git_epfl/stomatal_hybrid_modelling/t_and_c_alternative" # user-specific path: should be specified outside?
-physics_directory="$root_directory/tandc-physics"
+repo_root=$1
+tandc_root_directory=$repo_root"t_and_c_alternative" # user-specific path: should be specified outside?
+physics_directory="$tandc_root_directory/tandc-physics"
 directory_with_model="$physics_directory/tandc-model"
 directory_with_src="$directory_with_model/src"
-param_directory="$root_directory/tandc-calibrated-parameters/fatichi_final"
+param_directory="$tandc_root_directory/tandc-calibrated-parameters/fatichi_final"
 directory_with_mod_param="$param_directory/mod_param_files"
 directory_with_prova="$param_directory/prova_files"
-directory_with_input_mat="$root_directory/tandc-forcing"
-directory_with_output_mat="$root_directory/tandc-physics-output/fatichi_parameters_ismail"
-file_ca="$root_directory/CO2_Data/Ca_Data.mat"
-file_site_list="$physics_directory/site_tandc_fluxnet2015_ameriflux_final_v2_debug.csv" # TODO: Parameter?
+directory_with_input_mat="$tandc_root_directory/tandc-forcing"
+directory_with_output_mat="$tandc_root_directory/tandc-physics-output/fatichi_parameters_ismail"
+file_ca="$tandc_root_directory/CO2_Data/Ca_Data.mat"
+file_site_list="$physics_directory/site_tandc_fluxnet2015_ameriflux_final_v2_iterative_training_selection.csv" # TODO: Parameter?
 
 while IFS=, read -r siteid sitename mod_param_name prova_name lat lon elev igbp
 do

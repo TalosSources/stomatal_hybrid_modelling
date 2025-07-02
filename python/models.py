@@ -12,7 +12,6 @@ class FCN(torch.nn.Module):
         module_list = []
         for i in range(len(layers) - 1):
             module_list.append(torch.nn.Linear(layers[i], layers[i + 1], bias=True))
-            print(f"created linear layer with bias {module_list[-1].bias}")
             if (
                 i < len(layers) - 2
             ):  # don't apply activation and batchNorm after the last linear layer
