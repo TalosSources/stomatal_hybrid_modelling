@@ -7,9 +7,9 @@
 
 # git_dir="/home/talos/git_epfl/stomatal_hybrid_modelling/"
 git_dir=$PWD"/"
-t_and_c_dir=$git_dir"t_and_c_alternative/"
+t_and_c_dir=$git_dir"tandc/"
 t_and_c_physics_dir=$t_and_c_dir"tandc-physics/"
-results_dir=$t_and_c_dir"/tandc-physics-output/fatichi_parameters_ismail/"
+results_dir=$t_and_c_dir"/tandc-physics-output/tandc_outputs_for_python/"
 comparison_path=$git_dir"comparison_temp_dir/"
 mkdir $comparison_path -p
 
@@ -44,7 +44,7 @@ do
     # run T&C to generate predictions
     # cd $t_and_c_physics_dir
     # ./run_tandc_physics_fluxnet2015_ameriflux_debug.sh
-    ./t_and_c_alternative/tandc-physics/run_tandc_physics_fluxnet2015_ameriflux_debug.sh $git_dir
+    $t_and_c_physics_dir"run_tandc_physics_fluxnet2015_ameriflux_debug.sh" $git_dir
     [ $? -eq  0 ] || exit 1 # Exit if the matlab predictions failed
 
     # check stability condition

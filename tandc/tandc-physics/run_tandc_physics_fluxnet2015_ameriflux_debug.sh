@@ -10,7 +10,7 @@
 
 # user defined configuration
 repo_root=$1
-tandc_root_directory=$repo_root"t_and_c_alternative" # user-specific path: should be specified outside?
+tandc_root_directory=$repo_root"tandc" # user-specific path: should be specified outside?
 physics_directory="$tandc_root_directory/tandc-physics"
 directory_with_model="$physics_directory/tandc-model"
 directory_with_src="$directory_with_model/src"
@@ -18,7 +18,7 @@ param_directory="$tandc_root_directory/tandc-calibrated-parameters/fatichi_final
 directory_with_mod_param="$param_directory/mod_param_files"
 directory_with_prova="$param_directory/prova_files"
 directory_with_input_mat="$tandc_root_directory/tandc-forcing"
-directory_with_output_mat="$tandc_root_directory/tandc-physics-output/fatichi_parameters_ismail"
+directory_with_output_mat="$tandc_root_directory/tandc-physics-output/tandc_outputs_for_python"
 file_ca="$tandc_root_directory/CO2_Data/Ca_Data.mat"
 file_site_list="$physics_directory/site_tandc_fluxnet2015_ameriflux_final_v2_iterative_training_selection.csv" # TODO: Parameter?
 

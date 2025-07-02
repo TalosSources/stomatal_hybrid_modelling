@@ -6,9 +6,9 @@ model:
 
 data: # (does it need to be nested?)
     # sites : ["CH-Dav"]
-    sites_path: "t_and_c_alternative/tandc-physics/site_tandc_fluxnet2015_ameriflux_final_v2_iterative_training_selection.csv"
-    pred_base_path : "t_and_c_alternative/tandc-physics-output/fatichi_parameters_ismail"
-    obs_base_path: "t_and_c_alternative/tandc-forcing"
+    sites_path: "tandc/tandc-physics/site_tandc_fluxnet2015_ameriflux_final_v2_iterative_training_selection.csv"
+    pred_base_path : "tandc/tandc-physics-output/tandc_outputs_for_python"
+    obs_base_path: "tandc/tandc-forcing"
     nPoints : 100 # -> decide if we want to truncate, what to do in training?
     exclude_negative : True
 
