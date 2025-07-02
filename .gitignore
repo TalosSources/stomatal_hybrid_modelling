@@ -1,2 +1,5 @@
 wandb
 #*.pt # we may want to include them anyway
+
+comparison_temp_dir/
+traced_models/
