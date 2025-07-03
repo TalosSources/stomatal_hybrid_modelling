@@ -28,5 +28,6 @@ To run a configuration, e.g. ```best_model.yaml```, from the root of the reposit
 * create conda environment using requirements
 * where the T&C files are (need to download?)
 * say that they need to run once T&C with the base model ??
-* explain how to choose the files
+* explain how to choose the sites
 * explain how to run training (+ some infos about perf?)
+* explain again the .yaml (and some other stuff from python)

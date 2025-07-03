@@ -16,7 +16,7 @@ cc = 1; %% Crown area
 %%%%%%%%% METEO INPUT 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 id_location = 'Collelongo'; 
-load('E:\SIM_DISC\ARCHIVE\Università deposito II\Fluxnet Project\Fluxnet - Data\FLX_IT-Col_FLUXNET2015_SUBSET_1996-2014_1-3\Data_Collelongo_run.mat')
+load('E:\SIM_DISC\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Fluxnet - Data\FLX_IT-Col_FLUXNET2015_SUBSET_1996-2014_1-3\Data_Collelongo_run.mat')
 NN=length(Date);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 N=Latm; 
@@ -39,7 +39,7 @@ Ds=esat-ea; %% [Pa] Vapor Pressure Deficit
 Ds(Ds<0)=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 load('E:\SIM_DISC\DESKTOP_SF\Eco-Hydrology Patterns\CO2_Data\Ca_Data.mat');
-d1 = find(abs(Date_CO2-Date(1))<1/36);d2 = find(abs(Date_CO2-Date(end))<1/36);
+d1 = find(abs(Date_CO2-Date(1))<1/36, 1, 'first');d2 = find(abs(Date_CO2-Date(end))<1/36, 1, 'first');
 Ca=Ca(d1:d2); 
 clear d1 d2 Date_CO2 
 Oa= 210000;% Intercellular Partial Pressure Oxygen [umolO2/mol] -

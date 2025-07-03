@@ -41,7 +41,7 @@ Ds=esat-ea; %% [Pa] Vapor Pressure Deficit
 Ds(Ds<0)=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%
 load('_cadata_');
-d1 = find(abs(Date_CO2-Date(1))<1/36);d2 = find(abs(Date_CO2-Date(end))<1/36);
+d1 = find(abs(Date_CO2-Date(1))<1/36, 1, 'first');d2 = find(abs(Date_CO2-Date(end))<1/36, 1, 'first');
 Ca=Ca(d1:d2); 
 clear d1 d2 Date_CO2 
 Oa= 210000;% Intercellular Partial Pressure Oxygen [umolO2/mol] -
@@ -54,11 +54,11 @@ clear YE MO DA HO MI SE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %PARAM_IC = strcat(current_directory,'\MOD_PARAM_',id_location);
 %PARAM_IC = strcat(current_directory,'/MOD_PARAM_',id_location);
-PARAM_IC = '_modparam_'
+PARAM_IC = '_modparam_';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Directory = uigetdir('Window','Insert Directory Noname Package') ;
 Directory='_srccode_';
-cd(Directory)
+cd(Directory);
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 MAIN_FRAME;

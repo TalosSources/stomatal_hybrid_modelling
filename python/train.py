@@ -5,6 +5,8 @@ import random  # NOTE: could use a random method from np
 from omegaconf import OmegaConf
 import wandb
 
+from tqdm import tqdm
+
 from sklearn.model_selection import KFold, train_test_split
 
 import pipelines
@@ -39,7 +41,8 @@ def train_general(
     """
     losses = []
 
-    for i in range(epochs):
+    tqdm_obj = tqdm(range(epochs), desc="Loss=N/A")
+    for i in tqdm_obj:
         printIter = (i % print_every_iter) == 0
 
         # Reset the gradients
@@ -63,11 +66,7 @@ def train_general(
             continue
 
         losses.append(float(loss))
-        if printIter:
-            loss_average = np.array(losses[-print_every_iter:]).mean()
-            print(
-                f"Epoch {i}: loss={loss}, average of last {print_every_iter} losses: {loss_average}"
-            )
+        tqdm_obj.desc = f"Loss={loss.item()}"
 
         # compute the loss gradient
         loss.backward()

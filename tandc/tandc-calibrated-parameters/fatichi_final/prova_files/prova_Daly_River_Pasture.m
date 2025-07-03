@@ -16,8 +16,8 @@ cc = 1; %% Crown area
 %%%%%%%%% METEO INPUT 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 id_location = 'Daly_River_Pasture';  
-%load('C:\DD\ARCHIVE\Università deposito II\Fluxnet Project\Other_Sites\New_Sites\Data_Daly_River_Pasture_Run.mat')
-load('E:\SIM_DISC\ARCHIVE\Università deposito II\Fluxnet Project\Fluxnet - Data\FLX_AU-DaP_FLUXNET2015_FULLSET_2007-2013_2-3\Data_Daly_Pasture_run.mat')
+%load('C:\DD\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Other_Sites\New_Sites\Data_Daly_River_Pasture_Run.mat')
+load('E:\SIM_DISC\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Fluxnet - Data\FLX_AU-DaP_FLUXNET2015_FULLSET_2007-2013_2-3\Data_Daly_Pasture_run.mat')
 NN=length(Date);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 N=Latm; 
@@ -40,7 +40,7 @@ Ds=esat-ea; %% [Pa] Vapor Pressure Deficit
 Ds(Ds<0)=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 load('E:\SIM_DISC\DESKTOP_SF\Eco-Hydrology Patterns\CO2_Data\Ca_Data.mat');
-d1 = find(abs(Date_CO2-Date(1))<1/36);d2 = find(abs(Date_CO2-Date(end))<1/36);
+d1 = find(abs(Date_CO2-Date(1))<1/36, 1, 'first');d2 = find(abs(Date_CO2-Date(end))<1/36, 1, 'first');
 Ca=Ca(d1:d2); 
 clear d1 d2 Date_CO2 
 Oa= 210000;% Intercellular Partial Pressure Oxygen [umolO2/mol] -

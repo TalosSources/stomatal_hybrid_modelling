@@ -16,8 +16,8 @@ cc = 1; %% Crown area
 %%%%%%%%% METEO INPUT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 id_location = 'OENSINGEN1';
-%load('E:\SIM_DISC\ARCHIVE\Università deposito II\Fluxnet Project\Fluxnet_Swiss\SWISS_flux\Data_Oensingen1_run.mat')
-load('E:\SIM_DISC\ARCHIVE\Università deposito II\Fluxnet Project\Fluxnet - Data\FLX_CH-Oe1_FLUXNET2015_SUBSET_2002-2008_2-3\Data_Oensingen1_New_run.mat')
+%load('E:\SIM_DISC\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Fluxnet_Swiss\SWISS_flux\Data_Oensingen1_run.mat')
+load('E:\SIM_DISC\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Fluxnet - Data\FLX_CH-Oe1_FLUXNET2015_SUBSET_2002-2008_2-3\Data_Oensingen1_New_run.mat')
 NN=length(Date);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 N=Latm; 
@@ -41,7 +41,7 @@ Ds=esat-ea; %% [Pa] Vapor Pressure Deficit
 Ds(Ds<0)=0;
 %%%%%%%%%%%%%%%%%%%%%%%%% 330-380
 load('E:\SIM_DISC\DESKTOP_SF\Eco-Hydrology Patterns\CO2_Data\Ca_Data.mat');
-d1 = find(abs(Date_CO2-Date(1))<1/36);d2 = find(abs(Date_CO2-Date(end))<1/36);
+d1 = find(abs(Date_CO2-Date(1))<1/36, 1, 'first');d2 = find(abs(Date_CO2-Date(end))<1/36, 1, 'first');
 Ca=Ca(d1:d2); 
 clear d1 d2 Date_CO2 
 Oa= 210000;% Intercellular Partial Pressure Oxygen [umolO2/mol] -

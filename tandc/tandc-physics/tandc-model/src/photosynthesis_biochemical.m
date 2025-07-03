@@ -300,12 +300,13 @@ useFCN = isfile(rs_model_weights_path);
 
 persistent model;
 if isempty(model) && useFCN
-    disp('Loading model...');
+    % disp('Loading model...');
+    warning('off', 'nnet_cnn_onnx:onnx:UninitializedDlnet')
     net = importNetworkFromONNX(rs_model_weights_path); % TODO: better file structure, more modularized/parametrized
     X = dlarray(rand(7, 1), "CB");
     net = initialize(net, X);
     model = net;
-    disp('Finished loading model')
+    % disp('Finished loading model')
 end
 
 %%%%%% Ball-Woodrow-Berry --> Model  Dewar (2002) -- Correction Tuzet et al., 2003  

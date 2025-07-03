@@ -2,3 +2,4 @@ torch
 omegaconf
 wandb
 onnx
+tqdm

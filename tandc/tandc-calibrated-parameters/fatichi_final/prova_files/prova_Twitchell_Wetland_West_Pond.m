@@ -16,7 +16,7 @@ cc = 1; %% Crown area
 %%%%%%%%% METEO INPUT 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 id_location = 'Twitchell_Wetland_West_Pond'; 
-load('C:\DD\ARCHIVE\Università deposito II\Fluxnet Project\Fluxnet - Data\FLX_US-Tw1_FLUXNET2015_SUBSET_2012-2014_1-4\Data_Twitchell_Wetland_West_Pond_run.mat')
+load('C:\DD\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Fluxnet - Data\FLX_US-Tw1_FLUXNET2015_SUBSET_2012-2014_1-4\Data_Twitchell_Wetland_West_Pond_run.mat')
 NN=length(Date);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Wlev = 300 + Pr*0; % NaN*Pr;  %%% [mm] Wetland Water level series // determined by runoff 
@@ -41,7 +41,7 @@ Ds=esat-ea; %% [Pa] Vapor Pressure Deficit
 Ds(Ds<0)=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 load('C:\DD\DESKTOP_SF\Eco-Hydrology Patterns\CO2_Data\Ca_Data.mat');
-d1 = find(abs(Date_CO2-Date(1))<1/36);d2 = find(abs(Date_CO2-Date(end))<1/36);
+d1 = find(abs(Date_CO2-Date(1))<1/36, 1, 'first');d2 = find(abs(Date_CO2-Date(end))<1/36, 1, 'first');
 Ca=Ca(d1:d2); 
 clear d1 d2 Date_CO2 
 Oa= 210000;% Intercellular Partial Pressure Oxygen [umolO2/mol] -

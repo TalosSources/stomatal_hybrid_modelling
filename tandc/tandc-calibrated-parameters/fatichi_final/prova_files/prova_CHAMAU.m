@@ -16,8 +16,8 @@ cc = 1; %% Crown area
 %%%%%%%%% METEO INPUT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 id_location = 'CHAMAU';
-%load('E:\SIM_DISC\ARCHIVE\Università deposito II\Fluxnet Project\Fluxnet_Swiss\SWISS_flux\Data_Chamau_Run_2.mat')
-load('E:\SIM_DISC\ARCHIVE\Università deposito II\Fluxnet Project\Fluxnet - Data\FLX_CH-Cha_FLUXNET2015_SUBSET_2005-2014_2-3\Data_Chamau_New_run.mat')
+%load('E:\SIM_DISC\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Fluxnet_Swiss\SWISS_flux\Data_Chamau_Run_2.mat')
+load('E:\SIM_DISC\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Fluxnet - Data\FLX_CH-Cha_FLUXNET2015_SUBSET_2005-2014_2-3\Data_Chamau_New_run.mat')
 NN=length(Date);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 N=Latm; 
@@ -41,7 +41,7 @@ Ds=esat-ea; %% [Pa] Vapor Pressure Deficit
 Ds(Ds<0)=0;
 %%%%%%%%%%%%%%%%%%%%%%%%% 330-380
 load('E:\SIM_DISC\DESKTOP_SF\Eco-Hydrology Patterns\CO2_Data\Ca_Data.mat');
-d1 = find(abs(Date_CO2-Date(1))<1/36);d2 = find(abs(Date_CO2-Date(end))<1/36);
+d1 = find(abs(Date_CO2-Date(1))<1/36, 1, 'first');d2 = find(abs(Date_CO2-Date(end))<1/36, 1, 'first');
 Ca=Ca(d1:d2); 
 clear d1 d2 Date_CO2 
 %Ca=(380-330)/length(Date)*[1:length(Date)]+ 330; % [ppm]

@@ -16,7 +16,7 @@ cc = 1; %% Crown area
 %%%%%%%%% METEO INPUT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 id_location = 'Missouri_Ozark';
-load('C:\DD\ARCHIVE\Università deposito II\Fluxnet Project\Fluxnet - Data\AMF_US-MOz_BASE-BADM_11-5\Data_Missouri_Ozark_run')
+load('C:\DD\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Fluxnet - Data\AMF_US-MOz_BASE-BADM_11-5\Data_Missouri_Ozark_run')
 NN=length(Date);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 N=Latm; 
@@ -42,7 +42,7 @@ t_bef= 0.5; t_aft= 0.5;
 %%%%%%%%%%%%%%%%%%%%%%%%% 330-380
 %Ca = 375*ones(1,NN) ;%
 load('C:\DD\DESKTOP_SF\Eco-Hydrology Patterns\CO2_Data\Ca_Data.mat');
-d1 = find(abs(Date_CO2-Date(1))<1/36);d2 = find(abs(Date_CO2-Date(end))<1/36);
+d1 = find(abs(Date_CO2-Date(1))<1/36, 1, 'first');d2 = find(abs(Date_CO2-Date(end))<1/36, 1, 'first');
 Ca=Ca(d1:d2); 
 clear d1 d2 Date_CO2 
 Oa= 210000;% Intercellular Partial Pressure Oxygen [umolO2/mol] -

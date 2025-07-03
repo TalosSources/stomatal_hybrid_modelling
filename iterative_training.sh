@@ -14,13 +14,14 @@ comparison_sites_path=$t_and_c_physics_dir"/site_tandc_fluxnet2015_ameriflux_fin
 
 run_tandc_first=false # Set to true if you want to overwrite existing T&C outputs
 if [ "$run_tandc_first" = true ] || [ -z "$(find "$results_dir" -mindepth 1 -print -quit)" ]; then
-    echo "Initial run of T&C!"
+    echo "########## Initial run of T&C! ##########"
     $t_and_c_physics_dir"run_tandc_physics_fluxnet2015_ameriflux_debug.sh" $git_dir
     [ $? -eq  0 ] || exit 1 # Exit if the matlab predictions failed
+    echo "#########################################"
 fi
 
 
-echo "Starting iterative training!"
+echo "###### Starting iterative training! ######"
 
 max_iter=5 # stop iterative training after some time if no convergence 
 converged="false"
@@ -29,12 +30,18 @@ while [ $i -lt $max_iter -a "$converged" = "false" ];
 do
 
     i=$((i+1))
-    echo "iteration: "$i
+    echo
+    echo "==========ITERATION: "$i"=========="
+    echo
 
     # train an rs model
     cd $git_dir
+    echo "----- Learning the r_s model (using python) -----"
     python python/main.py "configs/iterative_training.yaml"
     [ $? -eq  0 ] || exit 1 # Exit if the python training failed
+    echo "-------------------------------------------------"
+    echo
+    echo
 
     # copy subset of old predictions elsewhere for future comparison
     while IFS=, read -r site_id sitename mod_param_name prova_name lat lon elev igbp
@@ -45,19 +52,28 @@ do
     done < <(tail -n +2 ${comparison_sites_path})
 
     # run T&C to generate predictions
+    echo "------Running T&C with the new r_s model (using matlab)------"
     $t_and_c_physics_dir"run_tandc_physics_fluxnet2015_ameriflux_debug.sh" $git_dir
     [ $? -eq  0 ] || exit 1 # Exit if the matlab predictions failed
+    echo "-------------------------------------------------------------"
+    echo
+    echo
 
     # check stability condition
     cd $git_dir
+    echo "--------------------Checking Convergence--------------------"
     converged=$(python check_convergence.py $results_dir $comparison_path $comparison_sites_path)
-    echo "converged="$converged
+    if [ $i -lt $max_iter -a "$converged" = "false" ]; then
+        echo "Didn't converge yet..."
+    fi
+    echo "------------------------------------------------------------"
+    echo
 done
 
 if [ "$converged" = "true" ]; then
-    echo "calibration converged! exiting..."
+    echo "################## calibration converged! exiting... ##################"
 else
-    echo "calibration did not converge after "$i" iterations. exiting..."
+    echo "################## calibration did not converge after "$i" iterations. exiting... ##################"
 fi
 
 # cleanup files

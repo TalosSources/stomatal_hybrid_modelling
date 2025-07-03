@@ -18,6 +18,7 @@ Can be defined in terms of model weights convergence, or predictions convergence
 # Roadmap
 * remove prints, make the training understandable
 * perhaps show some "convergence error" values, even a plot?
+* worry somewhat about some of the magic numbers (including convergence threshold)
 
 ## Then
 * hyperparams again?

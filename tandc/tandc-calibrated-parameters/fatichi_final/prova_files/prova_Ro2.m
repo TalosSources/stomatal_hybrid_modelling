@@ -16,7 +16,7 @@ cc = 1; %% Crown area
 %%%%%%%%% METEO INPUT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 id_location = 'Ro2'; 
-load('C:\DD\ARCHIVE\Università deposito II\Fluxnet Project\Fluxnet - Data\FLX_IT-Ro2_FLUXNET2015_SUBSET_2002-2012_1-3\Data_Roccarespampani2_run.mat')
+load('C:\DD\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Fluxnet - Data\FLX_IT-Ro2_FLUXNET2015_SUBSET_2002-2012_1-3\Data_Roccarespampani2_run.mat')
 NN=length(Date);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 N=Latm; 
@@ -40,7 +40,7 @@ Ds=esat-ea; %% [Pa] Vapor Pressure Deficit
 Ds(Ds<0)=0;
 %%%%%%%%%%%%%%%%%%%%%%%%% 330-380
 load('C:\DD\DESKTOP_SF\Eco-Hydrology Patterns\CO2_Data\Ca_Data.mat');
-d1 = find(abs(Date_CO2-Date(1))<1/36);d2 = find(abs(Date_CO2-Date(end))<1/36);
+d1 = find(abs(Date_CO2-Date(1))<1/36, 1, 'first');d2 = find(abs(Date_CO2-Date(end))<1/36, 1, 'first');
 Ca=Ca(d1:d2); 
 clear d1 d2 Date_CO2 
 %Ca = 375*ones(1,NN) ;%

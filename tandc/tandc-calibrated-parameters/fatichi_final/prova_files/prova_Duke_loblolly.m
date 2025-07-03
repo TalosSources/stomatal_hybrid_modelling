@@ -16,7 +16,7 @@ cc = 2; %% Crown area
 %%%%%%%%% METEO INPUT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 id_location = 'Duke_loblolly';
-load('E:\SIM_DISC\\ARCHIVE\Università deposito II\Fluxnet Project\Fluxnet - Data\Duke\Duke_loblolly_data_filled_AMERIFLUX.mat')
+load('E:\SIM_DISC\\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Fluxnet - Data\Duke\Duke_loblolly_data_filled_AMERIFLUX.mat')
 NN=length(Date);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 DeltaGMT=-5;
@@ -44,7 +44,7 @@ Ds(Ds<0)=0;
 %%%%%%%%%%%%%%%%%%%%%%%%% 330-380
 %Ca = 375*ones(1,NN) ;%%
 load('E:\SIM_DISC\\DESKTOP_SF\Eco-Hydrology Patterns\CO2_Data\Ca_Data.mat');
-d1 = find(abs(Date_CO2-Date(1))<1/36);d2 = find(abs(Date_CO2-Date(end))<1/36);
+d1 = find(abs(Date_CO2-Date(1))<1/36, 1, 'first');d2 = find(abs(Date_CO2-Date(end))<1/36, 1, 'first');
 Ca=Ca(d1:d2); 
 clear d1 d2 Date_CO2 
 %Ca=(383-365)/length(Date)*[1:length(Date)]+ 365; % [ppm]

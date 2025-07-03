@@ -11,11 +11,9 @@ prev_tandc_output_path = sys.argv[2]
 current_tandc_output_path = sys.argv[1]
 sites_csv_path = sys.argv[3]
 
-threshold = 1e-5  # NOTE: How to choose it?
+threshold = 1e-3  # NOTE: How to choose it?
 
 losses = []
-
-print(f"received args={sys.argv}", file=sys.stderr)
 
 # for test_site in test_sites:
 # result_file = f"Results_{test_site}.mat"
@@ -52,8 +50,11 @@ for site in sites:
     losses.append(loss_L)
 
 mean_loss = np.array(losses).mean()
-print(f"CHECKING CONVERGENCE: Found 'An' loss = {mean_loss}", file=sys.stderr)
 if mean_loss > threshold:
     print("false", sep="", end="", file=sys.stdout)
 else:
     print("true", sep="", end="", file=sys.stdout)
+print(
+    f"CHECKING CONVERGENCE: Found 'An' loss = {mean_loss}",
+    file=sys.stderr,
+)

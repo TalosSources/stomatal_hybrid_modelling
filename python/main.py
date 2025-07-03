@@ -16,7 +16,7 @@ import eval
 
 def train_and_eval_pipeline(config):
     pipeline_data = data.load_pipeline_data_dict_from_all_sites(
-        config.data, output_keys=["LE"], verbose=True
+        config.data, output_keys=["LE"], verbose=False
     )
 
     results_path = os.path.join("results", config.name)

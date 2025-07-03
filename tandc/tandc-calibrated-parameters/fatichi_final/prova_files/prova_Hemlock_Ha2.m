@@ -16,7 +16,7 @@ cc = 1; %% Crown area
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%
 id_location = 'Hemlock_Ha2';
-load('E:\SIM_DISC\ARCHIVE\Università deposito II\Fluxnet Project\Other_Sites\US_Hem\Data_Hemlock_run.mat')
+load('E:\SIM_DISC\ARCHIVE\Universitï¿½ deposito II\Fluxnet Project\Other_Sites\US_Hem\Data_Hemlock_run.mat')
 NN=length(Date);
 %%%%%%%%%%%%%%%%%%%
 %N=Latm; 
@@ -43,7 +43,7 @@ Ds(Ds<0)=0;%% [Pa] Vapor Pressure Deficit
 %%%%%%%%%%%%%%%%%%%%%%%%% 330-380
 %Ca=(393-355)/length(Date)*[1:length(Date)]+ 355; % [ppm]
 load('E:\SIM_DISC\DESKTOP_SF\Eco-Hydrology Patterns\CO2_Data\Ca_Data.mat');
-d1 = find(abs(Date_CO2-Date(1))<1/36);d2 = find(abs(Date_CO2-Date(end))<1/36);
+d1 = find(abs(Date_CO2-Date(1))<1/36, 1, 'first');d2 = find(abs(Date_CO2-Date(end))<1/36, 1, 'first');
 Ca=Ca(d1:d2); 
 clear d1 d2 Date_CO2 
 %Ca = 375*ones(1,NN) ;%

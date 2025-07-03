@@ -23,8 +23,6 @@ Vice=zeros(NN,ms); % Volume of frozen water stored in the soil layer
 Oice=zeros(NN,ms); %Frozen volumetric Water content
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 OF=zeros(NN,1); OS=zeros(NN,1); % Soil Moisture First Soil Layer 
-disp("Main frame: NN (iteration count is)");
-disp(NN);
 NN = 100; % TODO: Remove
 
 ZWT=zeros(NN,1);
@@ -247,7 +245,7 @@ end
 for i=2:NN
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if  (mod(i,1000) == 0) || (i == 2)
-        disp('Iter:'); disp(i);
+        fprintf("Iter: %d\n", i)
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     pdind = [max(1,i-24):i-1]; %% previous day indexes
