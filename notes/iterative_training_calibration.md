@@ -23,6 +23,7 @@ Can be defined in terms of model weights convergence, or predictions convergence
 
 ## Goal
 * select sites
+    * try, for temperature and humidity, to get all combinations of low-moderate-high for each. Yields 9 sites. Then if possible, try to get for each combination, a grassland and a forest. might not be possible (no forest in hot arid places :( ). At maximum, we have 18 sites to find.
 * clean the code and repo for Son DONE? need feedback from Akash, Sara and Son
     * an inference script? for T&C, that's quite automatic
     * refactor -> change/fix the t_and_c path, make sure everything is a parameter
