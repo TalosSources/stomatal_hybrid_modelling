@@ -7,7 +7,7 @@ model:
 data: # (does it need to be nested?)
     sites : ["CN-Du2", "US-Me2", "CH-Dav", "ES-Amo", "AU-Wac", "AU-Stp", "GF-Guy"]
     # base_path : "~/epfl/previous_semesters/ma3/semester_project/databases/T_C_PIPELINE_DATA/"
-    base_path : "~/git_epfl/stomatal_hybrid_modelling/tandc/tandc-physics-output/"
+    base_path : "tandc/tandc-physics-output/"
     nPoints : 50000 # -> decide if we want to truncate, what to do in training?
     exclude_negative : True
 

@@ -19,7 +19,6 @@ import plot
 import pipelines
 import models
 import data
-import differentiable_relations
 import eval
 
 import train
@@ -186,7 +185,7 @@ def generate_rs_slice_plots(rs_model):
         labels = ["Hybrid model (ours)", "Empirical model"]
         models_list = [wrapper, empirical_model]
 
-        path = os.path.join("figures", "rs_slices", f"combined_slices.png")
+        path = os.path.join("figures", "rs_slices", "combined_slices.png")
         plot.plot_univariate_slices_subplots(
             models_list,
             x_0s,
@@ -450,10 +449,11 @@ def generate_Q_LE_slice_plots(rs_model):
                         pred[k] = pred[k].expand(steps)
             return pip(p)
 
-        our_wrapper = lambda x, datapoint: wrapper(pipeline, x, datapoint)
-        empirical_wrapper = lambda x, datapoint: wrapper(
-            empirical_pipeline, x, datapoint
-        )
+        def our_wrapper(x, datapoint):
+            return wrapper(pipeline, x, datapoint)
+
+        def empirical_wrapper(x, datapoint):
+            return wrapper(empirical_pipeline, x, datapoint)
 
         idx_and_ranges = [
             [0, (820, 1020), "Pressure [Pa]"],  # Pre plot
@@ -465,7 +465,7 @@ def generate_Q_LE_slice_plots(rs_model):
         labels = ["Hybrid Model (ours)", "Empirical Model"]
         models_list = [our_wrapper, empirical_wrapper]
 
-        path = os.path.join("figures", "Q_LE_slices", f"combined_slices.png")
+        path = os.path.join("figures", "Q_LE_slices", "combined_slices.png")
         plot.plot_univariate_slices_subplots(
             models_list,
             x_0s,
@@ -497,7 +497,7 @@ def generate_scatter_plots(test_data, rs_model):
     models_list = [pipeline, empirical_pipeline]
     labels = ["Hybrid model", "Empirical model"]
 
-    path = os.path.join("figures", "scatter_plots", f"simple_best_model_scattering.png")
+    path = os.path.join("figures", "scatter_plots", "simple_best_model_scattering.png")
 
     with torch.no_grad():
         plot.fit_plot(
@@ -506,7 +506,7 @@ def generate_scatter_plots(test_data, rs_model):
             labels,
             path,
             plot_range=(0, 600),
-            unit=f"Q_LE [W/m²]",
+            unit="Q_LE [W/m²]",
             show=True,
         )
 

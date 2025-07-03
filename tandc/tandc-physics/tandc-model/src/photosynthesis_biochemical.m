@@ -317,14 +317,6 @@ if useFCN
     model_output = extractdata(model_output);
     rs_small = softplus(model_output); % 0 at -inf, ~x fo~ large x, analytic 
     rs = rs_small * 1e2;
-    % disp("Predictors:");
-    % disp(predictors);
-    % disp("model_output:");
-    % disp(model_output)
-    % disp("rs_small:");
-    % disp(rs_small)
-    % disp("output rs:");
-    % disp(rs)
     % Problem: since we predicted rs, we get it from a blackbox and can't
     % directly get the other desired outputs: Ccf, An, gsCO2. either we can
     % inverse their expression to obtain them from rs, or we can switch to

@@ -16,18 +16,14 @@ And to perform the actual check, it would be more convenient to do it in python,
 Can be defined in terms of model weights convergence, or predictions convergence. It seems the former always has significant stochasticity even when training goes well, so latter might make more sense.
 
 # Roadmap
-* remove prints, make the training understandable
-* perhaps show some "convergence error" values, even a plot?
 * worry somewhat about some of the magic numbers (including convergence threshold)
 
 ## Then
 * hyperparams again?
 
 ## Goal
-* do the above (technical), and check everything works
-* ensure MAE is going down (otherwise a bit strange...)
 * select sites
-* clean the code and repo for Son
+* clean the code and repo for Son DONE? need feedback from Akash, Sara and Son
     * an inference script? for T&C, that's quite automatic
     * refactor -> change/fix the t_and_c path, make sure everything is a parameter
     * write README, check requirements.txt is complete

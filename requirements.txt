@@ -3,3 +3,6 @@ omegaconf
 wandb
 onnx
 tqdm
+scikit-learn
+
+# Additionally, MATLAB is required

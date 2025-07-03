@@ -62,7 +62,7 @@ do
     # check stability condition
     cd $git_dir
     echo "--------------------Checking Convergence--------------------"
-    converged=$(python check_convergence.py $results_dir $comparison_path $comparison_sites_path)
+    converged=$(python python/check_convergence.py $results_dir $comparison_path $comparison_sites_path)
     if [ $i -lt $max_iter -a "$converged" = "false" ]; then
         echo "Didn't converge yet..."
     fi
