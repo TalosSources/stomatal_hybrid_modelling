@@ -47,3 +47,32 @@ Can be defined in terms of model weights convergence, or predictions convergence
 
 # General notes
 the script assumes that T&C was run before, with the modified final parameters. Perhaps, that should be mentioned somewhere, or the script should (offer the option to) run it before running python
+
+# sites
+* grass-cold-arid: CN-Dan (semiarid?), GL-ZaH
+* grass-cold-semiarid: CN-Du2, CN-Cng, CN-Sw2
+* grass-cold-humid: CH-Fru, IT-Mbo, IT-Tor, RU-Ha1 (semiarid?)
+* grass-temperate-arid: AU-Asm (warm, and perhaps forest)
+* grass-temperate-semiarid: IT-Noe (forest? humid?), US-Twt
+* grass-temperate-humid: CH-Cha/CH-Oe1/CH-Oe2 (cold?)
+* grass-hot-arid: SD-Dem (semiarid? forest?)
+* grass-hot-semiarid: CG-Tch (forest? humid?), SN-Dhr (arid?) AU-Dry/Stp/TTE?? (wet&dry)
+* grass-hot-humid: AU-DaP (tropical savanna, permanent wetland?), AU-DaS?
+* forest-cold-arid: US-Prr?
+* forest-cold-semiarid: FI-Sod? US-Ivo? US-Me2?
+* forest-cold-humid: BE-Vie, CA-Qfo, CH-Dav, CH-Lae (not best), other DE/DK, IT-Col, IT-Lav, IT-Ren
+* forest-temperate-arid: 
+* forest-temperate-semiarid: ES-Amo?? (grass? arid?)
+* forest-temperate-humid: AU-Wac, BE-Bra (semiarid?), CN-Din/CN-Qia (warm), IT-Cpz, IT-Ro2, IT-Sro, other DE
+* forest-hot-arid: probably impossible
+* forest-hot-semiarid: perhaps AU-Ade?
+* forest-hot-humid: GF-Guy, GH-Ank, PA-SPn, AU-DaS? AU-How? (those 2 might be semi-arid/savannas), ZM-Mon
+
+* wetlands: GL stuff, US-Ivo, US-Tw1 (good), SJ-Adv
+
+* NO INFO: ES-Amo, RU-Vrk, SJ-Adv, AR-Vir, AU-Ade, AU-Asm, AU-Dry, AU-Stp, AU-TTE, CN-Cng, CN-Ha2, CN-HaM, CN-Sw2, JP-MBF
+
+* needed and don't have:
+
+
+All humid combinations are covered, I have issues for arid/semiarid. Some sites are not clearly assigned (shrubs? e.g. ES-Amo), also arid/semiarid depends on temperature? I don't really view a 300mm in Canada the same as in Sudan.
