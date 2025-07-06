@@ -111,3 +111,5 @@ done < <(tail -n +2 ${file_site_list})
 # remove temporary files
 # echo "---- removing temporary files ----"
 rm -rf "${directory_with_model}/."* 2> /dev/null
+
+exit 0

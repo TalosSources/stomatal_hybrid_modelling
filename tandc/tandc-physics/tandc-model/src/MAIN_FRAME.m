@@ -23,7 +23,7 @@ Vice=zeros(NN,ms); % Volume of frozen water stored in the soil layer
 Oice=zeros(NN,ms); %Frozen volumetric Water content
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 OF=zeros(NN,1); OS=zeros(NN,1); % Soil Moisture First Soil Layer 
-NN = 100; % TODO: Remove
+% NN = 100; % Option to do few iterations for fast debugging
 
 ZWT=zeros(NN,1);
 Pr_sno=zeros(NN,1); Pr_liq=zeros(NN,1);

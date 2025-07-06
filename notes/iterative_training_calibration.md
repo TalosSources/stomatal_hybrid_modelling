@@ -39,7 +39,7 @@ Can be defined in terms of model weights convergence, or predictions convergence
 * sites count
 ## modified
 * removed the python part
-* changed iters and data size in python
+* changed iters, data and batch size in python
 * changed iters in matlab
 
 # Problems

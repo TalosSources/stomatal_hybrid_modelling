@@ -19,6 +19,7 @@ if [ "$run_tandc_first" = true ] || [ -z "$(find "$results_dir" -mindepth 1 -pri
     $t_and_c_physics_dir"run_tandc_physics_fluxnet2015_ameriflux_iterative_training.sh" $git_dir
     [ $? -eq  0 ] || exit 1 # Exit if the matlab predictions failed
     echo "#########################################"
+    echo
 fi
 
 
@@ -68,7 +69,7 @@ do
         echo "Didn't converge yet..."
     fi
     echo "------------------------------------------------------------"
-    echo
+    echo 
 done
 
 if [ "$converged" = "true" ]; then

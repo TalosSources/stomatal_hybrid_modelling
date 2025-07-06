@@ -4,5 +4,8 @@ wandb
 onnx
 tqdm
 scikit-learn
+numpy
+matplotlib
+
 
 # Additionally, MATLAB is required

@@ -37,6 +37,9 @@ The environment can be created with these commands:
 
 ```pip install -r requirements.txt```
 
+Additionnaly, matlab needs to be installed, and two add-ons must be installed: 
+* Deep Learning Toolbox
+* Deep Learning Toolbox Converter for ONNX Model Format
 
 ## Site choice
 To choose the sites to use in the calibration, the file ```tandc/tandc-physics/site_tandc_fluxnet2015_ameriflux_final_v2_iterative_training_selection.csv``` should be modified. 

@@ -9,7 +9,7 @@ data: # (does it need to be nested?)
     sites_path: "tandc/tandc-physics/site_tandc_fluxnet2015_ameriflux_final_v2_iterative_training_selection.csv"
     pred_base_path : "tandc/tandc-physics-output/tandc_outputs_for_python"
     obs_base_path: "tandc/tandc-forcing"
-    nPoints : 100 # -> decide if we want to truncate, what to do in training?
+    # nPoints : None # -> decide if we want to truncate, what to do in training?
     exclude_negative : True
 
 pipeline:
@@ -17,9 +17,9 @@ pipeline:
 
 train:
     lr: 4e-4
-    epochs: 200
+    epochs: 4000
     weight_decay: 1e-6
-    batch_size: 10
+    batch_size: 1000
     test_split: 0.2
     seed: 24 # Assuming the data loading doesn't change, this ensures the test_split will be the same.
     hp_tuning: False # If this is true, hyperparameters are expected to be arrays.
