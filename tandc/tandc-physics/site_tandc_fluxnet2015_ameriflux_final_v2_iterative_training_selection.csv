@@ -1,3 +1,17 @@
 SITE_ID,SITE_NAME,MOD_PARAM_FILE,PROVA_FILE,LOCATION_LAT,LOCATION_LONG,LOCATION_ELEV,IGBP
+CN-Dan,Dangxiong,Dangxiong,524_Dangxiong,30.4978,91.0664,4319,GRA
+CN-Du2,Duolun_grassland (D01),Duolun,521_Duolun,42.0467,116.2836,1320,GRA
+CH-Fru,Fruebuel,FRUEBUEL,409_Fruebuel,47.1158,8.5378,982,GRA
+AU-ASM,Alice Springs,AliceSprings,500_Alice_Springs,-22.283,133.249,607,SAV
+US-Twt,Twitchell Island,Twitchell_Island,506_Twitchell_Island,38.1087,-121.6531,-7,CRO
+CH-Cha,Chamau,CHAMAU,408_Chamau,47.2102,8.4104,393,GRA
+SD-Dem,Demokeya,Demokeya,515_Demokeya,13.2829,30.4783,500,SAV
+SN-Dhr,Dahra,Dahra,514_Dahra,15.4028,-15.4322,40,SAV
+AU-DaS,Daly River Cleared,Daly_River_Pasture,497_DalyPasture,-14.1593,131.3881,75,SAV
+US-Prr,Poker Flat Research Range Black Spruce Forest,US_Prr,542_US_Prr,65.1237,-147.4876,210,ENF
+US-Me2,Metolius mature ponderosa pine,Metolius,484_Metolius,44.4526,-121.5589,1253,ENF
 CH-Dav,Davos,DAVOS,414_Davos,46.8153,9.8559,1639,ENF
-AU-Stp,Sturt Plains,Sturt_Plain,493_Sturt_Plain,-17.1507,133.3502,224,GRA
+ES-Amo,Amoladeras,Amoladeras,474_Amoladeras,36.8336,-2.2523,58,OSH
+IT-Cpz,Castelporziano,Castelporziano,450_Castelporziano,41.7052,12.3761,68,EBF
+AU-Ade,Adelaide River,Adelaide_River,487_Adelaide_River,-13.0769,131.1178,76,WSA
+GF-Guy,Guyaflux (French Guiana),Guyflux,511_Guyflux,5.2788,-52.9249,48,EBF

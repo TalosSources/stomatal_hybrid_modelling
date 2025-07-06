@@ -11,7 +11,7 @@ prev_tandc_output_path = sys.argv[2]
 current_tandc_output_path = sys.argv[1]
 sites_csv_path = sys.argv[3]
 
-threshold = 1e-3  # NOTE: How to choose it?
+threshold = 1e-2  # NOTE: How to choose it?
 
 losses = []
 

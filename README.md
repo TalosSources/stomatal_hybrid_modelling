@@ -51,11 +51,5 @@ Then, T&C can be run as usual using the script ```tandc/tandc-physics/run_tandc_
 # Modified T&C
 In this project, we use a slightly modified version of the T&C sourcecode. Some small modifications are quality of life changes, but the main one is the use of the deep r_s model. In the file ```tandc/tandc-physics/tandc-model/src/photosynthesis_biochemical.m```, this is done starting at line 298, where the architecture and weights are loaded, if the weights path exists. Then, if that's the case, the model is used to compute r_s instead of the empirical one. This loading and inference code can be re-used to perform analyses and plots. The r_s model takes 7 predictors, which can be seen at line 315, and need to be rescaled first with specific scaling factors. Its output also need to be passed through the ```softplus``` function, and rescaled too. 
 
-
-<!-- # TODO:
-* where the T&C files are (need to download?) DONE
-* explain how to run training (+ some infos about perf?) DONE
-* create conda environment using requirements DONE
-* say that they need to run once T&C with the base model ?? DONE
-* explain how to choose the sites DONE
-* explain again the .yaml (and some other stuff from python) DONE -->
+# Provided run
+The repo comes with a site selection aiming to represent all possible combinations of cold/temperate/hot, arid/semi-arid/humid, and grassland/forest conditions. Since temperate/hot and arid forests don't really exist, 16 sites are used in total. The resulting traced models and outputs are available, with the large outputs being available on git LFS at path ```tandc/tandc-physics-output/tandc_outputs_for_python```.

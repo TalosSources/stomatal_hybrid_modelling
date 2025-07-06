@@ -76,3 +76,4 @@ the script assumes that T&C was run before, with the modified final parameters. 
 
 
 All humid combinations are covered, I have issues for arid/semiarid. Some sites are not clearly assigned (shrubs? e.g. ES-Amo), also arid/semiarid depends on temperature? I don't really view a 300mm in Canada the same as in Sudan.
+Final site choice is visible in file ```tandc/tandc-physics/site_tandc_fluxnet2015_ameriflux_final_v2_iterative_training_selection.csv```. I simply took the first site which corresponds well to the desired properties, except for forest-hot-arid which is probably impossible. All sites seem to work fine during inference and training.

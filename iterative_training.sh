@@ -15,7 +15,7 @@ comparison_sites_path=$t_and_c_physics_dir"/site_tandc_fluxnet2015_ameriflux_fin
 run_tandc_first=false # Set to true if you want to overwrite existing T&C outputs
 if [ "$run_tandc_first" = true ] || [ -z "$(find "$results_dir" -mindepth 1 -print -quit)" ]; then
     echo "########## Initial run of T&C! ##########"
-    $t_and_c_physics_dir"run_tandc_physics_fluxnet2015_ameriflux_debug.sh" $git_dir
+    $t_and_c_physics_dir"run_tandc_physics_fluxnet2015_ameriflux_iterative_training.sh" $git_dir
     [ $? -eq  0 ] || exit 1 # Exit if the matlab predictions failed
     echo "#########################################"
 fi
@@ -53,7 +53,7 @@ do
 
     # run T&C to generate predictions
     echo "------Running T&C with the new r_s model (using matlab)------"
-    $t_and_c_physics_dir"run_tandc_physics_fluxnet2015_ameriflux_debug.sh" $git_dir
+    $t_and_c_physics_dir"run_tandc_physics_fluxnet2015_ameriflux_iterative_training.sh" $git_dir
     [ $? -eq  0 ] || exit 1 # Exit if the matlab predictions failed
     echo "-------------------------------------------------------------"
     echo
