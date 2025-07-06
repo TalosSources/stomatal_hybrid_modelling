@@ -9,6 +9,7 @@ t_and_c_physics_dir=$t_and_c_dir"tandc-physics/"
 results_dir=$t_and_c_dir"/tandc-physics-output/tandc_outputs_for_python/"
 comparison_path=$git_dir"comparison_temp_dir/"
 mkdir $comparison_path -p
+mkdir $results_dir -p
 
 comparison_sites_path=$t_and_c_physics_dir"/site_tandc_fluxnet2015_ameriflux_final_v2_iterative_training_selection.csv"
 

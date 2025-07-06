@@ -1,7 +1,10 @@
 # Directories containing actual data: heavy volume
-tandc-forcing
 tandc-physics-output/tandc_outputs_for_python/*
 tandc-physics-output/tandc_outputs_for_python_backup
+
+tandc-physics/tandc-model/mod_param.m
+tandc-physics/tandc-model/prova.m
+
 
 # Matlab generated files: shouldn't be tracked
 *.bak

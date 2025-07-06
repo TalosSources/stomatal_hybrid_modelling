@@ -15,7 +15,7 @@ Contains the source code, inputs and outputs related to T&C.
 ### tandc-calibrated-parameters
 Contains the parameter files necessary to run T&C on many observation sites.
 ### tandc-forcing
-Should contain the observation data in ```.mat``` format, including "Data_..." and "Res_..." files.
+Should contain the observation data in ```.mat``` format, including "Data_..." and "Res_..." files. As the files are heavy, they're not in the git repo, so the user is responsible for adding observation data for all sites used.
 ### tandc-physics
 Contains the source code, running scripts, and files specifying sites to run.
 ### tandc-physics-output

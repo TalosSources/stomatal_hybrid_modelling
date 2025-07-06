@@ -3,3 +3,4 @@ wandb
 
 comparison_temp_dir/
 traced_models/
+*.DS_Store
