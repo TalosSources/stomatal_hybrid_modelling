@@ -27,8 +27,16 @@ Contains r_s models in the ```onnx``` format, readable by matlab.
 # How to run it
 Prerequisites must be installed, preferably in a python environment like conda.
 They are present in the ```requirements.txt``` file.
-The environment can be created with this command:
-```conda create --name stomatal --file requirements.txt```
+The environment can be created with these commands:
+
+```conda create --name stomatal```
+
+```conda activate stomatal```
+
+```conda install pip```
+
+```pip install -r requirements.txt```
+
 
 ## Site choice
 To choose the sites to use in the calibration, the file ```tandc/tandc-physics/site_tandc_fluxnet2015_ameriflux_final_v2_iterative_training_selection.csv``` should be modified. 
