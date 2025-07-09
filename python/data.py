@@ -62,7 +62,7 @@ def load_pipeline_data_dict_from_all_sites(
             predictor_path,
             observation_path,
             data,
-            config.nPoints,
+            config.get("nPoints"),
             predictor_keys=predictor_keys,
             constant_keys=constant_keys,
             output_keys=output_keys,
